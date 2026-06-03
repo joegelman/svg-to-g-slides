@@ -1,9 +1,17 @@
 *.pptx
 *.svg
 *.bmp
-# Ignore stray PNGs but keep the bundled icon
+# Ignore stray PNGs/SVGs but keep bundled assets
 *.png
+*.svg
 !assets/icon.png
+!cloud/static/*.png
+!cloud/static/*.svg
+
+# Local dev test files
+cloud/main_local.py
+cloud/drive_stub.py
+cloud/drive.py.bak
 __pycache__/
 *.pyc
 .DS_Store

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>svgslid.es</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32.png">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      max-width: 520px;
+      margin: 48px auto;
+      padding: 0 20px 48px;
+      font-family: system-ui, sans-serif;
+      font-size: 16px;
+      color: #111;
+    }
+
+    @media (max-width: 540px) {
+      body { margin-top: 24px; }
+    }
+
+    /* ── Header ─────────────────────────────────────── */
+
+    h1 { margin: 0 0 4px; font-size: 1.6rem; }
+    p.tagline { margin: 0 0 36px; color: #555; }
+
+    /* ── Labels ─────────────────────────────────────── */
+
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .hint { font-size: 0.85rem; color: #666; margin: 6px 0 20px; }
+
+    /* ── Drop zone ──────────────────────────────────── */
+
+    #dropzone {
+      border: 2px dashed #bbb;
+      border-radius: 6px;
+      padding: 36px 16px;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+      margin-bottom: 12px;
+      transition: border-color 0.15s, background 0.15s;
+      background: #fafafa;
+    }
+    #dropzone:hover {
+      border-color: #2563eb;
+      background: #eff6ff;
+    }
+    #dropzone.over {
+      border-color: #2563eb;
+      background: #dbeafe;
+    }
+    #dropzone input[type=file] {
+      position: absolute; inset: 0; opacity: 0; cursor: pointer;
+      width: 100%; height: 100%;
+    }
+    #dropzone .drop-icon { font-size: 2rem; line-height: 1; margin-bottom: 8px; }
+    #dropzone p { margin: 0; color: #555; font-size: 0.95rem; }
+    #dropzone strong { color: #2563eb; }
+
+    /* ── File list ──────────────────────────────────── */
+
+    #file-list { margin-bottom: 20px; }
+    .file-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 10px;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      transition: background 0.1s;
+    }
+    .file-row:hover { background: #f3f4f6; }
+    .file-row .fname { display: flex; align-items: center; gap: 8px; color: #333; }
+    .file-row button {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #aaa;
+      font-size: 1rem;
+      padding: 4px 6px;
+      border-radius: 4px;
+      line-height: 1;
+      transition: color 0.1s, background 0.1s;
+    }
+    .file-row button:hover { color: #dc2626; background: #fee2e2; }
+
+    /* ── Email input ────────────────────────────────── */
+
+    input[type=email] {
+      width: 100%;
+      font-size: 1rem;
+      padding: 9px 11px;
+      border: 1.5px solid #ccc;
+      border-radius: 5px;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      background: #fff;
+      color: #111;
+    }
+    input[type=email]:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+    }
+
+    /* ── Submit button ──────────────────────────────── */
+
+    button#submit {
+      width: 100%;
+      min-height: 44px;
+      padding: 10px 16px;
+      font-size: 1rem;
+      font-weight: 600;
+      margin-top: 20px;
+      cursor: pointer;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      transition: background 0.15s, opacity 0.15s;
+    }
+    button#submit:hover:not(:disabled) { background: #1d4ed8; }
+    button#submit:active:not(:disabled) { background: #1e40af; }
+    button#submit:disabled {
+      background: #e5e7eb;
+      color: #9ca3af;
+      cursor: not-allowed;
+    }
+
+    /* ── Status ─────────────────────────────────────── */
+
+    #status {
+      margin-top: 14px;
+      font-size: 0.9rem;
+      color: #555;
+      min-height: 1.4em;
+      text-align: center;
+    }
+    #status.error { color: #dc2626; }
+
+    /* ── Result ─────────────────────────────────────── */
+
+    #result {
+      display: none;
+      margin-top: 20px;
+      padding: 16px;
+      border: 1.5px solid #86efac;
+      border-radius: 6px;
+      background: #f0fdf4;
+    }
+    #result p { margin: 0 0 10px; font-size: 0.95rem; color: #166534; font-weight: 500; }
+    #result a {
+      display: inline-block;
+      background: #16a34a;
+      color: #fff;
+      text-decoration: none;
+      padding: 8px 16px;
+      border-radius: 5px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: background 0.15s;
+    }
+    #result a:hover { background: #15803d; }
+  </style>
+</head>
+<body>
+
+  <h1>svgslid.es</h1>
+  <p class="tagline">SVG files &rarr; editable vector shapes in Google Slides</p>
+
+  <label>SVG files</label>
+  <div id="dropzone">
+    <input type="file" id="file-input" accept=".svg" multiple>
+    <div class="drop-icon">&#128194;</div>
+    <p><strong>Drop files here</strong> or click to browse</p>
+  </div>
+  <div id="file-list"></div>
+
+  <label for="email">Google account <span style="font-weight:400; color:#666">(optional)</span></label>
+  <input type="email" id="email" placeholder="you@example.com">
+  <p class="hint">If provided, the file will be shared directly to this account.</p>
+
+  <button id="submit" disabled>Convert &rarr;</button>
+
+  <div id="status"></div>
+
+  <div id="result">
+    <p>&#10003;&nbsp; Done &mdash; your file is ready in Google Drive.</p>
+    <a id="result-link" href="#" target="_blank" rel="noopener">Open in Drive &#8599;</a>
+  </div>
+
+  <script>
+    const dropzone   = document.getElementById('dropzone');
+    const fileInput  = document.getElementById('file-input');
+    const fileList   = document.getElementById('file-list');
+    const emailInput = document.getElementById('email');
+    const submitBtn  = document.getElementById('submit');
+    const statusEl   = document.getElementById('status');
+    const resultEl   = document.getElementById('result');
+    const resultLink = document.getElementById('result-link');
+
+    let files = [];
+
+    function renderFiles() {
+      fileList.innerHTML = '';
+      files.forEach((f, i) => {
+        const row = document.createElement('div');
+        row.className = 'file-row';
+        row.innerHTML = `
+          <span class="fname">&#128196; ${f.name}</span>
+          <button data-i="${i}" title="Remove">&#10005;</button>`;
+        fileList.appendChild(row);
+      });
+      submitBtn.disabled = files.length === 0;
+    }
+
+    fileList.addEventListener('click', e => {
+      const btn = e.target.closest('button[data-i]');
+      if (btn) { files.splice(Number(btn.dataset.i), 1); renderFiles(); }
+    });
+
+    fileInput.addEventListener('change', () => {
+      files = [...files, ...[...fileInput.files].filter(f => f.name.endsWith('.svg'))];
+      fileInput.value = '';
+      renderFiles();
+    });
+
+    dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('over'); });
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('over'));
+    dropzone.addEventListener('drop', e => {
+      e.preventDefault();
+      dropzone.classList.remove('over');
+      files = [...files, ...[...e.dataTransfer.files].filter(f => f.name.endsWith('.svg'))];
+      renderFiles();
+    });
+
+    submitBtn.addEventListener('click', async () => {
+      if (!files.length) return;
+      submitBtn.disabled = true;
+      resultEl.style.display = 'none';
+      statusEl.className = '';
+      statusEl.textContent = 'Converting…';
+
+      const fd = new FormData();
+      files.forEach(f => fd.append('files', f));
+      fd.append('email', emailInput.value.trim());
+
+      try {
+        const res = await fetch('/convert', { method: 'POST', body: fd });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.detail || 'Server error');
+        statusEl.textContent = '';
+        resultLink.href = json.link;
+        resultEl.style.display = 'block';
+        files = [];
+        renderFiles();
+        emailInput.value = '';
+      } catch (err) {
+        statusEl.className = 'error';
+        statusEl.textContent = err.message;
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

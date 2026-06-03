@@ -308,12 +308,16 @@ def add_shapes(slide, paths, vb_x, vb_y, vb_w, vb_h):
 
 # ── Entry point ──────────────────────────────────────────────────────────────
 
-def convert(svg_files):
-    """Convert one or more SVG files into a single PPTX — one slide per SVG."""
+def convert(svg_files, out_dir=None):
+    """Convert one or more SVG files into a single PPTX — one slide per SVG.
+
+    Returns the Path of the written PPTX, or None on failure.
+    out_dir: directory for output file; defaults to alongside the first input.
+    """
     svg_files = [f for f in svg_files if Path(f).suffix.lower() == '.svg']
     if not svg_files:
         print('No .svg files provided.', file=sys.stderr)
-        return
+        return None
 
     prs = Presentation()
     prs.slide_width  = Emu(SLIDE_W)
@@ -331,14 +335,17 @@ def convert(svg_files):
         print(f'  + {p.name}')
 
     first = Path(svg_files[0])
-    base = first.with_suffix('.pptx') if len(svg_files) == 1 else first.parent / 'slides.pptx'
+    stem = first.stem if len(svg_files) == 1 else 'slides'
+    dest_dir = Path(out_dir) if out_dir else first.parent
+    base = dest_dir / f'{stem}.pptx'
     out = base
     n = 2
     while out.exists():
-        out = base.parent / f'{base.stem} {n}{base.suffix}'
+        out = dest_dir / f'{stem} {n}.pptx'
         n += 1
     prs.save(str(out))
     print(f'✓ {out}')
+    return out
 
 if __name__ == '__main__':
     if len(sys.argv) < 2:
