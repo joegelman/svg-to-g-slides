@@ -1,18 +1,18 @@
 steps:
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-f', 'cloud/Dockerfile', '-t', '$_IMAGE', '.']
+    args: ['build', '-f', 'cloud/Dockerfile', '-t', 'us-central1-docker.pkg.dev/svgslides-prod/svg-to-slides/svg-to-slides', '.']
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', '$_IMAGE']
+    args: ['push', 'us-central1-docker.pkg.dev/svgslides-prod/svg-to-slides/svg-to-slides']
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     args:
       - gcloud
       - run
       - deploy
       - svg-to-slides
-      - --image=$_IMAGE
+      - --image=us-central1-docker.pkg.dev/svgslides-prod/svg-to-slides/svg-to-slides
       - --region=us-central1
-      - --project=$PROJECT_ID
+      - --project=svgslides-prod
 images:
-  - '$_IMAGE'
+  - 'us-central1-docker.pkg.dev/svgslides-prod/svg-to-slides/svg-to-slides'
 options:
   logging: CLOUD_LOGGING_ONLY
