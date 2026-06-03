@@ -1,9 +1,8 @@
 """Google Drive upload + sharing for the cloud converter service."""
-import json
 import os
 from pathlib import Path
 
-from google.oauth2 import service_account
+import google.auth
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 
@@ -12,11 +11,8 @@ MIME_PPTX = "application/vnd.openxmlformats-officedocument.presentationml.presen
 
 
 def _service():
-    raw = os.environ.get("GOOGLE_SA_JSON")
-    if not raw:
-        raise RuntimeError("GOOGLE_SA_JSON env var not set")
-    info = json.loads(raw)
-    creds = service_account.Credentials.from_service_account_info(info, scopes=SCOPES)
+    # On Cloud Run the attached service account provides credentials automatically.
+    creds, _ = google.auth.default(scopes=SCOPES)
     return build("drive", "v3", credentials=creds, cache_discovery=False)
 
 
