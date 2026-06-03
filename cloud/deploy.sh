@@ -9,7 +9,6 @@
 set -euo pipefail
 
 # ── Config — edit these ────────────────────────────────────────────────────────
-PROJECT_ID="svgslides-prod"          # e.g. "svg-to-slides-prod"  — leave blank to create new
 PROJECT_ID="svgslides-prod"
 REGION="us-central1"
 SERVICE_NAME="svg-to-slides"
@@ -73,11 +72,11 @@ echo "=== 6. Build and deploy to Cloud Run ==="
 # Build from repo root using cloudbuild.yaml (Dockerfile is in cloud/)
 gcloud builds submit . \
   --config "cloudbuild.yaml" \
-  --substitutions "_IMAGE=gcr.io/$PROJECT_ID/$SERVICE_NAME" \
+  --substitutions "_IMAGE=us-central1-docker.pkg.dev/$PROJECT_ID/svg-to-slides/$SERVICE_NAME" \
   --project "$PROJECT_ID"
 
 gcloud run deploy "$SERVICE_NAME" \
-  --image "gcr.io/$PROJECT_ID/$SERVICE_NAME" \
+  --image "us-central1-docker.pkg.dev/$PROJECT_ID/svg-to-slides/$SERVICE_NAME" \
   --region "$REGION" \
   --platform managed \
   --allow-unauthenticated \
