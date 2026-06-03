@@ -28,7 +28,8 @@ def upload_and_share(pptx_path: Path, email: str | None = None) -> str:
     media = MediaFileUpload(str(pptx_path), mimetype=MIME_PPTX, resumable=False)
     file = (
         svc.files()
-        .create(body=meta, media_body=media, fields="id,webViewLink")
+        .create(body=meta, media_body=media, fields="id,webViewLink",
+                supportsAllDrives=True)
         .execute()
     )
     file_id = file["id"]
@@ -38,6 +39,7 @@ def upload_and_share(pptx_path: Path, email: str | None = None) -> str:
         fileId=file_id,
         body={"type": "anyone", "role": "reader"},
         sendNotificationEmail=False,
+        supportsAllDrives=True,
     ).execute()
 
     # Also notify/share to a specific account if provided
@@ -46,6 +48,7 @@ def upload_and_share(pptx_path: Path, email: str | None = None) -> str:
             fileId=file_id,
             body={"type": "user", "role": "writer", "emailAddress": email.strip()},
             sendNotificationEmail=True,
+            supportsAllDrives=True,
         ).execute()
 
     return file["webViewLink"]
