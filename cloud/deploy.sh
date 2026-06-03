@@ -70,10 +70,10 @@ read -rp "  Paste FOLDER_ID here: " FOLDER_ID
 
 echo ""
 echo "=== 6. Build and deploy to Cloud Run ==="
-# Build from repo root (so COPY paths resolve) with Dockerfile in cloud/
+# Build from repo root using cloudbuild.yaml (Dockerfile is in cloud/)
 gcloud builds submit . \
-  --tag "gcr.io/$PROJECT_ID/$SERVICE_NAME" \
-  --dockerfile "cloud/Dockerfile" \
+  --config "cloudbuild.yaml" \
+  --substitutions "_IMAGE=gcr.io/$PROJECT_ID/$SERVICE_NAME" \
   --project "$PROJECT_ID"
 
 gcloud run deploy "$SERVICE_NAME" \
