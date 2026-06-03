@@ -1,61 +1,48 @@
 ![svg-to-slides_icon](https://github.com/joegelman/svg-to-g-slides/blob/main/assets/icon_desc.png)
-# svg-to-slides
+# svg-to-g-slides
 
-Convert SVG files to editable vector shapes for use in Google Slides.
+Convert SVG files to editable vector shapes in Google Slides.
 
-**github.com/joegelman/svg-to-slides** · glmn.co
-
----
-
-## SYNOPSIS
-
-```
-Install.command          # first-time setup, double-click in Finder
-svg_to_slides.py FILE [FILE ...]
-png_to_svg.sh FILE [FILE ...]
-```
+**svgslid.es** · github.com/joegelman/svg-to-g-slides · built by Joe Gelman
 
 ---
 
-## DESCRIPTION
+## WEB APP
 
-`svg_to_slides.py` reads one or more SVG files and writes a PPTX where each converted SVG occupies one slide. Every `<path>` element becomes a discrete DrawingML `<a:custGeom>` shape with a tight bounding box — individually selectable and editable after import into Google Slides.
+**svgslid.es** — drop SVGs in a browser, get a Google Drive link back. No install, no OAuth, no API keys.
 
-A launchd agent polls a drop folder every 5 seconds. SVGs placed there are converted and the resulting PPTX is moved into Google Drive automatically.
-
-`png_to_svg.sh` traces dark pixels in a PNG to SVG paths via ImageMagick and potrace.
+Every `<path>` in your SVG becomes a discrete, selectable DrawingML shape in Slides. Upload one or multiple SVGs; each becomes one slide in the output PPTX. Optionally provide a Google account email and the file is shared directly to that account.
 
 ---
 
-## INSTALL
+## HOW IT WORKS
 
-Double-click `Install.command`. Terminal opens, runs setup, closes.
+1. Upload one or more `.svg` files via the web interface
+2. The server converts each SVG to a PPTX slide — every path element becomes an individually editable `<a:custGeom>` vector shape
+3. The PPTX is uploaded to a shared Google Drive folder
+4. A shareable "anyone with the link" Drive link is returned instantly
+5. Open the link → File → Save to Drive → File → Make a copy to edit as a native Slides file
+
+---
+
+## COMMAND LINE (local)
 
 ```sh
-git clone https://github.com/joegelman/svg-to-slides.git
-cd svg-to-slides
+git clone https://github.com/joegelman/svg-to-g-slides.git
+cd svg-to-g-slides
 ./install.sh
 ```
 
-What it does:
-
+**Install does:**
 - Installs `python-pptx` and `lxml` to `~/.local/share/svg-to-slides/lib/`
 - Copies scripts to `~/.local/bin/`
 - Detects Google Drive and creates `…/My Drive/SVG to Slides/`
-- Creates the drop folder and loads the launchd agent
+- Creates a drop folder and loads a launchd agent (polls every 5s)
 - Adds a Desktop alias pointing at the drop folder
 
-**Dependencies:** Python 3, pip3 (Xcode CLT). For PNG tracing: `brew install imagemagick potrace`. ***Google Drive for Desktop installed** and logged in on your machine.*
+**Dependencies:** Python 3, pip3 (Xcode CLT). For PNG tracing: `brew install imagemagick potrace`. Google Drive for Desktop installed and signed in.
 
----
-
-## USAGE
-
-**Drop zone**
-
-Drag `.svg` files onto **SVG to Slides Drop** on the Desktop. A `slides.pptx` appears in the configured Drive folder within 10 seconds. Enable *Convert uploads* in Google Drive settings to auto-convert to a native Slides file.
-
-**Command line**
+**Usage:**
 
 ```sh
 svg_to_slides.py a.svg b.svg c.svg
@@ -65,37 +52,44 @@ png_to_svg.sh icons/*.png
 # → ../svgs/<name>.svg relative to each input
 ```
 
-**Finder Quick Action (optional)**
-
-Automator → Quick Action → Run Shell Script → pass input as arguments:
-
-```sh
-python3 ~/.local/bin/svg_to_slides.py "$@"
-```
-
-Save as `Convert SVG to PPTX`. Appears in right-click → Quick Actions.
+**Drop zone:** Drag `.svg` files onto **SVG to Slides Drop** on the Desktop. Output appears in the configured Drive folder within 10 seconds.
 
 ---
 
-## CONFIGURATION
+## CLOUD DEPLOY
 
-`~/.config/svg-to-slides.conf` — sourced by the watcher on each poll.
-
-```sh
-DROP_DIR="$HOME/Library/Application Support/svg-to-slides-drop"
-DRIVE_DIR="$HOME/Library/CloudStorage/GoogleDrive-you@example.com/My Drive/SVG to Slides"
-```
-
-Reload after changes:
+The web app runs on Google Cloud Run. See `cloud/deploy.sh` for the full setup script.
 
 ```sh
-launchctl unload ~/Library/LaunchAgents/com.$USER.svg-to-slides.plist
-launchctl load   ~/Library/LaunchAgents/com.$USER.svg-to-slides.plist
+bash cloud/deploy.sh
 ```
+
+**Stack:** FastAPI · Python · Google Drive API (Shared Drive) · Cloud Run · Workload Identity
+
+**Redeploy after changes:**
+
+```sh
+git add -A && git commit -m "your message" && git push
+```
+
+Pushes to `main` auto-deploy via Cloud Build trigger.
 
 ---
 
-## FILES
+## CLOUD FILES
+
+| Path | |
+|---|---|
+| `cloud/main.py` | FastAPI app, `/convert` endpoint |
+| `cloud/drive.py` | Drive upload + sharing |
+| `cloud/static/index.html` | Frontend |
+| `cloud/Dockerfile` | Container definition |
+| `cloud/deploy.sh` | GCP setup + deploy script |
+| `cloudbuild.yaml` | Cloud Build config |
+
+---
+
+## LOCAL FILES
 
 | Path | |
 |---|---|
@@ -109,32 +103,13 @@ launchctl load   ~/Library/LaunchAgents/com.$USER.svg-to-slides.plist
 
 ---
 
-## DIAGNOSTICS
-
-```sh
-tail -f /tmp/svg-to-slides.log
-/bin/sh ~/Library/Scripts/svg_to_slides_watch.sh   # manual trigger
-```
-
----
-
-## UNINSTALL
-
-```sh
-./uninstall.sh
-```
-
-Leaves `svg-to-slides-drop/` and `svg-to-slides.conf` in place. Remove manually if desired.
-
----
-
 ## NOTES
+
+Arc commands (`A`/`a`) in SVG paths fall back to straight lines. Re-export with more path segments if arcs appear angular.
 
 Folder Actions and `WatchPaths` are silently broken on macOS Sequoia. `StartInterval` polling is used instead.
 
-macOS TCC blocks launchd from reading `~/Documents`, `~/Desktop`, and `~/Library/CloudStorage`. The drop folder lives in `~/Library/Application Support/` where launchd has access. The watcher writes PPTX output to Drive via `mv`; **write access to CloudStorage is permitted even when read is blocked.**
-
-Arc commands (`A`/`a`) in SVG paths fall back to straight lines. Re-export with more path segments if arcs appear angular.
+macOS TCC blocks launchd from reading `~/Documents`, `~/Desktop`, and `~/Library/CloudStorage`. The drop folder lives in `~/Library/Application Support/` where launchd has access.
 
 ---
 

@@ -135,6 +135,69 @@
 
     /* ── Status ─────────────────────────────────────── */
 
+    /* ── Help button + popover ──────────────────────── */
+
+    .help-btn {
+      background: none;
+      border: 1.5px solid #ccc;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #666;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0;
+      vertical-align: middle;
+      transition: border-color 0.15s, color 0.15s;
+    }
+    .help-btn:hover { border-color: #2563eb; color: #2563eb; }
+
+    .popover-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.3);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .popover-overlay.open { display: flex; }
+
+    .popover {
+      background: #fff;
+      border: 1.5px solid #ddd;
+      border-radius: 8px;
+      max-width: 460px;
+      width: 100%;
+      padding: 24px;
+      position: relative;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    }
+    .popover h2 { font-size: 1.1rem; margin: 0 0 16px; }
+    .popover ol { padding-left: 20px; margin: 0 0 16px; }
+    .popover li { margin-bottom: 8px; font-size: 0.9rem; line-height: 1.5; color: #333; }
+    .popover .note { font-size: 0.8rem; color: #666; border-top: 1px solid #eee; padding-top: 12px; margin: 0; }
+    .popover-close {
+      position: absolute;
+      top: 12px; right: 14px;
+      background: none; border: none;
+      font-size: 1.2rem; cursor: pointer;
+      color: #999; line-height: 1;
+    }
+    .popover-close:hover { color: #000; }
+
+    /* ── Footer ─────────────────────────────────────── */
+
+    .footer {
+      margin-top: 24px;
+      font-size: 0.8rem;
+      color: #aaa;
+      text-align: center;
+    }
+
     #status {
       margin-top: 14px;
       font-size: 0.9rem;
@@ -171,8 +234,27 @@
 </head>
 <body>
 
-  <h1>svgslid.es</h1>
+  <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:4px;">
+    <h1 style="margin:0">svgslid.es</h1>
+    <button class="help-btn" id="help-btn" title="How it works">?</button>
+  </div>
   <p class="tagline">SVG files &rarr; editable vector shapes in Google Slides</p>
+
+  <div class="popover-overlay" id="popover-overlay">
+    <div class="popover">
+      <button class="popover-close" id="popover-close">&times;</button>
+      <h2>How it works</h2>
+      <ol>
+        <li>Upload one or more <strong>.svg</strong> files using the drop zone or file browser.</li>
+        <li>Every <code>&lt;path&gt;</code> element in your SVG is converted to a discrete, individually selectable vector shape in Google Slides — not a flattened image.</li>
+        <li>Each SVG becomes one slide in the output file.</li>
+        <li>The resulting PPTX is uploaded to Google Drive and a shareable link is returned.</li>
+        <li>Open the link in Drive &rarr; <strong>File &rarr; Save to Drive</strong> &rarr; <strong>File &rarr; Make a copy</strong> to get a fully editable native Slides file.</li>
+        <li>If you enter a Google account email, the file is shared directly to that account so it appears in your Drive.</li>
+      </ol>
+      <p class="note"><strong>Note:</strong> Arc commands (A/a) in SVG paths are approximated as straight lines. Re-export with more path segments if curves appear angular.</p>
+    </div>
+  </div>
 
   <label>SVG files</label>
   <div id="dropzone">
@@ -195,7 +277,14 @@
     <a id="result-link" href="#" target="_blank" rel="noopener">Open in Drive &#8599;</a>
   </div>
 
+  <div class="footer">Built by Joe Gelman &middot; 2026</div>
+
   <script>
+    const overlay    = document.getElementById('popover-overlay');
+    document.getElementById('help-btn').addEventListener('click', () => overlay.classList.add('open'));
+    document.getElementById('popover-close').addEventListener('click', () => overlay.classList.remove('open'));
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
+
     const dropzone   = document.getElementById('dropzone');
     const fileInput  = document.getElementById('file-input');
     const fileList   = document.getElementById('file-list');
