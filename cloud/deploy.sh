@@ -8,7 +8,7 @@
 set -euo pipefail
 
 # ── Config — edit these ────────────────────────────────────────────────────────
-PROJECT_ID=""          # e.g. "svg-to-slides-prod"  — leave blank to create new
+PROJECT_ID="svgslides-prod"          # e.g. "svg-to-slides-prod"  — leave blank to create new
 REGION="us-central1"
 SERVICE_NAME="svg-to-slides"
 SA_NAME="svg-to-slides-sa"
