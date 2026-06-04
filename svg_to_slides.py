@@ -143,6 +143,9 @@ def resolve_fill_stroke(el, gradients, inh_fill):
         sw = float(re.sub(r'[^\d.]', '', sw_raw)) if sw_raw else 0.0
     except ValueError:
         sw = 0.0
+    # SVG default stroke-width is 1 when stroke is present but width unspecified
+    if stroke_hex and sw_raw is None:
+        sw = 1.0
 
     return fill_hex, stroke_hex, sw
 
@@ -623,7 +626,8 @@ def collect(el, acc_xfm=None, inh_fill='000000', gradients=None, vb=None):
     ident = lambda x,y: (x,y)
 
     fill_hex, stroke_hex, stroke_width = resolve_fill_stroke(el, gradients, inh_fill)
-    next_inh = fill_hex if fill_hex is not None else inh_fill
+    # Propagate fill_hex as-is: None means "no fill" and must override the parent color
+    next_inh = fill_hex
 
     tag = _tag(el)
     if tag in SHAPE_TAGS:
