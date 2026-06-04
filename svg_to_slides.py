@@ -179,6 +179,8 @@ def resolve_fill_stroke(el, gradients, inh_fill):
         m = re.match(r'url\(#([^)]+)\)', fill_raw)
         fill_hex = gradients.get(m.group(1)) if m else None
         if fill_hex is None: fill_hex = inh_fill
+    elif fill_raw and fill_raw.lower().strip() == 'currentcolor':
+        fill_hex = inh_fill  # currentColor inherits the current color value
     elif fill_raw:
         fill_hex = parse_color(fill_raw)
     else:
@@ -913,14 +915,30 @@ def add_shapes(slide, paths, vb_x, vb_y, vb_w, vb_h):
 
 # ── Entry point ──────────────────────────────────────────────────────────────
 
+def _needs_inkscape(svg_path: Path) -> bool:
+    """Return True only if the SVG contains text or visibly stroked paths."""
+    try:
+        content = svg_path.read_text(errors='replace')
+        # Text elements
+        if re.search(r'<text[\s>]|<tspan[\s>]', content):
+            return True
+        # Explicit stroke that isn't 'none'
+        if re.search(r'stroke\s*[=:]\s*["\']?(?!none)', content):
+            return True
+    except Exception:
+        pass
+    return False
+
 def _inkscape_normalize(svg_path: Path) -> Path:
     """
-    Use Inkscape to preprocess an SVG: converts stroked objects to filled
-    outline paths (stroke-to-path) before our converter runs.
-    Returns path to the normalized SVG, or the original if Inkscape is unavailable.
+    Use Inkscape to preprocess an SVG when it contains text or stroked paths.
+    Skipped entirely for fill-only SVGs to avoid Inkscape mangling clean icons.
+    Returns path to the normalized SVG, or the original if skipped/unavailable.
     """
     import shutil, subprocess
     if not shutil.which('inkscape'):
+        return svg_path
+    if not _needs_inkscape(svg_path):
         return svg_path
     out = svg_path.with_suffix('.inkscape_normalized.svg')
     try:
