@@ -591,6 +591,9 @@ def stroke_to_outline(d, stroke_width):
 # ── SVG tree traversal ───────────────────────────────────────────────────────
 
 SHAPE_TAGS = {'path','rect','circle','ellipse','polygon','polyline','line'}
+# Elements whose subtrees define resources, not rendered geometry
+SKIP_TAGS  = {'defs','clipPath','mask','symbol','pattern',
+              'linearGradient','radialGradient','filter','style','script'}
 
 def _is_background_rect(el, vb_x, vb_y, vb_w, vb_h):
     """True if this rect covers the full viewBox — a canvas background, not content."""
@@ -610,6 +613,10 @@ def _is_background_rect(el, vb_x, vb_y, vb_w, vb_h):
 def collect(el, acc_xfm=None, inh_fill='000000', gradients=None, vb=None):
     """Yield (d, transform_fn, fill_hex) for every shape in the SVG tree."""
     if gradients is None: gradients = {}
+
+    # Don't traverse into definitional/non-rendering subtrees
+    if _tag(el) in SKIP_TAGS:
+        return
 
     local_xfm = parse_transform(el.get('transform',''))
     xfm = chain(acc_xfm, local_xfm)
