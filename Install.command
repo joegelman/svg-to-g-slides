@@ -42,6 +42,21 @@ if ! command -v pip3 >/dev/null 2>&1; then
   exit 1
 fi
 
+# ── Inkscape (for text outlining and stroke-to-path) ──────────────────────────
+
+if command -v inkscape >/dev/null 2>&1; then
+  echo "✓ Inkscape already installed"
+elif command -v brew >/dev/null 2>&1; then
+  echo "Installing Inkscape via Homebrew (this may take a few minutes)..."
+  brew install --cask inkscape
+  echo "✓ Inkscape installed"
+else
+  echo "⚠ Inkscape not found and Homebrew is not installed."
+  echo "  Text in SVGs will be skipped during conversion."
+  echo "  To add text support, install Homebrew then run:"
+  echo "    brew install --cask inkscape"
+fi
+
 # ── Python deps (local install — no sudo, no --break-system-packages) ─────────
 
 echo "Installing Python dependencies..."
