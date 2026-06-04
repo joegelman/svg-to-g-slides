@@ -592,7 +592,22 @@ def stroke_to_outline(d, stroke_width):
 
 SHAPE_TAGS = {'path','rect','circle','ellipse','polygon','polyline','line'}
 
-def collect(el, acc_xfm=None, inh_fill='000000', gradients=None):
+def _is_background_rect(el, vb_x, vb_y, vb_w, vb_h):
+    """True if this rect covers the full viewBox — a canvas background, not content."""
+    if _tag(el) != 'rect':
+        return False
+    try:
+        x = float(el.get('x', 0)); y = float(el.get('y', 0))
+        w = float(el.get('width', 0)); h = float(el.get('height', 0))
+    except ValueError:
+        return False
+    tol = 0.02  # 2% tolerance
+    return (abs(x - vb_x) <= vb_w * tol and
+            abs(y - vb_y) <= vb_h * tol and
+            abs(w - vb_w) <= vb_w * tol and
+            abs(h - vb_h) <= vb_h * tol)
+
+def collect(el, acc_xfm=None, inh_fill='000000', gradients=None, vb=None):
     """Yield (d, transform_fn, fill_hex) for every shape in the SVG tree."""
     if gradients is None: gradients = {}
 
@@ -605,21 +620,23 @@ def collect(el, acc_xfm=None, inh_fill='000000', gradients=None):
 
     tag = _tag(el)
     if tag in SHAPE_TAGS:
-        d = element_to_d(el)
-        if d: d = normalize_arcs(d)
-        if d:
-            if fill_hex is not None:
-                yield (d, xfm or ident, fill_hex)
-            if stroke_hex and stroke_width > 0:
-                # Expand stroke into a filled outline path
-                outlined = stroke_to_outline(d, stroke_width)
-                yield (outlined, xfm or ident, stroke_hex)
-            elif stroke_hex and fill_hex is None:
-                # Zero-width stroke with no fill: render path as hairline fill
-                yield (d, xfm or ident, stroke_hex)
+        # Skip canvas background rectangles
+        if vb and _is_background_rect(el, *vb):
+            pass
+        else:
+            d = element_to_d(el)
+            if d: d = normalize_arcs(d)
+            if d:
+                if fill_hex is not None:
+                    yield (d, xfm or ident, fill_hex)
+                if stroke_hex and stroke_width > 0:
+                    outlined = stroke_to_outline(d, stroke_width)
+                    yield (outlined, xfm or ident, stroke_hex)
+                elif stroke_hex and fill_hex is None:
+                    yield (d, xfm or ident, stroke_hex)
 
     for child in el:
-        yield from collect(child, xfm, next_inh, gradients)
+        yield from collect(child, xfm, next_inh, gradients, vb)
 
 # ── DrawingML path builder ───────────────────────────────────────────────────
 
@@ -766,7 +783,7 @@ def convert(svg_files, out_dir=None):
         vb_x,vb_y,vb_w,vb_h = [float(v) for v in re.split(r'[\s,]+', vb.strip())]
         gradients = extract_gradients(root)
         slide = prs.slides.add_slide(prs.slide_layouts[6])
-        shapes = list(collect(root, gradients=gradients))
+        shapes = list(collect(root, gradients=gradients, vb=(vb_x, vb_y, vb_w, vb_h)))
         add_shapes(slide, shapes, vb_x, vb_y, vb_w, vb_h)
         print(f'  + {p.name} ({len(shapes)} shapes)')
 
