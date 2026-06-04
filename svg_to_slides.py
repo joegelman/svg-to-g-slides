@@ -571,6 +571,16 @@ def _sample_segments(d, n=20):
             dqx,dqy,dx,dy=args; qx,qy=cx+dqx,cy+dqy; x,y=cx+dx,cy+dy
             p1=(cx+2/3*(qx-cx),cy+2/3*(qy-cy)); p2=(x+2/3*(qx-x),y+2/3*(qy-y))
             bez((cx,cy),p1,p2,(x,y)); last_ctrl=(qx,qy); cx,cy=x,y
+        elif cmd == 'T':
+            x,y=args; lx,ly=last_ctrl if last_ctrl else (cx,cy)
+            qx,qy=2*cx-lx, 2*cy-ly
+            p1=(cx+2/3*(qx-cx),cy+2/3*(qy-cy)); p2=(x+2/3*(qx-x),y+2/3*(qy-y))
+            bez((cx,cy),p1,p2,(x,y)); last_ctrl=(qx,qy); cx,cy=x,y
+        elif cmd == 't':
+            dx,dy=args; x,y=cx+dx,cy+dy; lx,ly=last_ctrl if last_ctrl else (cx,cy)
+            qx,qy=2*cx-lx, 2*cy-ly
+            p1=(cx+2/3*(qx-cx),cy+2/3*(qy-cy)); p2=(x+2/3*(qx-x),y+2/3*(qy-y))
+            bez((cx,cy),p1,p2,(x,y)); last_ctrl=(qx,qy); cx,cy=x,y
         elif cmd in ('Z','z'):
             if len(current) >= 2: polylines.append((list(current), True))
             current.clear(); current.append((mx,my)); cx,cy=mx,my
@@ -766,6 +776,22 @@ def make_a_path(d, xfm, vb_x, vb_y, vb_w, vb_h):
             e=_sub(a_path,'cubicBezTo')
             e.append(_pt(*sc(x1,y1))); e.append(_pt(*sc(x2,y2))); e.append(_pt(*sc(x,y)))
             last_ctrl=(qx,qy); cx,cy=x,y
+        elif cmd=='T':
+            x,y=args
+            lx,ly=last_ctrl if last_ctrl else (cx,cy)
+            qx,qy=2*cx-lx, 2*cy-ly
+            x1,y1=cx+2/3*(qx-cx),cy+2/3*(qy-cy); x2,y2=x+2/3*(qx-x),y+2/3*(qy-y)
+            e=_sub(a_path,'cubicBezTo')
+            e.append(_pt(*sc(x1,y1))); e.append(_pt(*sc(x2,y2))); e.append(_pt(*sc(x,y)))
+            last_ctrl=(qx,qy); cx,cy=x,y
+        elif cmd=='t':
+            dx,dy=args; x,y=cx+dx,cy+dy
+            lx,ly=last_ctrl if last_ctrl else (cx,cy)
+            qx,qy=2*cx-lx, 2*cy-ly
+            x1,y1=cx+2/3*(qx-cx),cy+2/3*(qy-cy); x2,y2=x+2/3*(qx-x),y+2/3*(qy-y)
+            e=_sub(a_path,'cubicBezTo')
+            e.append(_pt(*sc(x1,y1))); e.append(_pt(*sc(x2,y2))); e.append(_pt(*sc(x,y)))
+            last_ctrl=(qx,qy); cx,cy=x,y
         elif cmd in ('Z','z'): _sub(a_path,'close'); cx,cy=mx,my
         elif cmd=='A':  cx,cy=args[5],args[6]; _sub(a_path,'lnTo').append(_pt(*sc(cx,cy)))
         elif cmd=='a':  cx+=args[5];cy+=args[6]; _sub(a_path,'lnTo').append(_pt(*sc(cx,cy)))
@@ -865,10 +891,22 @@ def add_shapes(slide, paths, vb_x, vb_y, vb_w, vb_h):
 
     for sp_id, (d, xfm, fill_hex) in enumerate(paths, start=2):
         a_path = make_a_path(d, xfm, vb_x, vb_y, vb_w, vb_h)
+
+        # Bounding box from endpoints only — NOT control points.
+        # Bezier control points can lie far outside the visual curve boundary,
+        # causing wildly wrong bounding boxes for arc-heavy paths.
+        _ep_tags = {f'{{{_A}}}cubicBezTo', f'{{{_A}}}lnTo', f'{{{_A}}}moveTo'}
+        ep_xs, ep_ys = [], []
+        for seg in a_path:
+            if seg.tag in _ep_tags:
+                children = list(seg)
+                if children:  # last child is always the endpoint
+                    ep_xs.append(int(children[-1].get('x')))
+                    ep_ys.append(int(children[-1].get('y')))
+
         pts = list(a_path.iter(f'{{{_A}}}pt'))
-        if pts:
-            xs=[int(pt.get('x')) for pt in pts]; ys=[int(pt.get('y')) for pt in pts]
-            px_min,py_min=min(xs),min(ys); px_max,py_max=max(xs),max(ys)
+        if ep_xs:
+            px_min,py_min=min(ep_xs),min(ep_ys); px_max,py_max=max(ep_xs),max(ep_ys)
             pw=max(px_max-px_min,1); ph=max(py_max-py_min,1)
             for pt in pts:
                 pt.set('x',str(int(pt.get('x'))-px_min))
