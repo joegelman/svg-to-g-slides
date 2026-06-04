@@ -85,24 +85,57 @@ def parse_color(s):
 _NS_RE = re.compile(r'\{[^}]+\}')
 def _tag(el): return _NS_RE.sub('', el.tag)
 
+def _pct(raw, default='0'):
+    """Parse an SVG percentage or fraction value to a 0–1 float."""
+    s = raw.strip() if raw else default
+    if s.endswith('%'): return float(s[:-1]) / 100
+    return float(s)
+
 def extract_gradients(root):
-    """Return {id: hex_color} mapping gradient IDs to their dominant stop color."""
+    """Return {id: gradient_dict} for all gradient elements.
+
+    gradient_dict is one of:
+      {'type':'linear', 'stops':[(pos_0_100k, hex, alpha_0_100k),...], 'angle': int_60k_deg}
+      {'type':'radial', 'stops':[...], 'cx': int_100k, 'cy': int_100k}
+    """
     grads = {}
     for el in root.iter():
-        if _tag(el) not in ('linearGradient', 'radialGradient'): continue
+        tag = _tag(el)
+        if tag not in ('linearGradient', 'radialGradient'): continue
         gid = el.get('id')
         if not gid: continue
+
         stops = []
         for child in el.iter():
             if _tag(child) != 'stop': continue
             style = child.get('style', '')
-            m = re.search(r'stop-color\s*:\s*([^;]+)', style)
-            raw = m.group(1).strip() if m else child.get('stop-color', '')
+            off_raw = child.get('offset', '0')
+            pos = round(_pct(off_raw) * 100000)
+
+            cm = re.search(r'stop-color\s*:\s*([^;]+)', style)
+            color_raw = cm.group(1).strip() if cm else child.get('stop-color', '#000000')
+            hex_color = parse_color(color_raw) or '000000'
+
             om = re.search(r'stop-opacity\s*:\s*([^;]+)', style)
-            opacity = float(om.group(1).strip() if om else child.get('stop-opacity', '1'))
-            c = parse_color(raw)
-            if c and opacity > 0.1: stops.append(c)
-        if stops: grads[gid] = stops[len(stops) // 2]
+            opacity_raw = om.group(1).strip() if om else child.get('stop-opacity', '1')
+            alpha = round(float(opacity_raw) * 100000)
+
+            stops.append((pos, hex_color, alpha))
+
+        if not stops: continue
+        stops.sort(key=lambda s: s[0])
+
+        if tag == 'linearGradient':
+            x1 = _pct(el.get('x1','0')); y1 = _pct(el.get('y1','0'))
+            x2 = _pct(el.get('x2','1')); y2 = _pct(el.get('y2','0'))
+            dx, dy = x2-x1, y2-y1
+            angle_deg = math.degrees(math.atan2(dy, dx))
+            dml_ang = round(angle_deg * 60000) % 21600000
+            grads[gid] = {'type':'linear', 'stops':stops, 'angle':dml_ang}
+        else:
+            cx = _pct(el.get('cx','0.5')); cy = _pct(el.get('cy','0.5'))
+            grads[gid] = {'type':'radial', 'stops':stops,
+                          'cx':round(cx*100000), 'cy':round(cy*100000)}
     return grads
 
 # ── Style parsing ────────────────────────────────────────────────────────────
@@ -722,6 +755,27 @@ def make_a_path(d, xfm, vb_x, vb_y, vb_w, vb_h):
 
 # ── PPTX assembly ────────────────────────────────────────────────────────────
 
+def _gradient_fill_xml(grad):
+    """Build a DrawingML <a:gradFill> XML string from a gradient dict."""
+    stops_xml = ''
+    for pos, hex_color, alpha in grad['stops']:
+        if alpha < 100000:
+            stops_xml += (f'<a:gs pos="{pos}"><a:srgbClr val="{hex_color}">'
+                          f'<a:alpha val="{alpha}"/></a:srgbClr></a:gs>')
+        else:
+            stops_xml += f'<a:gs pos="{pos}"><a:srgbClr val="{hex_color}"/></a:gs>'
+
+    if grad['type'] == 'linear':
+        ang = grad.get('angle', 0)
+        return (f'<a:gradFill rotWithShape="1"><a:gsLst>{stops_xml}</a:gsLst>'
+                f'<a:lin ang="{ang}" scaled="0"/></a:gradFill>')
+    else:
+        cx = grad.get('cx', 50000); cy = grad.get('cy', 50000)
+        l, t, r, b = cx, cy, 100000-cx, 100000-cy
+        return (f'<a:gradFill rotWithShape="1"><a:gsLst>{stops_xml}</a:gsLst>'
+                f'<a:path path="circle"><a:fillToRect l="{l}" t="{t}" r="{r}" b="{b}"/>'
+                f'</a:path></a:gradFill>')
+
 def add_shapes(slide, paths, vb_x, vb_y, vb_w, vb_h):
     aspect = vb_w/vb_h if vb_h else 1
     if aspect >= SLIDE_W/SLIDE_H:
@@ -749,7 +803,12 @@ def add_shapes(slide, paths, vb_x, vb_y, vb_w, vb_h):
         else:
             shape_ox,shape_oy,shape_sw,shape_sh = ox,oy,sw,sh
 
-        hx = fill_hex.upper().lstrip('#')
+        if isinstance(fill_hex, dict):
+            fill_xml = _gradient_fill_xml(fill_hex)
+        else:
+            hx = (fill_hex or '000000').upper().lstrip('#')
+            fill_xml = f'<a:solidFill><a:srgbClr val="{hx}"/></a:solidFill>'
+
         sp = etree.fromstring(
             f'<p:sp xmlns:p="{_P}" xmlns:a="{_A}">'
             f'<p:nvSpPr>'
@@ -761,7 +820,7 @@ def add_shapes(slide, paths, vb_x, vb_y, vb_w, vb_h):
             f'<a:ext cx="{shape_sw}" cy="{shape_sh}"/></a:xfrm>'
             f'<a:custGeom><a:avLst/><a:gdLst/><a:ahLst/><a:cxnLst/>'
             f'<a:rect l="0" t="0" r="r" b="b"/><a:pathLst/></a:custGeom>'
-            f'<a:solidFill><a:srgbClr val="{hx}"/></a:solidFill>'
+            f'{fill_xml}'
             f'<a:ln><a:noFill/></a:ln>'
             f'</p:spPr>'
             f'<p:txBody><a:bodyPr/><a:lstStyle/><a:p/></p:txBody>'
@@ -771,6 +830,29 @@ def add_shapes(slide, paths, vb_x, vb_y, vb_w, vb_h):
         slide.shapes._spTree.append(sp)
 
 # ── Entry point ──────────────────────────────────────────────────────────────
+
+def _inkscape_normalize(svg_path: Path) -> Path:
+    """
+    Use Inkscape to preprocess an SVG: converts stroked objects to filled
+    outline paths (stroke-to-path) before our converter runs.
+    Returns path to the normalized SVG, or the original if Inkscape is unavailable.
+    """
+    import shutil, subprocess
+    if not shutil.which('inkscape'):
+        return svg_path
+    out = svg_path.with_suffix('.inkscape_normalized.svg')
+    try:
+        subprocess.run([
+            'inkscape', str(svg_path),
+            '--actions',
+            f'select-all;object-stroke-to-path;'
+            f'export-filename={out};export-plain-svg;export-do',
+        ], capture_output=True, timeout=30, check=False)
+        if out.exists() and out.stat().st_size > 0:
+            return out
+    except Exception:
+        pass
+    return svg_path
 
 def convert(svg_files, out_dir=None):
     """Convert one or more SVG files into a single PPTX — one slide per SVG.
@@ -789,7 +871,9 @@ def convert(svg_files, out_dir=None):
 
     for svg_file in svg_files:
         p = Path(svg_file)
-        root = ET.parse(p).getroot()
+        normalized = _inkscape_normalize(p)
+        root = ET.parse(normalized).getroot()
+        if normalized != p: normalized.unlink(missing_ok=True)
         vb = root.get('viewBox','0 0 100 100')
         vb_x,vb_y,vb_w,vb_h = [float(v) for v in re.split(r'[\s,]+', vb.strip())]
         gradients = extract_gradients(root)

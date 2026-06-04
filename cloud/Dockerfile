@@ -2,6 +2,10 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
+# Inkscape for stroke-to-path preprocessing
+RUN apt-get update && apt-get install -y --no-install-recommends inkscape \
+    && rm -rf /var/lib/apt/lists/*
+
 # Install deps first (layer cache)
 COPY cloud/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
