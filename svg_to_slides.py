@@ -927,7 +927,7 @@ def _inkscape_normalize(svg_path: Path) -> Path:
         subprocess.run([
             'inkscape', str(svg_path),
             '--actions',
-            f'select-all;object-stroke-to-path;'
+            f'select-all;text-to-path;object-stroke-to-path;'
             f'export-filename={out};export-plain-svg;export-do',
         ], capture_output=True, timeout=30, check=False)
         if out.exists() and out.stat().st_size > 0:
