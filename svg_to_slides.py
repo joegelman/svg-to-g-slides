@@ -125,17 +125,30 @@ def extract_gradients(root):
         if not stops: continue
         stops.sort(key=lambda s: s[0])
 
+        gu = el.get('gradientUnits', 'objectBoundingBox')
+        usos = (gu == 'userSpaceOnUse')
+
         if tag == 'linearGradient':
-            x1 = _pct(el.get('x1','0')); y1 = _pct(el.get('y1','0'))
-            x2 = _pct(el.get('x2','1')); y2 = _pct(el.get('y2','0'))
+            if usos:
+                x1=float(el.get('x1',0)); y1=float(el.get('y1',0))
+                x2=float(el.get('x2',1)); y2=float(el.get('y2',0))
+            else:
+                x1=_pct(el.get('x1','0')); y1=_pct(el.get('y1','0'))
+                x2=_pct(el.get('x2','1')); y2=_pct(el.get('y2','0'))
             dx, dy = x2-x1, y2-y1
-            angle_deg = math.degrees(math.atan2(dy, dx))
-            dml_ang = round(angle_deg * 60000) % 21600000
-            grads[gid] = {'type':'linear', 'stops':stops, 'angle':dml_ang}
+            dml_ang = round(math.degrees(math.atan2(dy, dx)) * 60000) % 21600000
+            grads[gid] = {'type':'linear','stops':stops,'angle':dml_ang,
+                          'gu': 'usos' if usos else 'obb',
+                          'x1':x1,'y1':y1,'x2':x2,'y2':y2}
         else:
-            cx = _pct(el.get('cx','0.5')); cy = _pct(el.get('cy','0.5'))
-            grads[gid] = {'type':'radial', 'stops':stops,
-                          'cx':round(cx*100000), 'cy':round(cy*100000)}
+            if usos:
+                cx=float(el.get('cx',50)); cy=float(el.get('cy',50))
+                grads[gid] = {'type':'radial','stops':stops,'gu':'usos',
+                              'ucx':cx,'ucy':cy,'cx':50000,'cy':50000}
+            else:
+                cx=_pct(el.get('cx','0.5')); cy=_pct(el.get('cy','0.5'))
+                grads[gid] = {'type':'radial','stops':stops,'gu':'obb',
+                              'cx':round(cx*100000),'cy':round(cy*100000)}
     return grads
 
 # ── Style parsing ────────────────────────────────────────────────────────────
@@ -171,7 +184,11 @@ def resolve_fill_stroke(el, gradients, inh_fill):
     else:
         fill_hex = inh_fill
 
-    stroke_hex = parse_color(stroke_raw) if stroke_raw else None
+    if stroke_raw and stroke_raw.lower().startswith('url(#'):
+        m = re.match(r'url\(#([^)]+)\)', stroke_raw)
+        stroke_hex = gradients.get(m.group(1)) if m else None
+    else:
+        stroke_hex = parse_color(stroke_raw) if stroke_raw else None
     try:
         sw = float(re.sub(r'[^\d.]', '', sw_raw)) if sw_raw else 0.0
     except ValueError:
@@ -755,6 +772,63 @@ def make_a_path(d, xfm, vb_x, vb_y, vb_w, vb_h):
 
 # ── PPTX assembly ────────────────────────────────────────────────────────────
 
+def _sample_gradient(stops, t):
+    """Interpolate a gradient's (hex_color, alpha) at parameter t (0–1)."""
+    if not stops: return '000000', 100000
+    if t <= stops[0][0]/100000:  return stops[0][1],  stops[0][2]
+    if t >= stops[-1][0]/100000: return stops[-1][1], stops[-1][2]
+    for i in range(len(stops)-1):
+        p0,c0,a0 = stops[i]; p1,c1,a1 = stops[i+1]
+        f0, f1 = p0/100000, p1/100000
+        if f0 <= t <= f1:
+            r = (t-f0)/(f1-f0) if f1 > f0 else 0.0
+            def ch(ca, cb): return round(int(ca,16) + (int(cb,16)-int(ca,16))*r)
+            hex_c = '%02X%02X%02X' % (ch(c0[:2],c1[:2]),ch(c0[2:4],c1[2:4]),ch(c0[4:],c1[4:]))
+            return hex_c, round(a0 + (a1-a0)*r)
+    return stops[-1][1], stops[-1][2]
+
+def _remap_stops(stops, t_min, t_max):
+    """Clip and remap gradient stops from [t_min,t_max] → [0,1]."""
+    if t_max - t_min < 1e-6: return stops
+    new = [( 0, *_sample_gradient(stops, t_min))]
+    for pos,col,alp in stops:
+        t = pos/100000
+        if t_min < t < t_max:
+            new.append((round((t-t_min)/(t_max-t_min)*100000), col, alp))
+    new.append((100000, *_sample_gradient(stops, t_max)))
+    new.sort(key=lambda s: s[0])
+    return new
+
+def _remap_gradient_for_shape(grad, bx, by, bw, bh):
+    """
+    For userSpaceOnUse gradients, remap stops so each shape shows only
+    the portion of the canvas gradient that falls over its bounding box.
+    bx,by,bw,bh are in SVG user space.
+    """
+    if grad.get('gu','obb') != 'usos' or bw <= 0 or bh <= 0:
+        return grad
+
+    if grad['type'] == 'linear':
+        gx1,gy1 = grad['x1'], grad['y1']
+        gx2,gy2 = grad['x2'], grad['y2']
+        dx,dy = gx2-gx1, gy2-gy1
+        glen2 = dx*dx + dy*dy
+        if glen2 < 1e-10: return grad
+
+        def t_at(px,py): return ((px-gx1)*dx + (py-gy1)*dy) / glen2
+        corners = [(bx,by),(bx+bw,by),(bx,by+bh),(bx+bw,by+bh)]
+        ts = [t_at(px,py) for px,py in corners]
+        t_min, t_max = min(ts), max(ts)
+        return {**grad, 'stops': _remap_stops(grad['stops'], t_min, t_max)}
+
+    elif grad['type'] == 'radial':
+        ucx = grad.get('ucx', bx+bw/2); ucy = grad.get('ucy', by+bh/2)
+        cx_f = max(0.0, min(1.0, (ucx-bx)/bw if bw else 0.5))
+        cy_f = max(0.0, min(1.0, (ucy-by)/bh if bh else 0.5))
+        return {**grad, 'cx': round(cx_f*100000), 'cy': round(cy_f*100000)}
+
+    return grad
+
 def _gradient_fill_xml(grad):
     """Build a DrawingML <a:gradFill> XML string from a gradient dict."""
     stops_xml = ''
@@ -803,10 +877,18 @@ def add_shapes(slide, paths, vb_x, vb_y, vb_w, vb_h):
         else:
             shape_ox,shape_oy,shape_sw,shape_sh = ox,oy,sw,sh
 
-        if isinstance(fill_hex, dict):
-            fill_xml = _gradient_fill_xml(fill_hex)
+        # For userSpaceOnUse gradients, remap stops to this shape's bbox
+        fill = fill_hex
+        if isinstance(fill, dict) and fill.get('gu') == 'usos' and pts:
+            sbx = px_min/cw*vb_w + vb_x; sby = py_min/ch*vb_h + vb_y
+            sbw = max((px_max-px_min)/cw*vb_w, 1)
+            sbh = max((py_max-py_min)/ch*vb_h, 1)
+            fill = _remap_gradient_for_shape(fill, sbx, sby, sbw, sbh)
+
+        if isinstance(fill, dict):
+            fill_xml = _gradient_fill_xml(fill)
         else:
-            hx = (fill_hex or '000000').upper().lstrip('#')
+            hx = (fill or '000000').upper().lstrip('#')
             fill_xml = f'<a:solidFill><a:srgbClr val="{hx}"/></a:solidFill>'
 
         sp = etree.fromstring(
