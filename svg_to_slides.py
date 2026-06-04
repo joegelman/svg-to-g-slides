@@ -211,6 +211,170 @@ def element_to_d(el):
     if tag == 'path':     return el.get('d','') or None
     return None
 
+# ── Arc → cubic bezier conversion ───────────────────────────────────────────
+
+def _arc_to_cubics(x1, y1, rx, ry, phi_deg, fa, fs, x2, y2):
+    """
+    Convert one SVG arc segment to a list of cubic bezier tuples.
+    Each tuple is (cp1x, cp1y, cp2x, cp2y, ex, ey).
+    Algorithm: endpoint → center parameterization, split into ≤90° segments,
+    approximate each with the standard α formula.
+    """
+    if rx == 0 or ry == 0:
+        return [(x2, y2, x2, y2, x2, y2)]
+
+    phi = math.radians(phi_deg)
+    cp, sp = math.cos(phi), math.sin(phi)
+
+    # Midpoint transform
+    dx, dy = (x1 - x2) / 2, (y1 - y2) / 2
+    x1p =  cp*dx + sp*dy
+    y1p = -sp*dx + cp*dy
+
+    rx, ry = abs(rx), abs(ry)
+    # Scale radii if too small
+    lam = (x1p/rx)**2 + (y1p/ry)**2
+    if lam > 1:
+        s = math.sqrt(lam)
+        rx *= s; ry *= s
+
+    rx2, ry2 = rx*rx, ry*ry
+    x1p2, y1p2 = x1p*x1p, y1p*y1p
+
+    # Center in rotated frame
+    num = max(0, rx2*ry2 - rx2*y1p2 - ry2*x1p2)
+    den = rx2*y1p2 + ry2*x1p2
+    sq = math.sqrt(num/den) if den else 0
+    if fa == fs:
+        sq = -sq
+    cxp =  sq * rx * y1p / ry
+    cyp = -sq * ry * x1p / rx
+
+    # Center in original frame
+    cx = cp*cxp - sp*cyp + (x1+x2)/2
+    cy = sp*cxp + cp*cyp + (y1+y2)/2
+
+    def _angle(ux, uy, vx, vy):
+        n = math.hypot(ux, uy) * math.hypot(vx, vy)
+        if n == 0: return 0
+        a = math.acos(max(-1, min(1, (ux*vx + uy*vy) / n)))
+        return -a if ux*vy - uy*vx < 0 else a
+
+    theta1 = _angle(1, 0, (x1p-cxp)/rx, (y1p-cyp)/ry)
+    dtheta  = _angle((x1p-cxp)/rx, (y1p-cyp)/ry,
+                     (-x1p-cxp)/rx, (-y1p-cyp)/ry)
+
+    if not fs and dtheta > 0: dtheta -= 2*math.pi
+    elif fs and dtheta < 0:   dtheta += 2*math.pi
+
+    n_segs = max(1, math.ceil(abs(dtheta) / (math.pi/2)))
+    d_seg  = dtheta / n_segs
+
+    cubics = []
+    t = theta1
+    for _ in range(n_segs):
+        # α coefficient for this segment
+        tan_half = math.tan(d_seg/2)
+        alpha = math.sin(d_seg) * (math.sqrt(4 + 3*tan_half*tan_half) - 1) / 3
+
+        cos_t,  sin_t  = math.cos(t),        math.sin(t)
+        cos_t2, sin_t2 = math.cos(t+d_seg),  math.sin(t+d_seg)
+
+        # Derivative vectors (in original frame)
+        def _deriv(ct, st):
+            ddx = -rx*st; ddy = ry*ct
+            return cp*ddx - sp*ddy, sp*ddx + cp*ddy
+
+        # Endpoint coordinates
+        def _pt_on_arc(ct, st):
+            return cx + cp*rx*ct - sp*ry*st, cy + sp*rx*ct + cp*ry*st
+
+        px1, py1 = _pt_on_arc(cos_t,  sin_t)
+        px2, py2 = _pt_on_arc(cos_t2, sin_t2)
+        d1x, d1y = _deriv(cos_t,  sin_t)
+        d2x, d2y = _deriv(cos_t2, sin_t2)
+
+        cubics.append((
+            px1 + alpha*d1x, py1 + alpha*d1y,   # cp1
+            px2 - alpha*d2x, py2 - alpha*d2y,   # cp2
+            px2, py2                              # endpoint
+        ))
+        t += d_seg
+
+    return cubics
+
+
+def normalize_arcs(d):
+    """Replace all A/a arc commands in a path d string with cubic beziers."""
+    if 'A' not in d and 'a' not in d:
+        return d
+
+    segs = expand_path(d)
+    parts = []
+    cx = cy = mx = my = 0.0
+
+    for cmd, args in segs:
+        if cmd == 'M':
+            cx, cy = mx, my = args[0], args[1]
+            parts.append(f'M {_f(cx)},{_f(cy)}')
+        elif cmd == 'm':
+            cx, cy = cx+args[0], cy+args[1]; mx, my = cx, cy
+            parts.append(f'M {_f(cx)},{_f(cy)}')
+        elif cmd == 'L':
+            cx, cy = args[0], args[1]
+            parts.append(f'L {_f(cx)},{_f(cy)}')
+        elif cmd == 'l':
+            cx += args[0]; cy += args[1]
+            parts.append(f'L {_f(cx)},{_f(cy)}')
+        elif cmd == 'H':
+            cx = args[0]; parts.append(f'L {_f(cx)},{_f(cy)}')
+        elif cmd == 'h':
+            cx += args[0]; parts.append(f'L {_f(cx)},{_f(cy)}')
+        elif cmd == 'V':
+            cy = args[0]; parts.append(f'L {_f(cx)},{_f(cy)}')
+        elif cmd == 'v':
+            cy += args[0]; parts.append(f'L {_f(cx)},{_f(cy)}')
+        elif cmd == 'C':
+            x1,y1,x2,y2,x,y = args
+            parts.append(f'C {_f(x1)},{_f(y1)} {_f(x2)},{_f(y2)} {_f(x)},{_f(y)}')
+            cx, cy = x, y
+        elif cmd == 'c':
+            x1,y1,x2,y2,dx,dy = args
+            ax1,ay1=cx+x1,cy+y1; ax2,ay2=cx+x2,cy+y2; ax,ay=cx+dx,cy+dy
+            parts.append(f'C {_f(ax1)},{_f(ay1)} {_f(ax2)},{_f(ay2)} {_f(ax)},{_f(ay)}')
+            cx, cy = ax, ay
+        elif cmd == 'S':
+            x2,y2,x,y = args
+            parts.append(f'S {_f(x2)},{_f(y2)} {_f(x)},{_f(y)}'); cx,cy=x,y
+        elif cmd == 's':
+            dx2,dy2,dx,dy = args
+            parts.append(f's {_f(dx2)},{_f(dy2)} {_f(dx)},{_f(dy)}'); cx+=dx; cy+=dy
+        elif cmd == 'Q':
+            qx,qy,x,y = args
+            parts.append(f'Q {_f(qx)},{_f(qy)} {_f(x)},{_f(y)}'); cx,cy=x,y
+        elif cmd == 'q':
+            dqx,dqy,dx,dy = args
+            parts.append(f'q {_f(dqx)},{_f(dqy)} {_f(dx)},{_f(dy)}'); cx+=dx; cy+=dy
+        elif cmd == 'T':
+            x,y = args; parts.append(f'T {_f(x)},{_f(y)}'); cx,cy=x,y
+        elif cmd == 't':
+            dx,dy = args; parts.append(f't {_f(dx)},{_f(dy)}'); cx+=dx; cy+=dy
+        elif cmd == 'A':
+            rx,ry,phi,fa,fs,x,y = args
+            for c in _arc_to_cubics(cx,cy,rx,ry,phi,int(fa),int(fs),x,y):
+                parts.append(f'C {_f(c[0])},{_f(c[1])} {_f(c[2])},{_f(c[3])} {_f(c[4])},{_f(c[5])}')
+            cx, cy = x, y
+        elif cmd == 'a':
+            rx,ry,phi,fa,fs,dx,dy = args
+            x, y = cx+dx, cy+dy
+            for c in _arc_to_cubics(cx,cy,rx,ry,phi,int(fa),int(fs),x,y):
+                parts.append(f'C {_f(c[0])},{_f(c[1])} {_f(c[2])},{_f(c[3])} {_f(c[4])},{_f(c[5])}')
+            cx, cy = x, y
+        elif cmd in ('Z','z'):
+            parts.append('Z'); cx, cy = mx, my
+
+    return ' '.join(parts)
+
 # ── Transform parsing ────────────────────────────────────────────────────────
 
 def parse_transform(s):
@@ -442,6 +606,7 @@ def collect(el, acc_xfm=None, inh_fill='000000', gradients=None):
     tag = _tag(el)
     if tag in SHAPE_TAGS:
         d = element_to_d(el)
+        if d: d = normalize_arcs(d)
         if d:
             if fill_hex is not None:
                 yield (d, xfm or ident, fill_hex)
