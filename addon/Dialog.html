@@ -150,32 +150,50 @@
     .step.active  { color: #202124; font-weight: 500; }
     .step.done    { color: #5f6368; }
 
-    /* ── "Paste to finish" hint card ── */
-    #paste-hint {
+    /* ── Instruction boxes (Copy = blue, Paste = green) — same treatment,
+       positioned at the top of the modal so whichever is active is the
+       first thing seen. ── */
+    .hint-box {
       display: none;
-      margin-top: 14px;
+      margin-bottom: 16px;
       padding: 18px 20px;
-      background: #e6f4ea;
-      border: 2px solid #34a853;
       border-radius: 10px;
       align-items: center;
       gap: 14px;
-      animation: pulse-border 1.6s ease-in-out infinite;
     }
-    #paste-hint.visible { display: flex; }
-    #paste-hint .check { font-size: 26px; color: #188038; flex-shrink: 0; }
-    #paste-hint .msg { font-size: 15px; font-weight: 500; color: #202124; line-height: 1.45; }
-    @keyframes pulse-border {
+    .hint-box.visible { display: flex; }
+    .hint-box .icon { font-size: 26px; flex-shrink: 0; }
+    .hint-box .msg  { font-size: 15px; font-weight: 500; color: #202124; line-height: 1.45; }
+
+    .hint-box.blue {
+      background: #e8f0fe;
+      border: 2px solid #4285f4;
+      animation: pulse-border-blue 1.6s ease-in-out infinite;
+    }
+    .hint-box.blue .icon { color: #1a73e8; }
+    @keyframes pulse-border-blue {
+      0%, 100% { border-color: #4285f4; box-shadow: 0 0 0 0 rgba(66,133,244,0.25); }
+      50%      { border-color: #1a73e8; box-shadow: 0 0 0 6px rgba(66,133,244,0); }
+    }
+
+    .hint-box.green {
+      background: #e6f4ea;
+      border: 2px solid #34a853;
+      animation: pulse-border-green 1.6s ease-in-out infinite;
+    }
+    .hint-box.green .icon { color: #188038; }
+    @keyframes pulse-border-green {
       0%, 100% { border-color: #34a853; box-shadow: 0 0 0 0 rgba(52,168,83,0.25); }
       50%      { border-color: #188038; box-shadow: 0 0 0 6px rgba(52,168,83,0); }
     }
+
     kbd {
       display: inline-block;
       font-family: inherit;
       font-size: 14px;
       font-weight: 700;
       background: #fff;
-      border: 1px solid #34a853;
+      border: 1px solid #dadce0;
       border-bottom-width: 2px;
       border-radius: 4px;
       padding: 2px 8px;
@@ -214,6 +232,23 @@
 <div id="scroll-area">
   <div id="headline"></div>
 
+  <!-- Both instruction boxes live here, at the top, so whichever is active
+       is the first thing seen — same visual treatment (icon + bold message,
+       pulsing border), color-coded blue=copy / green=paste. Only one is
+       ever visible at a time (see stage transitions in the script below). -->
+  <div id="copy-hint" class="hint-box blue">
+    <span class="icon">📋</span>
+    <span class="msg">Ready! Click <strong>Copy shapes to clipboard</strong> below, or press <kbd>Enter</kbd> or <kbd>⌘C</kbd> (Mac) / <kbd>Ctrl</kbd>+<kbd>C</kbd> (Windows) to copy.</span>
+  </div>
+  <!-- Paste can't be automated — Chrome blocks programmatic clipboard reads
+       outright regardless of user gesture, unlike writes (see
+       copyToClipboard below). This is the clearest possible nudge for the
+       one remaining manual step. -->
+  <div id="paste-hint" class="hint-box green">
+    <span class="icon">✓</span>
+    <span class="msg">Copied! Click your slide, then press <kbd>⌘V</kbd> (Mac) or <kbd>Ctrl</kbd>+<kbd>V</kbd> (Windows) to paste.</span>
+  </div>
+
   <div id="drop-zone">
     <input type="file" id="file-input" accept=".svg" multiple>
     <div id="drop-icon">⬆</div>
@@ -237,15 +272,6 @@
     <div class="step pending" id="step-convert"><span class="step-icon"></span>Convert SVGs</div>
     <div class="step pending" id="step-copy"><span class="step-icon"></span>Copy to clipboard</div>
   </div>
-
-  <!-- Paste can't be automated — Chrome blocks programmatic clipboard reads
-       outright regardless of user gesture, unlike writes (see
-       copyToClipboard below). This is the clearest possible nudge for the
-       one remaining manual step. -->
-  <div id="paste-hint">
-    <span class="check">✓</span>
-    <span class="msg">Copied! Click your slide, then press <kbd>⌘V</kbd> (Mac) or <kbd>Ctrl</kbd>+<kbd>V</kbd> (Windows) to paste.</span>
-  </div>
 </div>
 
 <div class="actions">
@@ -265,6 +291,7 @@
   var headlineEl = document.getElementById('headline');
   var statusEl   = document.getElementById('status');
   var stepsEl    = document.getElementById('steps');
+  var copyHint   = document.getElementById('copy-hint');
   var pasteHint  = document.getElementById('paste-hint');
   var insertBtn  = document.getElementById('insert-btn');
   var cancelBtn  = document.getElementById('cancel-btn');
@@ -341,6 +368,7 @@
     insertBtn.disabled = true;
     cancelBtn.textContent = 'Cancel';
     stepsEl.className = '';
+    copyHint.classList.remove('visible');
     pasteHint.classList.remove('visible');
     setStep('step-convert', 'pending');
     setStep('step-copy', 'pending');
@@ -453,7 +481,8 @@
           insertBtn.disabled = false;
           cancelBtn.disabled = false;
           insertBtn.textContent = 'Copy shapes to clipboard';
-          setHeadline('Ready — click below or press Enter to copy.');
+          setHeadline('');
+          copyHint.classList.add('visible');
           // Auto-focus so Enter/Space immediately triggers the copy — that
           // keypress is itself a fresh, genuine user gesture, so it's a
           // legitimate way to make this feel like one action even though a
@@ -484,6 +513,7 @@
     setStep('step-copy', 'done');
     clearStatus();
     setHeadline('');
+    copyHint.classList.remove('visible');
     pasteHint.classList.add('visible');
     stage = 'done';
     // Deliberately NOT auto-closing on a timer: the "click your slide,
@@ -521,7 +551,7 @@
       insertBtn.textContent = 'Copy shapes to clipboard';
       cancelBtn.textContent = 'Cancel';
       pasteHint.classList.remove('visible');
-      setHeadline('Ready — click below or press Enter to copy.');
+      copyHint.classList.add('visible');
       setStep('step-copy', 'pending');
       insertBtn.focus();
     } else {
