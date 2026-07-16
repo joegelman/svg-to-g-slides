@@ -40,7 +40,6 @@ placement math.
 """
 import json
 import secrets
-import uuid
 from xml.etree import ElementTree as ET
 
 from svg_to_slides import COORD, collect, expand_path, extract_gradients
@@ -334,14 +333,14 @@ def build_clip_bundle(svg_sources, slide_w_pt, slide_h_pt):
     data = {'resolved': resolved}
     wrapper = {'data': json.dumps(data, separators=(',', ':'))}
 
+    # Only this one MIME type — no text/plain, text/html, or clip-id.
+    # SketchyShapes' demo (confirmed working by direct test) sets only this
+    # single type. Real native-Slides captures always carry the other three
+    # alongside it, which is what we matched originally — but offering
+    # text/html at the same time may cause Slides to prioritize it (as a
+    # more "standard" type) over the custom drawings-object type and paste
+    # that instead, silently. Dropping them is the last structural gap
+    # versus the proven-working reference.
     return {
-        'text/plain': ' ',
-        'text/html': (
-            "<meta charset='utf-8'><meta charset=\"utf-8\">"
-            '<b style="font-weight:normal;" '
-            f'id="docs-internal-guid-{uuid.uuid4()}">'
-            '<span>&nbsp;</span></b>'
-        ),
         'application/x-vnd.google-docs-drawings-object+wrapped': json.dumps(wrapper, separators=(',', ':')),
-        'application/x-vnd.google-docs-internal-clip-id': str(uuid.uuid4()),
     }
