@@ -309,7 +309,35 @@ def build_clip_bundle(svg_sources, slide_w_pt, slide_h_pt):
         groups.append(((vb_x, vb_y, vb_w, vb_h), shapes))
 
     resolved = add_shapes_to_clip(groups, slide_w_pt, slide_h_pt)
-    wrapper = {'dih': _DIH_TEMPLATE, 'data': json.dumps({'resolved': resolved, 'unresolved': []})}
+
+    # Every real capture we've taken includes these fields alongside
+    # resolved/unresolved — absent from earlier attempts, added here as a
+    # test of whether they (rather than the edi/edrk signed tokens, which we
+    # cannot produce) are why Slides was silently ignoring the paste.
+    autotext_content = {
+        json.dumps({'shapeId': shape[1]}, separators=(',', ':')): {} for shape in resolved
+    }
+    data = {
+        'resolved': resolved,
+        'unresolved': [],
+        'autotext_content': autotext_content,
+        'did_remove_empty_picture_placeholders': False,
+        'copy_source_supports_inheritance_via_master': True,
+    }
+    # dct/ds/cses/sm are present, with these exact values, in every real
+    # capture we've taken — included here as part of the same test as
+    # autotext_content above. edi/edrk (opaque signed-looking tokens) are
+    # deliberately NOT included: we have no legitimate way to produce them,
+    # and their presence in every real capture is the leading hypothesis for
+    # why a from-scratch payload gets silently ignored on paste.
+    wrapper = {
+        'dih': _DIH_TEMPLATE,
+        'data': json.dumps(data, separators=(',', ':')),
+        'dct': 'punch',
+        'ds': False,
+        'cses': False,
+        'sm': 'other',
+    }
 
     return {
         'text/plain': ' ',
@@ -319,6 +347,6 @@ def build_clip_bundle(svg_sources, slide_w_pt, slide_h_pt):
             f'id="docs-internal-guid-{uuid.uuid4()}">'
             '<span>&nbsp;</span></b>'
         ),
-        'application/x-vnd.google-docs-drawings-object+wrapped': json.dumps(wrapper),
+        'application/x-vnd.google-docs-drawings-object+wrapped': json.dumps(wrapper, separators=(',', ':')),
         'application/x-vnd.google-docs-internal-clip-id': str(uuid.uuid4()),
     }
