@@ -67,11 +67,15 @@ def path_to_clip_geometry(d, xfm, vb_x, vb_y, vb_w, vb_h):
     flat_coords = []
 
     def emit(opcode, pts):
+        # path_metadata is a FLAT array of alternating (opcode, coordCount)
+        # numbers — NOT nested [opcode,count] pairs. Confirmed against a
+        # real working payload: [0,2,1,6,3,12,5,0], not [[0,2],[1,6],...].
         n = 2 * len(pts)
-        if path_metadata and path_metadata[-1][0] == opcode:
-            path_metadata[-1][1] += n
+        if path_metadata and path_metadata[-2] == opcode:
+            path_metadata[-1] += n
         else:
-            path_metadata.append([opcode, n])
+            path_metadata.append(opcode)
+            path_metadata.append(n)
         for x, y in pts:
             flat_coords.extend((x, y))
 
@@ -163,7 +167,8 @@ def path_to_clip_geometry(d, xfm, vb_x, vb_y, vb_w, vb_h):
             emit(_OP_CUBIC, [sc(x1, y1), sc(x2, y2), sc(x, y)])
             last_ctrl = (qx, qy); cx, cy = x, y
         elif cmd in ('Z', 'z'):
-            path_metadata.append([_OP_CLOSE, 0])
+            path_metadata.append(_OP_CLOSE)
+            path_metadata.append(0)
             cx, cy = mx, my
         # 'A'/'a' deliberately unhandled: normalize_arcs() removes them
         # upstream before collect() ever yields a path to us.
@@ -178,7 +183,8 @@ def _endpoint_bbox(path_metadata, flat_coords):
     """
     xs, ys = [], []
     idx = 0
-    for opcode, count in path_metadata:
+    for m in range(0, len(path_metadata), 2):
+        opcode, count = path_metadata[m], path_metadata[m + 1]
         n = count // 2
         if opcode == _OP_CLOSE:
             continue
@@ -232,9 +238,12 @@ def _build_shape_entry(path_metadata, flat_coords, w, h, x, y, fill_hex):
     directly rather than a local-shape + scale-factor split.
     """
     obj_id = 'ga' + secrets.token_hex(5)
+    # The [1, 1, ...] prefix on the path record is required — present in
+    # every real capture (including the proven-working reference) and
+    # missing from earlier versions of this encoder.
     props = [
         8, w, 9, h,
-        12, [[path_metadata, flat_coords, [], 0]],
+        12, [[1, 1, path_metadata, flat_coords, [], 0]],
         14, 1, 15, f'#{fill_hex}',
         18, 0, 23, 0,
     ]
