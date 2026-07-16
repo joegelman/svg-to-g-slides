@@ -16,3 +16,6 @@ __pycache__/
 *.pyc
 .DS_Store
 ._*
+
+# Contains a personal Apps Script project ID — see addon/README.md
+addon/.clasp.json

@@ -81,6 +81,7 @@ Pushes to `main` auto-deploy via Cloud Build trigger.
 | Path | |
 |---|---|
 | `cloud/main.py` | FastAPI app, `/convert` endpoint |
+| `cloud/slides_clip.py` | Builds the Slides add-on's clipboard payload (`/insert-svg-clip`) — no Drive/Slides API involved |
 | `cloud/drive.py` | Drive upload + sharing |
 | `cloud/static/index.html` | Frontend |
 | `cloud/Dockerfile` | Container definition |

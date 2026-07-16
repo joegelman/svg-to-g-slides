@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Google Sans', 'Segoe UI', sans-serif;
+      font-size: 14px;
+      color: #202124;
+      background: #fff;
+    }
+
+    #drop-zone {
+      border: 2px dashed #dadce0;
+      border-radius: 8px;
+      padding: 36px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .15s, background .15s;
+      user-select: none;
+    }
+    #drop-zone:hover       { border-color: #1a73e8; }
+    #drop-zone.drag-over   { border-color: #1a73e8; background: #e8f0fe; }
+    #drop-zone.has-files   { padding: 20px 24px; border-style: solid; border-color: #1a73e8; }
+
+    #drop-icon { font-size: 32px; margin-bottom: 8px; }
+    #drop-zone.has-files #drop-hint  { display: none; }
+    #drop-zone.has-files #drop-label { display: none; }
+
+    #file-input { display: none; }
+
+    #file-list { display: none; text-align: left; font-size: 13px; color: #3c4043; margin-top: 4px; }
+    #file-list.visible { display: block; }
+    .file-row { display: flex; align-items: center; gap: 8px; padding: 3px 0; }
+    .file-row::before { content: '◆'; font-size: 8px; color: #1a73e8; flex-shrink: 0; }
+
+    #change-link { display: none; margin-top: 10px; font-size: 12px; color: #1a73e8; cursor: pointer; text-decoration: underline; }
+    #change-link.visible { display: inline; }
+
+    /* ── Status / progress ── */
+    #status {
+      min-height: 22px;
+      margin-top: 14px;
+      font-size: 13px;
+      color: #5f6368;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    #status.error   { color: #d93025; }
+    #status.success { color: #188038; }
+
+    .spinner {
+      flex-shrink: 0;
+      width: 14px;
+      height: 14px;
+      border: 2px solid #e8eaed;
+      border-top-color: #1a73e8;
+      border-radius: 50%;
+      animation: spin .75s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Steps indicator ── */
+    #steps {
+      display: none;
+      margin-top: 10px;
+      padding: 10px 12px;
+      background: #f8f9fa;
+      border-radius: 6px;
+      font-size: 12px;
+      color: #5f6368;
+    }
+    #steps.visible { display: block; }
+    .step { padding: 2px 0; display: flex; align-items: center; gap: 6px; }
+    .step-icon { font-size: 10px; width: 14px; text-align: center; }
+    .step.done   .step-icon::before { content: '✓'; color: #188038; }
+    .step.active .step-icon { display: flex; align-items: center; justify-content: center; }
+    .step.active .step-icon::before { content: ''; display: block; width: 10px; height: 10px; border: 1.5px solid #e8eaed; border-top-color: #1a73e8; border-radius: 50%; animation: spin .75s linear infinite; }
+    .step.pending .step-icon::before { content: '○'; color: #bdc1c6; }
+    .step.active  { color: #202124; font-weight: 500; }
+    .step.done    { color: #5f6368; }
+
+    /* ── Actions ── */
+    .actions { margin-top: 20px; display: flex; justify-content: flex-end; gap: 8px; }
+
+    button {
+      padding: 8px 20px;
+      border-radius: 4px;
+      font-size: 14px;
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      outline: none;
+    }
+    #cancel-btn { background: transparent; color: #5f6368; border: 1px solid #dadce0; }
+    #cancel-btn:hover:not(:disabled) { background: #f1f3f4; }
+    #insert-btn { background: #1a73e8; color: #fff; }
+    #insert-btn:hover:not(:disabled) { background: #1765cc; }
+    #insert-btn:disabled, #cancel-btn:disabled { opacity: .5; cursor: default; }
+  </style>
+</head>
+<body>
+
+<div id="drop-zone">
+  <input type="file" id="file-input" accept=".svg" multiple>
+  <div id="drop-icon">⬆</div>
+  <div id="drop-label" style="font-weight:500; margin-bottom:4px;">Drop SVG files here</div>
+  <div id="drop-hint" style="color:#5f6368; font-size:13px;">or click to browse — multiple files combine onto the current slide</div>
+  <div id="file-list"></div>
+</div>
+<span id="change-link">Choose different files</span>
+
+<!-- Off-screen clipboard-write target. The Slides paste handler reads its
+     shapes from a custom clipboard MIME type set here via the legacy
+     `copy`-event API (clipboardData.setData), which — unlike the modern
+     navigator.clipboard.write()/ClipboardItem API — has no "web " prefix
+     restriction on custom types, so it's the only mechanism that can produce
+     a payload Slides will actually recognize. -->
+<div id="clip-target" contenteditable="true" style="position:absolute; left:-9999px; top:-9999px;">x</div>
+
+<div id="status"></div>
+
+<div id="steps">
+  <div class="step pending" id="step-convert"><span class="step-icon"></span>Convert SVG</div>
+  <div class="step pending" id="step-copy"><span class="step-icon"></span>Copy to clipboard</div>
+</div>
+
+<div class="actions">
+  <button id="cancel-btn">Cancel</button>
+  <button id="insert-btn" disabled>Convert</button>
+</div>
+
+<script>
+  var selectedFiles = [];
+  var pendingBundle = null;   // {mimeType: string, ...} once converted, until copied
+  var stage = 'idle';         // 'idle' -> 'converted' -> 'done'
+
+  var dropZone   = document.getElementById('drop-zone');
+  var fileInput  = document.getElementById('file-input');
+  var fileList   = document.getElementById('file-list');
+  var changeLink = document.getElementById('change-link');
+  var statusEl   = document.getElementById('status');
+  var stepsEl    = document.getElementById('steps');
+  var insertBtn  = document.getElementById('insert-btn');
+  var cancelBtn  = document.getElementById('cancel-btn');
+  var clipTarget = document.getElementById('clip-target');
+
+  // ── Clipboard write ──────────────────────────────────────────────────────
+  // Must run inside the transient-activation window of a real click — never
+  // called from inside an async success handler, only from a fresh, direct
+  // button click (see insertBtn's handler below).
+
+  clipTarget.addEventListener('copy', function(e) {
+    e.preventDefault();
+    if (!pendingBundle) return;
+    Object.keys(pendingBundle).forEach(function(mime) {
+      e.clipboardData.setData(mime, pendingBundle[mime]);
+    });
+  });
+
+  function writeClipBundle(bundle) {
+    pendingBundle = bundle;
+    clipTarget.focus();
+    var range = document.createRange();
+    range.selectNodeContents(clipTarget);
+    var sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(range);
+    var ok = document.execCommand('copy');
+    pendingBundle = null;
+    return ok;
+  }
+
+  dropZone.addEventListener('click', function(e) {
+    if (e.target === changeLink) return;
+    fileInput.click();
+  });
+  changeLink.addEventListener('click', function(e) {
+    e.stopPropagation();
+    fileInput.click();
+  });
+  dropZone.addEventListener('dragover',  function(e) { e.preventDefault(); e.stopPropagation(); dropZone.classList.add('drag-over'); });
+  dropZone.addEventListener('dragleave', function(e) { e.stopPropagation(); dropZone.classList.remove('drag-over'); });
+  dropZone.addEventListener('drop', function(e) {
+    e.preventDefault(); e.stopPropagation();
+    dropZone.classList.remove('drag-over');
+    var svgs = Array.from(e.dataTransfer.files).filter(function(f) { return f.name.toLowerCase().endsWith('.svg'); });
+    if (svgs.length) applyFiles(svgs);
+  });
+  fileInput.addEventListener('change', function() {
+    if (fileInput.files.length) applyFiles(Array.from(fileInput.files));
+  });
+
+  function applyFiles(files) {
+    selectedFiles = files;
+    dropZone.classList.add('has-files');
+    fileList.innerHTML = files.map(function(f) { return '<div class="file-row">' + esc(f.name) + '</div>'; }).join('');
+    fileList.classList.add('visible');
+    changeLink.classList.add('visible');
+
+    // Changing the file selection invalidates any already-converted bundle.
+    pendingBundle = null;
+    stage = 'idle';
+    insertBtn.textContent = 'Convert';
+    insertBtn.disabled = false;
+    cancelBtn.textContent = 'Cancel';
+    stepsEl.className = '';
+    setStep('step-convert', 'pending');
+    setStep('step-copy', 'pending');
+    clearStatus();
+  }
+
+  function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  function clearStatus() { statusEl.innerHTML = ''; statusEl.className = ''; }
+
+  function setStatus(msg, spinning, cls) {
+    if (spinning) {
+      statusEl.innerHTML = '<div class="spinner"></div><span>' + esc(msg) + '</span>';
+    } else {
+      statusEl.textContent = msg;
+    }
+    statusEl.className = cls || '';
+  }
+
+  function setStep(id, state) {
+    var el = document.getElementById(id);
+    el.className = 'step ' + state;
+  }
+
+  function setLoading(on) {
+    insertBtn.disabled = on;
+    cancelBtn.disabled = on;
+    stepsEl.className  = on ? 'visible' : '';
+  }
+
+  function onError(err) {
+    setStatus('✗ ' + err.message, false, 'error');
+    setStep('step-convert', 'pending');
+    setStep('step-copy', 'pending');
+    setLoading(false);
+    stage = 'idle';
+    insertBtn.textContent = 'Convert';
+  }
+
+  insertBtn.addEventListener('click', function() {
+    if (stage === 'idle') {
+      convertFiles();
+    } else if (stage === 'converted') {
+      copyToClipboard();
+    } else {
+      google.script.host.close();
+    }
+  });
+
+  function convertFiles() {
+    if (!selectedFiles.length) return;
+
+    setLoading(true);
+    stepsEl.className = 'visible';
+    setStep('step-convert', 'active');
+    setStatus('Reading files…', true);
+
+    // Read all selected SVGs as base64
+    var promises = selectedFiles.map(function(file) {
+      return new Promise(function(resolve, reject) {
+        var reader = new FileReader();
+        reader.onload  = function(e) { resolve({name: file.name, data: e.target.result.split(',')[1]}); };
+        reader.onerror = function()  { reject(new Error('Could not read ' + file.name)); };
+        reader.readAsDataURL(file);
+      });
+    });
+
+    Promise.all(promises).then(function(payload) {
+      setStatus('Converting SVG…', true);
+
+      google.script.run
+        .withSuccessHandler(function(clipBundle) {
+          setStep('step-convert', 'done');
+          pendingBundle = clipBundle;
+          stage = 'converted';
+          insertBtn.disabled = false;
+          cancelBtn.disabled = false;
+          insertBtn.textContent = 'Copy shapes to clipboard';
+          setStatus('Ready — click "Copy shapes to clipboard" below.', false);
+        })
+        .withFailureHandler(onError)
+        .fetchClipFromBackend(payload);
+
+    }).catch(onError);
+  }
+
+  function copyToClipboard() {
+    setStep('step-copy', 'active');
+    var bundle = pendingBundle;
+    var ok = writeClipBundle(bundle);
+
+    if (!ok) {
+      onError(new Error('Clipboard write failed — try clicking the button again.'));
+      pendingBundle = bundle;
+      stage = 'converted';
+      insertBtn.textContent = 'Copy shapes to clipboard';
+      insertBtn.disabled = false;
+      return;
+    }
+
+    setStep('step-copy', 'done');
+    setStatus('✓ Copied! Click the slide, then press ⌘V (Mac) / Ctrl+V (Windows) to paste.', false, 'success');
+    stage = 'done';
+    insertBtn.textContent = 'Done';
+    insertBtn.disabled = false;
+    cancelBtn.textContent = 'Copy again';
+    cancelBtn.disabled = false;
+  }
+
+  cancelBtn.addEventListener('click', function() {
+    if (stage === 'done') {
+      // Repurposed: let the user copy again in case the paste didn't land.
+      stage = 'converted';
+      insertBtn.textContent = 'Copy shapes to clipboard';
+      cancelBtn.textContent = 'Cancel';
+      setStatus('Ready — click "Copy shapes to clipboard" below.', false);
+      setStep('step-copy', 'pending');
+    } else {
+      google.script.host.close();
+    }
+  });
+</script>
+</body>
+</html>

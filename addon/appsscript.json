@@ -1,0 +1,21 @@
+{
+  "timeZone": "America/New_York",
+  "dependencies": {},
+  "exceptionLogging": "STACKDRIVER",
+  "runtimeVersion": "V8",
+  "oauthScopes": [
+    "https://www.googleapis.com/auth/presentations.currentonly",
+    "https://www.googleapis.com/auth/script.external_request",
+    "https://www.googleapis.com/auth/script.container.ui"
+  ],
+  "addOns": {
+    "common": {
+      "name": "SVG Slides",
+      "logoUrl": "https://svg-to-slides-jwxfsrfexq-uc.a.run.app/static/favicon.png",
+      "layoutProperties": {
+        "primaryColor": "#1a73e8"
+      }
+    },
+    "slides": {}
+  }
+}

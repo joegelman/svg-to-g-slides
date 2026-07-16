@@ -992,11 +992,12 @@ def _inkscape_normalize(svg_path: Path) -> Path:
         pass
     return svg_path
 
-def convert(svg_files, out_dir=None):
+def convert(svg_files, out_dir=None, slide_w=None, slide_h=None):
     """Convert one or more SVG files into a single PPTX — one slide per SVG.
 
     Returns the Path of the written PPTX, or None on failure.
     out_dir: directory for output file; defaults to alongside the first input.
+    slide_w, slide_h: slide dimensions in EMU; defaults to module-level SLIDE_W/H.
     """
     svg_files = [f for f in svg_files if Path(f).suffix.lower() == '.svg']
     if not svg_files:
@@ -1004,8 +1005,8 @@ def convert(svg_files, out_dir=None):
         return None
 
     prs = Presentation()
-    prs.slide_width  = Emu(SLIDE_W)
-    prs.slide_height = Emu(SLIDE_H)
+    prs.slide_width  = Emu(slide_w or SLIDE_W)
+    prs.slide_height = Emu(slide_h or SLIDE_H)
 
     for svg_file in svg_files:
         p = Path(svg_file)

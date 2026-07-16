@@ -248,9 +248,8 @@
         <li>Upload one or more <strong>.svg</strong> files using the drop zone or file browser.</li>
         <li>Every <code>&lt;path&gt;</code> element in your SVG is converted to a discrete, individually selectable vector shape in Google Slides — not a flattened image.</li>
         <li>Each SVG becomes one slide in the output file.</li>
-        <li>The resulting PPTX is uploaded to Google Drive and a shareable link is returned.</li>
-        <li>Open the link in Drive &rarr; <strong>File &rarr; Save to Drive</strong> &rarr; <strong>File &rarr; Make a copy</strong> to get a fully editable native Slides file.</li>
-        <li>If you enter a Google account email, the file is shared directly to that account so it appears in your Drive.</li>
+        <li>The resulting PPTX is uploaded to Google Drive and a shareable link is returned — optionally shared directly to a Google account email you provide.</li>
+        <li>The link is automatically deleted after <strong>7 days</strong>. To keep a file permanently, open it in Drive &rarr; <strong>File &rarr; Save to Drive</strong> &rarr; <strong>File &rarr; Make a copy</strong> — the copy is fully yours, with no expiry, and is also a fully editable native Slides file.</li>
       </ol>
       <p class="note"><strong>Note:</strong> Arc commands (A/a) in SVG paths are approximated as straight lines. Re-export with more path segments if curves appear angular.</p>
     </div>
@@ -266,18 +265,18 @@
 
   <label for="email">Google account <span style="font-weight:400; color:#666">(optional)</span></label>
   <input type="email" id="email" placeholder="you@example.com">
-  <p class="hint">If provided, the file will be shared directly to this account.</p>
+  <p class="hint">If provided, the file will be shared directly to this account. Either way, the link stays active for 7 days — use "Make a copy" in Drive to keep a file permanently.</p>
 
   <button id="submit" disabled>Convert &rarr;</button>
 
   <div id="status"></div>
 
   <div id="result">
-    <p>&#10003;&nbsp; Done &mdash; your file is ready in Google Drive.</p>
+    <p id="result-message">&#10003;&nbsp; Done &mdash; your file is ready in Google Drive.</p>
     <a id="result-link" href="#" target="_blank" rel="noopener">Open in Drive &#8599;</a>
   </div>
 
-  <div class="footer">Built by Joe Gelman &middot; 2026</div>
+  <div class="footer">Built by Joe Gelman &middot; 2026 &middot; <a href="/privacy" style="color:#aaa">Privacy</a> &middot; <a href="/terms" style="color:#aaa">Terms</a></div>
 
   <script>
     const overlay    = document.getElementById('popover-overlay');
@@ -290,9 +289,10 @@
     const fileList   = document.getElementById('file-list');
     const emailInput = document.getElementById('email');
     const submitBtn  = document.getElementById('submit');
-    const statusEl   = document.getElementById('status');
-    const resultEl   = document.getElementById('result');
-    const resultLink = document.getElementById('result-link');
+    const statusEl      = document.getElementById('status');
+    const resultEl      = document.getElementById('result');
+    const resultLink    = document.getElementById('result-link');
+    const resultMessage = document.getElementById('result-message');
 
     let files = [];
 
@@ -346,6 +346,9 @@
         if (!res.ok) throw new Error(json.detail || 'Server error');
         statusEl.textContent = '';
         resultLink.href = json.link;
+        resultMessage.innerHTML = json.retention_days
+          ? `&#10003;&nbsp; Done &mdash; your file is ready. This link stays active for ${json.retention_days} days (use "Make a copy" in Drive to keep it permanently).`
+          : '&#10003;&nbsp; Done &mdash; your file is ready in Google Drive.';
         resultEl.style.display = 'block';
         files = [];
         renderFiles();
