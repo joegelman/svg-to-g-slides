@@ -18,8 +18,8 @@ function onInstall(e) { onOpen(e); }
 
 function showInsertDialog() {
   var html = HtmlService.createHtmlOutputFromFile('Dialog')
-    .setWidth(440)
-    .setHeight(380);
+    .setWidth(480)
+    .setHeight(460);
   SlidesApp.getUi().showModalDialog(html, 'Insert SVG');
 }
 

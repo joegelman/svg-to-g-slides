@@ -25,20 +25,52 @@
     }
     #drop-zone:hover       { border-color: #1a73e8; }
     #drop-zone.drag-over   { border-color: #1a73e8; background: #e8f0fe; }
-    #drop-zone.has-files   { padding: 20px 24px; border-style: solid; border-color: #1a73e8; }
+    #drop-zone.has-files   { padding: 16px; border-style: solid; border-color: #dadce0; cursor: default; }
+    #drop-zone.has-files:hover { border-color: #dadce0; }
 
     #drop-icon { font-size: 32px; margin-bottom: 8px; }
     #drop-zone.has-files #drop-hint  { display: none; }
     #drop-zone.has-files #drop-label { display: none; }
+    #drop-zone.has-files #drop-icon  { display: none; }
 
     #file-input { display: none; }
 
-    #file-list { display: none; text-align: left; font-size: 13px; color: #3c4043; margin-top: 4px; }
-    #file-list.visible { display: block; }
-    .file-row { display: flex; align-items: center; gap: 8px; padding: 3px 0; }
-    .file-row::before { content: '◆'; font-size: 8px; color: #1a73e8; flex-shrink: 0; }
+    /* ── Thumbnail preview grid (mirrors Slides' own "Import slides" picker) ── */
+    #thumb-grid {
+      display: none;
+      grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+      gap: 10px;
+      text-align: left;
+    }
+    #thumb-grid.visible { display: grid; }
+    .thumb-card {
+      border: 1px solid #dadce0;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #fff;
+    }
+    .thumb-img-wrap {
+      height: 78px;
+      background:
+        linear-gradient(45deg, #f1f3f4 25%, transparent 25%, transparent 75%, #f1f3f4 75%) 0 0/16px 16px,
+        linear-gradient(45deg, #f1f3f4 25%, #fff 25%, #fff 75%, #f1f3f4 75%) 8px 8px/16px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+    }
+    .thumb-img-wrap img { max-width: 100%; max-height: 100%; }
+    .thumb-name {
+      padding: 5px 8px;
+      font-size: 11px;
+      color: #5f6368;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      border-top: 1px solid #f1f3f4;
+    }
 
-    #change-link { display: none; margin-top: 10px; font-size: 12px; color: #1a73e8; cursor: pointer; text-decoration: underline; }
+    #change-link { display: none; margin-top: 12px; font-size: 12px; color: #1a73e8; cursor: pointer; text-decoration: underline; }
     #change-link.visible { display: inline; }
 
     /* ── Status / progress ── */
@@ -52,7 +84,6 @@
       gap: 8px;
     }
     #status.error   { color: #d93025; }
-    #status.success { color: #188038; }
 
     .spinner {
       flex-shrink: 0;
@@ -85,6 +116,33 @@
     .step.active  { color: #202124; font-weight: 500; }
     .step.done    { color: #5f6368; }
 
+    /* ── "Paste to finish" hint card ── */
+    #paste-hint {
+      display: none;
+      margin-top: 14px;
+      padding: 14px 16px;
+      background: #e6f4ea;
+      border: 1px solid #ceead6;
+      border-radius: 8px;
+      align-items: center;
+      gap: 12px;
+    }
+    #paste-hint.visible { display: flex; }
+    #paste-hint .check { font-size: 20px; color: #188038; flex-shrink: 0; }
+    #paste-hint .msg { font-size: 13px; color: #202124; line-height: 1.4; }
+    kbd {
+      display: inline-block;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 500;
+      background: #fff;
+      border: 1px solid #ceead6;
+      border-bottom-width: 2px;
+      border-radius: 4px;
+      padding: 1px 6px;
+      margin: 0 1px;
+    }
+
     /* ── Actions ── */
     .actions { margin-top: 20px; display: flex; justify-content: flex-end; gap: 8px; }
 
@@ -111,7 +169,7 @@
   <div id="drop-icon">⬆</div>
   <div id="drop-label" style="font-weight:500; margin-bottom:4px;">Drop SVG files here</div>
   <div id="drop-hint" style="color:#5f6368; font-size:13px;">or click to browse — multiple files combine onto the current slide</div>
-  <div id="file-list"></div>
+  <div id="thumb-grid"></div>
 </div>
 <span id="change-link">Choose different files</span>
 
@@ -130,6 +188,15 @@
   <div class="step pending" id="step-copy"><span class="step-icon"></span>Copy to clipboard</div>
 </div>
 
+<!-- Paste can't be automated — Chrome blocks programmatic clipboard reads
+     outright regardless of user gesture, unlike writes (see copyToClipboard
+     below). This is the clearest possible nudge for the one remaining
+     manual step. -->
+<div id="paste-hint">
+  <span class="check">✓</span>
+  <span class="msg">Copied! Click your slide, then press <kbd>⌘V</kbd> (Mac) or <kbd>Ctrl</kbd>+<kbd>V</kbd> (Windows) to paste.</span>
+</div>
+
 <div class="actions">
   <button id="cancel-btn">Cancel</button>
   <button id="insert-btn" disabled>Convert</button>
@@ -142,10 +209,11 @@
 
   var dropZone   = document.getElementById('drop-zone');
   var fileInput  = document.getElementById('file-input');
-  var fileList   = document.getElementById('file-list');
+  var thumbGrid  = document.getElementById('thumb-grid');
   var changeLink = document.getElementById('change-link');
   var statusEl   = document.getElementById('status');
   var stepsEl    = document.getElementById('steps');
+  var pasteHint  = document.getElementById('paste-hint');
   var insertBtn  = document.getElementById('insert-btn');
   var cancelBtn  = document.getElementById('cancel-btn');
   var clipTarget = document.getElementById('clip-target');
@@ -177,6 +245,7 @@
   }
 
   dropZone.addEventListener('click', function(e) {
+    if (dropZone.classList.contains('has-files')) return;
     if (e.target === changeLink) return;
     fileInput.click();
   });
@@ -199,8 +268,8 @@
   function applyFiles(files) {
     selectedFiles = files;
     dropZone.classList.add('has-files');
-    fileList.innerHTML = files.map(function(f) { return '<div class="file-row">' + esc(f.name) + '</div>'; }).join('');
-    fileList.classList.add('visible');
+    thumbGrid.classList.add('visible');
+    renderThumbnails(files);
     changeLink.classList.add('visible');
 
     // Changing the file selection invalidates any already-converted bundle.
@@ -210,9 +279,33 @@
     insertBtn.disabled = false;
     cancelBtn.textContent = 'Cancel';
     stepsEl.className = '';
+    pasteHint.classList.remove('visible');
     setStep('step-convert', 'pending');
     setStep('step-copy', 'pending');
     clearStatus();
+  }
+
+  function renderThumbnails(files) {
+    thumbGrid.innerHTML = '';
+    files.forEach(function(file) {
+      var card = document.createElement('div');
+      card.className = 'thumb-card';
+
+      var imgWrap = document.createElement('div');
+      imgWrap.className = 'thumb-img-wrap';
+      var img = document.createElement('img');
+      img.src = URL.createObjectURL(file);
+      imgWrap.appendChild(img);
+
+      var name = document.createElement('div');
+      name.className = 'thumb-name';
+      name.textContent = file.name;
+      name.title = file.name;
+
+      card.appendChild(imgWrap);
+      card.appendChild(name);
+      thumbGrid.appendChild(card);
+    });
   }
 
   function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
@@ -310,7 +403,8 @@
     }
 
     setStep('step-copy', 'done');
-    setStatus('✓ Copied! Click the slide, then press ⌘V (Mac) / Ctrl+V (Windows) to paste.', false, 'success');
+    clearStatus();
+    pasteHint.classList.add('visible');
     stage = 'done';
     insertBtn.textContent = 'Done';
     insertBtn.disabled = false;
@@ -324,6 +418,7 @@
       stage = 'converted';
       insertBtn.textContent = 'Copy shapes to clipboard';
       cancelBtn.textContent = 'Cancel';
+      pasteHint.classList.remove('visible');
       setStatus('Ready — click "Copy shapes to clipboard" below.', false);
       setStep('step-copy', 'pending');
     } else {
