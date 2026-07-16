@@ -224,6 +224,8 @@
     #cancel-btn:hover:not(:disabled) { background: #f1f3f4; }
     #insert-btn { background: #1a73e8; color: #fff; }
     #insert-btn:hover:not(:disabled) { background: #1765cc; }
+    #insert-btn.green { background: #188038; }
+    #insert-btn.green:hover:not(:disabled) { background: #137333; }
     #insert-btn:disabled, #cancel-btn:disabled { opacity: .5; cursor: default; }
   </style>
 </head>
@@ -365,6 +367,7 @@
     pendingBundle = null;
     stage = 'idle';
     insertBtn.textContent = 'Convert';
+    insertBtn.classList.remove('green');
     insertBtn.disabled = true;
     cancelBtn.textContent = 'Cancel';
     stepsEl.className = '';
@@ -439,6 +442,7 @@
     setLoading(false);
     stage = 'idle';
     insertBtn.textContent = 'Convert';
+    insertBtn.classList.remove('green');
     insertBtn.focus();
   }
 
@@ -506,6 +510,7 @@
       pendingBundle = bundle;
       stage = 'converted';
       insertBtn.textContent = 'Copy shapes to clipboard';
+      insertBtn.classList.remove('green');
       insertBtn.disabled = false;
       return;
     }
@@ -519,10 +524,17 @@
     // Deliberately NOT auto-closing on a timer: the "click your slide,
     // press ⌘V" instruction is the one step that actually matters, and a
     // brief flash before vanishing risks it being missed entirely. The card
-    // stays up (with a pulse animation) until dismissed — either via Done,
-    // or by any keypress (see the keydown listener below), since the most
-    // likely next keypress is ⌘V itself.
-    insertBtn.textContent = 'Done';
+    // stays up (with a pulse animation) until dismissed — either via this
+    // button, or by any keypress (see the keydown listener below), since
+    // the most likely next keypress is ⌘V itself.
+    //
+    // Green + "Paste to slide" mirrors the blue "Copy shapes to clipboard"
+    // button visually, but it can't actually execute a paste (same browser
+    // restriction that blocks everything else paste-related) — clicking it
+    // just closes the dialog, same as the old plain "Done" did, so the next
+    // ⌘V lands on the slide instead of in this dialog.
+    insertBtn.textContent = 'Paste to slide';
+    insertBtn.classList.add('green');
     insertBtn.disabled = false;
     insertBtn.focus();
     cancelBtn.textContent = 'Copy again';
@@ -549,6 +561,7 @@
       // Let the user copy again in case the paste didn't land.
       stage = 'converted';
       insertBtn.textContent = 'Copy shapes to clipboard';
+      insertBtn.classList.remove('green');
       cancelBtn.textContent = 'Cancel';
       pasteHint.classList.remove('visible');
       copyHint.classList.add('visible');
