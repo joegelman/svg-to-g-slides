@@ -7,7 +7,7 @@ function onOpen(e) {
   try {
     SlidesApp.getUi()
       .createAddonMenu()
-      .addItem('Insert SVG…', 'showInsertDialog')
+      .addItem('Insert SVGs', 'showInsertDialog')
       .addToUi();
   } catch (_) {}
 }
@@ -16,10 +16,10 @@ function onInstall(e) { onOpen(e); }
 
 // Toolbar icon (uses addOns.common.logoUrl from appsscript.json) — shows a
 // single-button card so the dialog is reachable in one click from the
-// sidebar icon, instead of only via Extensions > SVG Slides > Insert SVG…
+// sidebar icon, instead of only via Extensions > SVG Slides > Insert SVGs
 function onHomepage(e) {
   var button = CardService.newTextButton()
-    .setText('Insert SVG…')
+    .setText('Insert SVGs')
     .setOnClickAction(CardService.newAction().setFunctionName('showInsertDialogFromCard'));
 
   return CardService.newCardBuilder()
@@ -39,7 +39,7 @@ function showInsertDialog() {
   var html = HtmlService.createHtmlOutputFromFile('Dialog')
     .setWidth(480)
     .setHeight(460);
-  SlidesApp.getUi().showModalDialog(html, 'Insert SVG');
+  SlidesApp.getUi().showModalDialog(html, 'Insert SVGs');
 }
 
 // ── Convert on backend, return the Slides clipboard payload ──────────────────
