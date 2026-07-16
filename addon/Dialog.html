@@ -276,13 +276,21 @@
     pendingBundle = null;
     stage = 'idle';
     insertBtn.textContent = 'Convert';
-    insertBtn.disabled = false;
+    insertBtn.disabled = true;
     cancelBtn.textContent = 'Cancel';
     stepsEl.className = '';
     pasteHint.classList.remove('visible');
     setStep('step-convert', 'pending');
     setStep('step-copy', 'pending');
     clearStatus();
+
+    // Conversion itself needs no user gesture (it's just a network call), so
+    // start it immediately rather than waiting for a click. The one gesture
+    // browsers actually require — a fresh click/keypress — is reserved for
+    // the clipboard write in copyToClipboard(), which can't be skipped: it
+    // has to happen inside transient user activation, which does not survive
+    // this async conversion round-trip (confirmed the hard way earlier).
+    convertFiles();
   }
 
   function renderThumbnails(files) {
@@ -339,6 +347,7 @@
     setLoading(false);
     stage = 'idle';
     insertBtn.textContent = 'Convert';
+    insertBtn.focus();
   }
 
   insertBtn.addEventListener('click', function() {
@@ -380,7 +389,12 @@
           insertBtn.disabled = false;
           cancelBtn.disabled = false;
           insertBtn.textContent = 'Copy shapes to clipboard';
-          setStatus('Ready — click "Copy shapes to clipboard" below.', false);
+          setStatus('Ready — click below or press Enter to copy.', false);
+          // Auto-focus so Enter/Space immediately triggers the copy — that
+          // keypress is itself a fresh, genuine user gesture, so it's a
+          // legitimate way to make this feel like one action even though a
+          // gesture is technically still required for the clipboard write.
+          insertBtn.focus();
         })
         .withFailureHandler(onError)
         .fetchClipFromBackend(payload);
@@ -406,24 +420,24 @@
     clearStatus();
     pasteHint.classList.add('visible');
     stage = 'done';
-    insertBtn.textContent = 'Done';
-    insertBtn.disabled = false;
-    cancelBtn.textContent = 'Copy again';
-    cancelBtn.disabled = false;
+    insertBtn.disabled = true;
+    cancelBtn.disabled = true;
+
+    // Auto-close rather than waiting for a "Done" click — Apps Script
+    // modals return keyboard focus to the presentation on close, so in most
+    // cases the next thing the user does is just press ⌘V directly. Brief
+    // delay so the "Copied!" confirmation is actually visible first, not an
+    // instant jarring close.
+    setTimeout(function() {
+      google.script.host.close();
+    }, 900);
   }
 
+  // cancelBtn is disabled during the brief 'done' window before auto-close
+  // (see copyToClipboard), so by the time this is clickable it's always
+  // either 'idle' or 'converted' — just close in both cases.
   cancelBtn.addEventListener('click', function() {
-    if (stage === 'done') {
-      // Repurposed: let the user copy again in case the paste didn't land.
-      stage = 'converted';
-      insertBtn.textContent = 'Copy shapes to clipboard';
-      cancelBtn.textContent = 'Cancel';
-      pasteHint.classList.remove('visible');
-      setStatus('Ready — click "Copy shapes to clipboard" below.', false);
-      setStep('step-copy', 'pending');
-    } else {
-      google.script.host.close();
-    }
+    google.script.host.close();
   });
 </script>
 </body>
