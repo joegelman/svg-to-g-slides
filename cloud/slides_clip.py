@@ -227,7 +227,7 @@ def layout_slots(n, slide_w_emu, slide_h_emu):
     return [(start_x + i * (slot_w + gutter), y, slot_w, slot_h) for i in range(n)]
 
 
-def _build_shape_entry(path_metadata, flat_coords, w, h, x, y, fill_hex):
+def _build_shape_entry(obj_id, path_metadata, flat_coords, w, h, x, y, fill_hex):
     """Mirrors the proven-working structure produced by a reference SVG-to-
     Slides-clipboard converter (github.com/Tikolu/SketchyShapes), confirmed
     by direct paste test to work — as opposed to the richer structure
@@ -237,7 +237,6 @@ def _build_shape_entry(path_metadata, flat_coords, w, h, x, y, fill_hex):
     path coordinates and width/height are baked to final absolute units
     directly rather than a local-shape + scale-factor split.
     """
-    obj_id = 'ga' + secrets.token_hex(5)
     # The [1, 1, ...] prefix on the path record is required — present in
     # every real capture (including the proven-working reference) and
     # missing from earlier versions of this encoder.
@@ -248,6 +247,15 @@ def _build_shape_entry(path_metadata, flat_coords, w, h, x, y, fill_hex):
         18, 0, 23, 0,
     ]
     return [3, obj_id, 1, [1, 0, 0, 1, x, y], props]
+
+
+def _build_group_entry(child_ids):
+    """[objectType=2 (Group), id, objectIDs, identity transform] — confirmed
+    against SketchyGroup.toArray() (github.com/Tikolu/SketchyShapes object.js):
+    super.toArray() (type+id) followed by objectIDs and [1,0,0,1,0,0].
+    """
+    obj_id = 'ga' + secrets.token_hex(5)
+    return [2, obj_id, list(child_ids), [1, 0, 0, 1, 0, 0]]
 
 
 def add_shapes_to_clip(svg_shape_groups, slide_w_pt, slide_h_pt):
@@ -274,6 +282,7 @@ def add_shapes_to_clip(svg_shape_groups, slide_w_pt, slide_h_pt):
         cw = COORD
         ch = round(COORD * vb_h / vb_w) if vb_w else COORD
 
+        group_child_ids = []
         for d, xfm, fill_hex in shapes:
             path_metadata, flat_coords = path_to_clip_geometry(d, xfm, vb_x, vb_y, vb_w, vb_h)
             xs, ys = _endpoint_bbox(path_metadata, flat_coords)
@@ -311,9 +320,18 @@ def add_shapes_to_clip(svg_shape_groups, slide_w_pt, slide_h_pt):
             x_unit = round(shape_ox / EMU_PER_UNIT)
             y_unit = round(shape_oy / EMU_PER_UNIT)
 
+            obj_id = 'ga' + secrets.token_hex(5)
+            group_child_ids.append(obj_id)
             resolved.append(_build_shape_entry(
-                path_metadata, final_coords, final_w, final_h,
+                obj_id, path_metadata, final_coords, final_w, final_h,
                 x_unit, y_unit, fill))
+
+        # Group this SVG's shapes together (QoL parity with the old
+        # PPTX/SlidesApp pipeline's currentSlide.group(copied) call) so they
+        # move/resize as one unit after paste, rather than landing as loose
+        # individual shapes.
+        if len(group_child_ids) > 1:
+            resolved.append(_build_group_entry(group_child_ids))
 
     return resolved
 

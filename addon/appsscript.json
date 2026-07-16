@@ -14,6 +14,9 @@
       "logoUrl": "https://svg-to-slides-jwxfsrfexq-uc.a.run.app/static/favicon.png",
       "layoutProperties": {
         "primaryColor": "#1a73e8"
+      },
+      "homepageTrigger": {
+        "runFunction": "onHomepage"
       }
     },
     "slides": {}

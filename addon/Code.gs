@@ -14,6 +14,25 @@ function onOpen(e) {
 
 function onInstall(e) { onOpen(e); }
 
+// Toolbar icon (uses addOns.common.logoUrl from appsscript.json) — shows a
+// single-button card so the dialog is reachable in one click from the
+// sidebar icon, instead of only via Extensions > SVG Slides > Insert SVG…
+function onHomepage(e) {
+  var button = CardService.newTextButton()
+    .setText('Insert SVG…')
+    .setOnClickAction(CardService.newAction().setFunctionName('showInsertDialogFromCard'));
+
+  return CardService.newCardBuilder()
+    .setHeader(CardService.newCardHeader().setTitle('SVG Slides'))
+    .addSection(CardService.newCardSection().addWidget(button))
+    .build();
+}
+
+function showInsertDialogFromCard(e) {
+  showInsertDialog();
+  return CardService.newActionResponseBuilder().build();
+}
+
 // ── UI ────────────────────────────────────────────────────────────────────────
 
 function showInsertDialog() {
