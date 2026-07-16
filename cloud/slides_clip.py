@@ -9,7 +9,7 @@ walking (expand_path) unchanged; the only new logic here is emitting Slides'
 run-length-encoded path arrays instead of DrawingML XML, and the final
 placement math.
 
-── Calibration facts (2026-07, see clipboard-inspector.html capture) ──
+── Calibration facts (2026-07) ──
 - Path opcodes: Move=0, Line=1, Quad=2, Cubic=3, Arc=4, Close=5. We only ever
   emit Move/Line/Cubic/Close — arcs are pre-normalized to cubics upstream by
   svg_to_slides.normalize_arcs(), and no shape needs Quad.
@@ -17,25 +17,26 @@ placement math.
   count (2 per Move/Line point, 6 per Cubic command, 0 for Close) — NOT a
   point count. Confirmed against a real captured payload for a 3-line/2-cubic
   path: [0,2, 1,6, 3,12, 5,0].
-- Local path/shape width & height (keys 8/9) and path point coordinates use
-  the SAME arbitrary local coordinate system we already use for DrawingML
-  (COORD = 100000-normalized to the SVG viewBox) — confirmed byte-for-byte
-  identical between our own make_a_path() output and a real captured payload.
-- Final on-slide placement (transform's x, y, widthScale, heightScale) is in
-  a distinct "Slides internal unit" where 1 unit = 30 EMU. Confirmed via a
-  controlled experiment: a native 75x75px rectangle placed at the slide's
+- EMU_PER_UNIT=30: the Slides-internal position unit, confirmed via a
+  controlled experiment — a native 75x75px rectangle placed at the slide's
   true top-left produced widthScale=0.2381 (=23812.5/100000) and x=y=0;
   75px * 9525 EMU/px = 714375 EMU; 714375 / 23812.5 = exactly 30.
 - Object IDs are arbitrary, client-generated, and not validated against any
   server-side state.
-- The "dih" field looks like an integrity hash but isn't strictly validated
-  on paste (SketchyShapes' demo, github.com/Tikolu/SketchyShapes, omits it
-  entirely and works) — we still populate it with a fixed real-captured value
-  as a defensive no-op.
-- Opaque property keys (32, 40, 44, 53, 60) are copied verbatim from a real
-  captured fill-only/no-stroke/no-text shape — semantics undocumented; only
-  the keys we understand (12, 14, 15, 16, 18, 8, 9, and the transform) are
-  computed.
+- IMPORTANT (superseded an earlier wrong approach): same-session Slides-to-
+  Slides copy captures include a much richer structure — dih, edi/edrk
+  (opaque signed-looking tokens we cannot produce), unresolved, autotext_
+  content, per-shape trailing "p" tag, widthScale/heightScale != 1 with a
+  separate local-coordinate-space split, opaque property keys 32/40/44/53/60.
+  Matching that structure exactly did NOT work — paste silently no-opped.
+  What actually works (confirmed by direct paste test) is a much more
+  minimal structure: bare {"data": "{\"resolved\": [...]}"}, no trailing
+  type tag on the shape entry, widthScale/heightScale always 1 with path
+  coordinates and width/height baked to final absolute units directly. This
+  matches what a reference converter (github.com/Tikolu/SketchyShapes)
+  produces, confirmed working by direct test — the richer same-session
+  structure is apparently NOT what external-paste validation requires, and
+  chasing it was a dead end.
 """
 import json
 import secrets
@@ -49,10 +50,6 @@ _PT_TO_EMU = 12700
 _FIT_FRACTION = 0.85
 
 _OP_MOVE, _OP_LINE, _OP_CUBIC, _OP_CLOSE = 0, 1, 3, 5
-
-# Fixed template values captured from a real Slides copy of a fill-only shape.
-_DIH_TEMPLATE = 2732344119
-_OPAQUE_PROP_TAIL = [32, 1, 40, [0, 0, 0, 0, 3, 0, 4, 0], 44, 0, 53, [1828, 3657, 1828, 3657], 60, 0]
 
 
 def path_to_clip_geometry(d, xfm, vb_x, vb_y, vb_w, vb_h):
@@ -225,16 +222,24 @@ def layout_slots(n, slide_w_emu, slide_h_emu):
     return [(start_x + i * (slot_w + gutter), y, slot_w, slot_h) for i in range(n)]
 
 
-def _build_shape_entry(path_metadata, flat_coords, pw, ph, width_scale, height_scale, x, y, fill_hex):
+def _build_shape_entry(path_metadata, flat_coords, w, h, x, y, fill_hex):
+    """Mirrors the proven-working structure produced by a reference SVG-to-
+    Slides-clipboard converter (github.com/Tikolu/SketchyShapes), confirmed
+    by direct paste test to work — as opposed to the richer structure
+    (dih/edi/edrk/opaque tail keys/trailing type tag) seen in same-session
+    Slides-to-Slides copies, which apparently isn't what external-paste
+    validation actually requires. widthScale/heightScale are always 1 —
+    path coordinates and width/height are baked to final absolute units
+    directly rather than a local-shape + scale-factor split.
+    """
     obj_id = 'ga' + secrets.token_hex(5)
     props = [
+        8, w, 9, h,
         12, [[path_metadata, flat_coords, [], 0]],
-        14, 1, 15, f'#{fill_hex}', 16, 1,
-        18, 0,
-        *_OPAQUE_PROP_TAIL,
-        8, pw, 9, ph,
+        14, 1, 15, f'#{fill_hex}',
+        18, 0, 23, 0,
     ]
-    return [3, obj_id, 1, [width_scale, 0, 0, height_scale, x, y], props, 'p']
+    return [3, obj_id, 1, [1, 0, 0, 1, x, y], props]
 
 
 def add_shapes_to_clip(svg_shape_groups, slide_w_pt, slide_h_pt):
@@ -282,20 +287,25 @@ def add_shapes_to_clip(svg_shape_groups, slide_w_pt, slide_h_pt):
             # gradient-shape payload.
             fill = fill_hex['stops'][0][1] if isinstance(fill_hex, dict) else fill_hex
 
-            # Precision matters here — real Slides clipboard data (and
-            # SketchyShapes' "Fix compatibility with Google Slides" commit)
-            # rounds scale factors to exactly 4 decimals and position to
-            # whole integers. Excess precision may be why earlier attempts
-            # pasted nothing: Slides' deserializer likely drops the object
-            # silently on an unexpected number format rather than erroring.
-            width_scale = round((shape_sw / EMU_PER_UNIT) / pw, 4)
-            height_scale = round((shape_sh / EMU_PER_UNIT) / ph, 4)
+            # Bake local->final scaling directly into the coordinates
+            # (widthScale/heightScale left at 1) rather than emitting a
+            # local-normalized shape + separate scale factor — matches the
+            # proven-working reference structure, not the DrawingML-style
+            # split we originally mirrored.
+            scale_x = (shape_sw / EMU_PER_UNIT) / pw
+            scale_y = (shape_sh / EMU_PER_UNIT) / ph
+            final_coords = [
+                round(v * (scale_x if i % 2 == 0 else scale_y))
+                for i, v in enumerate(flat_coords)
+            ]
+            final_w = max(round(shape_sw / EMU_PER_UNIT), 1)
+            final_h = max(round(shape_sh / EMU_PER_UNIT), 1)
             x_unit = round(shape_ox / EMU_PER_UNIT)
             y_unit = round(shape_oy / EMU_PER_UNIT)
 
             resolved.append(_build_shape_entry(
-                path_metadata, flat_coords, pw, ph,
-                width_scale, height_scale, x_unit, y_unit, fill))
+                path_metadata, final_coords, final_w, final_h,
+                x_unit, y_unit, fill))
 
     return resolved
 
@@ -316,34 +326,13 @@ def build_clip_bundle(svg_sources, slide_w_pt, slide_h_pt):
 
     resolved = add_shapes_to_clip(groups, slide_w_pt, slide_h_pt)
 
-    # Every real capture we've taken includes these fields alongside
-    # resolved/unresolved — absent from earlier attempts, added here as a
-    # test of whether they (rather than the edi/edrk signed tokens, which we
-    # cannot produce) are why Slides was silently ignoring the paste.
-    autotext_content = {
-        json.dumps({'shapeId': shape[1]}, separators=(',', ':')): {} for shape in resolved
-    }
-    data = {
-        'resolved': resolved,
-        'unresolved': [],
-        'autotext_content': autotext_content,
-        'did_remove_empty_picture_placeholders': False,
-        'copy_source_supports_inheritance_via_master': True,
-    }
-    # dct/ds/cses/sm are present, with these exact values, in every real
-    # capture we've taken — included here as part of the same test as
-    # autotext_content above. edi/edrk (opaque signed-looking tokens) are
-    # deliberately NOT included: we have no legitimate way to produce them,
-    # and their presence in every real capture is the leading hypothesis for
-    # why a from-scratch payload gets silently ignored on paste.
-    wrapper = {
-        'dih': _DIH_TEMPLATE,
-        'data': json.dumps(data, separators=(',', ':')),
-        'dct': 'punch',
-        'ds': False,
-        'cses': False,
-        'sm': 'other',
-    }
+    # Minimal structure, confirmed by direct paste test to work: just
+    # {"data": "{\"resolved\": [...]}"}. Earlier attempts added dih/edi/edrk/
+    # unresolved/autotext_content/etc. by matching same-session Slides-to-
+    # Slides copy captures — that richer structure turned out to be a red
+    # herring for external paste, which this minimal shape satisfies fine.
+    data = {'resolved': resolved}
+    wrapper = {'data': json.dumps(data, separators=(',', ':'))}
 
     return {
         'text/plain': ' ',
