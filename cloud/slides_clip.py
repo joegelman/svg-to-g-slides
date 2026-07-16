@@ -282,10 +282,16 @@ def add_shapes_to_clip(svg_shape_groups, slide_w_pt, slide_h_pt):
             # gradient-shape payload.
             fill = fill_hex['stops'][0][1] if isinstance(fill_hex, dict) else fill_hex
 
-            width_scale = round((shape_sw / EMU_PER_UNIT) / pw, 6)
-            height_scale = round((shape_sh / EMU_PER_UNIT) / ph, 6)
-            x_unit = round(shape_ox / EMU_PER_UNIT, 2)
-            y_unit = round(shape_oy / EMU_PER_UNIT, 2)
+            # Precision matters here — real Slides clipboard data (and
+            # SketchyShapes' "Fix compatibility with Google Slides" commit)
+            # rounds scale factors to exactly 4 decimals and position to
+            # whole integers. Excess precision may be why earlier attempts
+            # pasted nothing: Slides' deserializer likely drops the object
+            # silently on an unexpected number format rather than erroring.
+            width_scale = round((shape_sw / EMU_PER_UNIT) / pw, 4)
+            height_scale = round((shape_sh / EMU_PER_UNIT) / ph, 4)
+            x_unit = round(shape_ox / EMU_PER_UNIT)
+            y_unit = round(shape_oy / EMU_PER_UNIT)
 
             resolved.append(_build_shape_entry(
                 path_metadata, flat_coords, pw, ph,
