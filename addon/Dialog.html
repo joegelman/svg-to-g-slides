@@ -120,27 +120,32 @@
     #paste-hint {
       display: none;
       margin-top: 14px;
-      padding: 14px 16px;
+      padding: 18px 20px;
       background: #e6f4ea;
-      border: 1px solid #ceead6;
-      border-radius: 8px;
+      border: 2px solid #34a853;
+      border-radius: 10px;
       align-items: center;
-      gap: 12px;
+      gap: 14px;
+      animation: pulse-border 1.6s ease-in-out infinite;
     }
     #paste-hint.visible { display: flex; }
-    #paste-hint .check { font-size: 20px; color: #188038; flex-shrink: 0; }
-    #paste-hint .msg { font-size: 13px; color: #202124; line-height: 1.4; }
+    #paste-hint .check { font-size: 26px; color: #188038; flex-shrink: 0; }
+    #paste-hint .msg { font-size: 15px; font-weight: 500; color: #202124; line-height: 1.45; }
+    @keyframes pulse-border {
+      0%, 100% { border-color: #34a853; box-shadow: 0 0 0 0 rgba(52,168,83,0.25); }
+      50%      { border-color: #188038; box-shadow: 0 0 0 6px rgba(52,168,83,0); }
+    }
     kbd {
       display: inline-block;
       font-family: inherit;
-      font-size: 12px;
-      font-weight: 500;
+      font-size: 14px;
+      font-weight: 700;
       background: #fff;
-      border: 1px solid #ceead6;
+      border: 1px solid #34a853;
       border-bottom-width: 2px;
       border-radius: 4px;
-      padding: 1px 6px;
-      margin: 0 1px;
+      padding: 2px 8px;
+      margin: 0 2px;
     }
 
     /* ── Actions ── */
@@ -420,24 +425,41 @@
     clearStatus();
     pasteHint.classList.add('visible');
     stage = 'done';
-    insertBtn.disabled = true;
-    cancelBtn.disabled = true;
-
-    // Auto-close rather than waiting for a "Done" click — Apps Script
-    // modals return keyboard focus to the presentation on close, so in most
-    // cases the next thing the user does is just press ⌘V directly. Brief
-    // delay so the "Copied!" confirmation is actually visible first, not an
-    // instant jarring close.
-    setTimeout(function() {
-      google.script.host.close();
-    }, 900);
+    // Deliberately NOT auto-closing on a timer: the "click your slide,
+    // press ⌘V" instruction is the one step that actually matters, and a
+    // brief flash before vanishing risks it being missed entirely. The card
+    // stays up (with a pulse animation) until dismissed — either via Done,
+    // or by any keypress (see the keydown listener below), since the most
+    // likely next keypress is ⌘V itself.
+    insertBtn.textContent = 'Done';
+    insertBtn.disabled = false;
+    insertBtn.focus();
+    cancelBtn.textContent = 'Copy again';
+    cancelBtn.disabled = false;
   }
 
-  // cancelBtn is disabled during the brief 'done' window before auto-close
-  // (see copyToClipboard), so by the time this is clickable it's always
-  // either 'idle' or 'converted' — just close in both cases.
+  // Once copied, close on the very first keydown of whatever comes next.
+  // For a real ⌘V, the Cmd/Meta key's own keydown fires slightly before V's
+  // — closing here lets focus shift to the presentation while V is still
+  // being held, so V can land as a genuine paste in Slides instead of being
+  // swallowed by this dialog.
+  document.addEventListener('keydown', function() {
+    if (stage === 'done') google.script.host.close();
+  });
+
   cancelBtn.addEventListener('click', function() {
-    google.script.host.close();
+    if (stage === 'done') {
+      // Let the user copy again in case the paste didn't land.
+      stage = 'converted';
+      insertBtn.textContent = 'Copy shapes to clipboard';
+      cancelBtn.textContent = 'Cancel';
+      pasteHint.classList.remove('visible');
+      setStatus('Ready — click below or press Enter to copy.', false);
+      setStep('step-copy', 'pending');
+      insertBtn.focus();
+    } else {
+      google.script.host.close();
+    }
   });
 </script>
 </body>
