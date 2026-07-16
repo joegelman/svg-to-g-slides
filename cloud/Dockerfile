@@ -11,10 +11,11 @@ COPY cloud/requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy converter core + cloud service files
-COPY svg_to_slides.py ./svg_to_slides.py
-COPY cloud/main.py    ./main.py
-COPY cloud/drive.py   ./drive.py
-COPY cloud/static/    ./static/
+COPY svg_to_slides.py    ./svg_to_slides.py
+COPY cloud/main.py       ./main.py
+COPY cloud/drive.py      ./drive.py
+COPY cloud/slides_clip.py ./slides_clip.py
+COPY cloud/static/       ./static/
 
 ENV PORT=8080
 EXPOSE 8080
