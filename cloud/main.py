@@ -44,6 +44,12 @@ def terms():
     return FileResponse("static/terms.html")
 
 
+@app.get("/features")
+def features():
+    # Not linked from the homepage nav yet — reachable directly by URL only.
+    return FileResponse("static/features.html")
+
+
 @app.post("/cleanup")
 def cleanup(x_cleanup_token: str = Header(default="")):
     """Delete output files older than RETENTION_DAYS from the Drive output folder.
