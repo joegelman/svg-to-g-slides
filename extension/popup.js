@@ -45,13 +45,22 @@ document.querySelectorAll('.tab-btn').forEach((btn) => {
 
   let files = [];
 
+  // Only updates the file-list display + submit button state — does NOT
+  // touch the result/status boxes. Used both for a fresh file selection
+  // (where the caller also wants those cleared, via applyFiles below) and
+  // for resetting the picker after a successful convert (where the result
+  // box must stay visible, not get wiped the instant it's shown).
+  function renderFileList() {
+    dropZone.classList.toggle('has-files', files.length > 0);
+    fileList.innerHTML = files.map((f) => '<div class="file-row">' + esc(f.name) + '</div>').join('');
+    fileList.classList.toggle('visible', files.length > 0);
+    changeLink.classList.toggle('visible', files.length > 0);
+    submitBtn.disabled = files.length === 0;
+  }
+
   function applyFiles(newFiles) {
     files = newFiles;
-    dropZone.classList.add('has-files');
-    fileList.innerHTML = files.map((f) => '<div class="file-row">' + esc(f.name) + '</div>').join('');
-    fileList.classList.add('visible');
-    changeLink.classList.add('visible');
-    submitBtn.disabled = files.length === 0;
+    renderFileList();
     resultEl.style.display = 'none';
     statusEl.textContent = '';
     statusEl.className = 'status';
@@ -99,13 +108,24 @@ document.querySelectorAll('.tab-btn').forEach((btn) => {
         : '✓ Done — your file is ready in Google Drive.';
       resultEl.style.display = 'block';
       files = [];
-      applyFiles([]);
+      renderFileList();
       emailInput.value = '';
     } catch (err) {
       statusEl.className = 'status error';
       statusEl.textContent = '✗ ' + err.message;
       submitBtn.disabled = false;
     }
+  });
+
+  // Enter submits regardless of which field currently has focus (email
+  // input or elsewhere in this tab) — only while the Upload tab is active,
+  // so it doesn't fire while the Insert tab is showing instead.
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter') return;
+    if (!document.getElementById('tab-upload').classList.contains('active')) return;
+    if (submitBtn.disabled) return;
+    e.preventDefault();
+    submitBtn.click();
   });
 })();
 
