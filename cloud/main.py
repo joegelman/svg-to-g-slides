@@ -190,22 +190,25 @@ class _InsertAtRequest(BaseModel):
     files: list[_SvgFile]
     x_pt: float
     y_pt: float
+    box_w_pt: float
+    box_h_pt: float
 
 
 @app.post("/insert-svg-clip-at")
 async def insert_svg_clip_at_endpoint(req: _InsertAtRequest):
     """Same clipboard payload as /insert-svg-clip, but for the Chrome
-    extension: places each SVG at its true native size at an explicit
-    absolute position, rather than fitting to a given slide's dimensions.
-    No slide-dimension parameter exists on this endpoint at all — the
-    extension never calls the Slides API for anything, it reads cursor
-    position from the page's own DOM, so it needs zero Google OAuth scopes.
+    extension: aspect-fits each SVG into a box (box_w_pt, box_h_pt) centered
+    at (x_pt, y_pt), rather than fitting to a given slide's real dimensions.
+    No slide-dimension or DOM-derived parameter exists on this endpoint at
+    all — the extension estimates the box/position itself from the browser
+    window size and an assumed default slide size, so it needs zero Google
+    OAuth scopes anywhere in this path.
     """
     svg_files = [f for f in req.files if f.name.lower().endswith(".svg")]
     if not svg_files:
         raise HTTPException(status_code=400, detail="No .svg files provided.")
 
     sources = [(f.name, base64.b64decode(f.data)) for f in svg_files]
-    bundle = build_clip_bundle_at(sources, req.x_pt, req.y_pt)
+    bundle = build_clip_bundle_at(sources, req.x_pt, req.y_pt, req.box_w_pt, req.box_h_pt)
 
     return JSONResponse({"clip": bundle})

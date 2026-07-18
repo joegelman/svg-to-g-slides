@@ -167,16 +167,42 @@ activeTabPromise.then((tab) => {
   let selectedFiles = [];
   let pendingBundle = null; // {mimeType: string} once converted, until copied
   let stage = 'idle';       // 'idle' -> 'converted' -> 'done'
-  let placement = null;     // {x_pt, y_pt} resolved once at popup-open time
+  let placement = null;     // {x_pt, y_pt, box_w_pt, box_h_pt} resolved once at popup-open time
 
-  // ── Resolve cursor position via the content script, once, at popup open ──
-  // Mouse position here is inherently "last hover before the popup opened,"
-  // not "at click time" — by the time the user clicks the toolbar icon the
-  // cursor is over the toolbar/popup, not the slide canvas. Expected, not a
-  // bug: content.js continuously caches mousemove for exactly this reason.
+  // ── Estimate cursor position + a reasonable insert size, no Slides DOM ──
+  // reverse-engineering, no Slides API, no Google scope of any kind.
+  //
+  // Deliberately approximate, on purpose, in two ways:
+  //  1. Position: we assume Slides' default layout (top toolbar + left
+  //     filmstrip visible) to estimate where the canvas sits within the
+  //     browser window, then take the cursor's FRACTIONAL position within
+  //     that estimated box and apply it to an ASSUMED default slide size
+  //     (960x540pt "Widescreen", Slides' current default) — this works
+  //     regardless of the real zoom level, since a fraction-of-canvas-width
+  //     maps to the same fraction-of-slide-width no matter how zoomed in
+  //     the user actually is. Off if their layout differs (filmstrip
+  //     hidden, non-default aspect ratio, etc.) — gracefully, not
+  //     catastrophically: the paste just lands a bit off from the true
+  //     cursor position, not somewhere wildly wrong.
+  //  2. Size: rather than the SVG's own "true" size (which is a bad
+  //     default anyway — a 16x16 icon would be an invisible speck, a
+  //     2000x2000 logo would blow past the slide), we fit it to a fraction
+  //     of that same assumed slide size, same as the real-slide-size fit
+  //     mode does. There's no one "correct" size for an arbitrary icon
+  //     graphic, so landing reasonably-sized for the slide it's going onto
+  //     is arguably the better default regardless of precision.
+  //
+  // Mouse position itself is inherently "last hover before the popup
+  // opened," not "at click time" — by the time the user clicks the toolbar
+  // icon the cursor is over the toolbar/popup, not the slide canvas.
+  // Expected, not a bug: content.js continuously caches mousemove for
+  // exactly this reason.
 
-  const DEFAULT_SLIDE_W_PT = 960;
-  const DEFAULT_SLIDE_H_PT = 540;
+  const ASSUMED_TOP_CHROME_PX = 120;   // menu bar + toolbar, Slides' default layout
+  const ASSUMED_LEFT_CHROME_PX = 200;  // filmstrip sidebar, Slides' default layout
+  const ASSUMED_SLIDE_W_PT = 960;      // Slides' current default "Widescreen" 16:9
+  const ASSUMED_SLIDE_H_PT = 540;
+  const INSERT_FIT_FRACTION = 0.2;     // ~20% of the assumed slide size — a reasonably-sized icon, not the whole slide
 
   function setWarning(msg) {
     if (!msg) { warningEl.classList.remove('visible'); warningEl.textContent = ''; return; }
@@ -194,34 +220,30 @@ activeTabPromise.then((tab) => {
       }
 
       chrome.tabs.sendMessage(tab.id, { type: 'GET_PLACEMENT_CONTEXT' }, (resp) => {
+        const boxPt = { box_w_pt: ASSUMED_SLIDE_W_PT * INSERT_FIT_FRACTION, box_h_pt: ASSUMED_SLIDE_H_PT * INSERT_FIT_FRACTION };
+
         if (chrome.runtime.lastError || !resp || !resp.ok) {
           // Most likely an already-open tab from before the extension was
           // loaded/reloaded — content.js only auto-injects on (re)navigation.
-          setWarning('Couldn\'t detect the slide canvas — try refreshing the Slides tab. Inserting at the center of a standard-size slide for now.');
-          callback({ x_pt: DEFAULT_SLIDE_W_PT / 2, y_pt: DEFAULT_SLIDE_H_PT / 2 });
+          setWarning('Couldn\'t reach the Slides tab — try refreshing it. Inserting at the center of a standard-size slide for now.');
+          callback({ x_pt: ASSUMED_SLIDE_W_PT / 2, y_pt: ASSUMED_SLIDE_H_PT / 2, ...boxPt });
           return;
         }
 
-        const { canvasRect, mouse, zoomPercent } = resp;
-        if (!zoomPercent || !canvasRect.width || !canvasRect.height) {
-          setWarning('Couldn\'t read the zoom level — inserting at the center of a standard-size slide.');
-          callback({ x_pt: DEFAULT_SLIDE_W_PT / 2, y_pt: DEFAULT_SLIDE_H_PT / 2 });
-          return;
-        }
+        const { windowWidth, windowHeight, mouse } = resp;
+        const estCanvasWidth = Math.max(windowWidth - ASSUMED_LEFT_CHROME_PX, 100);
+        const estCanvasHeight = Math.max(windowHeight - ASSUMED_TOP_CHROME_PX, 100);
 
-        let fx = 0.5, fy = 0.5; // dead-center fallback if mouse is unknown/outside canvas
+        let fx = 0.5, fy = 0.5; // dead-center fallback if mouse is unknown/outside the estimated canvas
         if (mouse) {
-          const rawFx = (mouse.x - canvasRect.left) / canvasRect.width;
-          const rawFy = (mouse.y - canvasRect.top) / canvasRect.height;
+          const rawFx = (mouse.x - ASSUMED_LEFT_CHROME_PX) / estCanvasWidth;
+          const rawFy = (mouse.y - ASSUMED_TOP_CHROME_PX) / estCanvasHeight;
           if (rawFx >= 0 && rawFx <= 1 && rawFy >= 0 && rawFy <= 1) {
             fx = rawFx; fy = rawFy;
           }
         }
 
-        // Stage-0-validated formula: 1pt == 1 CSS px at 100% zoom.
-        const pageWidthPt = canvasRect.width / (zoomPercent / 100);
-        const pageHeightPt = canvasRect.height / (zoomPercent / 100);
-        callback({ x_pt: fx * pageWidthPt, y_pt: fy * pageHeightPt });
+        callback({ x_pt: fx * ASSUMED_SLIDE_W_PT, y_pt: fy * ASSUMED_SLIDE_H_PT, ...boxPt });
       });
     });
   }
@@ -353,7 +375,11 @@ activeTabPromise.then((tab) => {
       return fetch(BACKEND + '/insert-svg-clip-at', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ files: payload, x_pt: placement.x_pt, y_pt: placement.y_pt }),
+        body: JSON.stringify({
+          files: payload,
+          x_pt: placement.x_pt, y_pt: placement.y_pt,
+          box_w_pt: placement.box_w_pt, box_h_pt: placement.box_h_pt,
+        }),
       });
     }).then(async (res) => {
       const json = await res.json();

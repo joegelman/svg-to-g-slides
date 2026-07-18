@@ -12,11 +12,18 @@ placement math.
 Two placement modes share the same per-shape geometry/encoding
 (_place_svg_group): `add_shapes_to_clip`/`build_clip_bundle` fit each SVG to
 a percentage of a given slide size (used by the Apps Script add-on, which
-knows the active presentation's dimensions); `add_shapes_to_clip_at`/
-`build_clip_bundle_at` place each SVG at its true native size at an explicit
-absolute position (used by the Chrome extension, which never touches the
-Slides API at all — it gets a cursor position from the page's own DOM
-instead of slide dimensions from the API, so it needs zero Google scopes).
+knows the active presentation's real dimensions via the Slides API).
+`add_shapes_to_clip_at`/`build_clip_bundle_at` aspect-fit each SVG into an
+explicit box centered at an explicit position (used by the Chrome
+extension, which never touches the Slides API at all — no slide dimensions,
+no cursor-to-DOM-element mapping, so it needs zero Google scopes). The
+extension estimates both the box size and position itself from the
+browser window size and an assumed-default slide size, rather than reading
+real values from any API — deliberately: true native SVG size turned out to
+be a bad default anyway (a 16x16-viewBox icon would paste as an invisible
+speck; a 2000x2000 logo would blow past the slide), so fitting to a
+fraction of an assumed slide size, same as the real-slide-size case, is
+better regardless of how precisely that assumption holds.
 
 ── Calibration facts (2026-07) ──
 - Path opcodes: Move=0, Line=1, Quad=2, Cubic=3, Arc=4, Close=5. We only ever
@@ -49,7 +56,6 @@ instead of slide dimensions from the API, so it needs zero Google scopes).
   chasing it was a dead end.
 """
 import json
-import re
 import secrets
 from xml.etree import ElementTree as ET
 
@@ -60,18 +66,7 @@ PX_TO_EMU = 9525
 _PT_TO_EMU = 12700
 _FIT_FRACTION = 0.85
 
-# Fallback true size (px) for an SVG with neither explicit width/height NOR a
-# viewBox to fall back to — deliberately separate from the 100x100 viewBox
-# default used elsewhere for local-coordinate math (that default is about
-# aspect ratio, not real-world magnitude, and would be a meaningless size to
-# actually paste at). 300x150 matches the common browser <img>-intrinsic-SVG
-# size convention.
-DEFAULT_SVG_SIZE_PX = (300, 150)
-
 _OP_MOVE, _OP_LINE, _OP_CUBIC, _OP_CLOSE = 0, 1, 3, 5
-
-_UNIT_TO_PX = {'': 1.0, 'px': 1.0, 'pt': 96 / 72, 'in': 96.0, 'cm': 96 / 2.54, 'mm': 96 / 25.4}
-_LENGTH_RE = re.compile(r'^\s*([-+]?\d*\.?\d+)\s*(px|pt|in|cm|mm)?\s*$')
 
 
 def path_to_clip_geometry(d, xfm, vb_x, vb_y, vb_w, vb_h):
@@ -373,69 +368,45 @@ def add_shapes_to_clip(svg_shape_groups, slide_w_pt, slide_h_pt):
     return resolved
 
 
-def add_shapes_to_clip_at(svg_shape_groups, x_emu, y_emu, cascade_px=24):
-    """svg_shape_groups: list of (vb, shapes, native_w_px, native_h_px).
-    Places each SVG at its true native size (no aspect-fit/scaling to any
-    slide dimension), positioned at (x_emu, y_emu) — the first file lands
-    exactly there; subsequent files in the same drop cascade diagonally by
-    a fixed offset so simultaneous multi-file drops don't fully overlap
-    (a deliberately simple convention, not smart non-overlap layout). Used
-    by the Chrome extension: no slide dimensions are needed anywhere in this
-    path, which is the whole point — it never has to call the Slides API.
+def add_shapes_to_clip_at(svg_shape_groups, x_emu, y_emu, box_w_emu, box_h_emu, cascade_px=24):
+    """svg_shape_groups: list of (vb, shapes). Aspect-fits each SVG into a
+    box sized (box_w_emu, box_h_emu), CENTERED at (x_emu, y_emu) — the first
+    file lands exactly there; subsequent files in the same drop cascade
+    diagonally by a fixed offset so simultaneous multi-file drops don't
+    fully overlap (a deliberately simple convention, not smart non-overlap
+    layout). Used by the Chrome extension: the box and position are both
+    estimates derived client-side from the browser window size and an
+    assumed-default slide size, not real values from any Google API — no
+    slide dimensions or cursor-to-DOM-element mapping needed anywhere in
+    this path, which is the whole point (zero Google scopes required).
     """
     cascade_emu = round(cascade_px * PX_TO_EMU)
     resolved = []
-    for i, (vb, shapes, native_w_px, native_h_px) in enumerate(svg_shape_groups):
-        ox = x_emu + i * cascade_emu
-        oy = y_emu + i * cascade_emu
-        sw = max(round(native_w_px * PX_TO_EMU), 1)
-        sh = max(round(native_h_px * PX_TO_EMU), 1)
+    for i, (vb, shapes) in enumerate(svg_shape_groups):
+        vb_x, vb_y, vb_w, vb_h = vb
+        aspect = vb_w / vb_h if vb_h else 1
+        if aspect >= box_w_emu / box_h_emu:
+            sw = box_w_emu; sh = round(sw / aspect)
+        else:
+            sh = box_h_emu; sw = round(sh * aspect)
+
+        cx = x_emu + i * cascade_emu
+        cy = y_emu + i * cascade_emu
+        ox = cx - sw // 2
+        oy = cy - sh // 2
         resolved.extend(_place_svg_group(shapes, vb, ox, oy, sw, sh))
 
     return resolved
 
 
-def _parse_length_px(raw):
-    """Parse an SVG length attribute (width/height) to px, unit-converting
-    at 96dpi. Returns None if absent, percentage-valued, or unparsable —
-    all of which are treated as "no explicit size" by native_size_px().
-    """
-    if not raw:
-        return None
-    m = _LENGTH_RE.match(raw)
-    if not m:
-        return None
-    value, unit = m.groups()
-    return float(value) * _UNIT_TO_PX[unit or '']
-
-
-def native_size_px(root, vb_w, vb_h):
-    """True on-page size of an SVG in px: explicit width/height attributes
-    if present and parsable, else the viewBox dimensions treated as px (the
-    common convention for icon-only SVGs authored with no explicit physical
-    size), else DEFAULT_SVG_SIZE_PX if there's no viewBox either. Checks
-    root.get('viewBox') directly (not vb_w/vb_h, which may already reflect
-    build_clip_bundle's/_parse_svg's own 100x100 aspect-ratio-only default)
-    so that arbitrary default isn't silently reused as a real magnitude.
-    """
-    w = _parse_length_px(root.get('width'))
-    h = _parse_length_px(root.get('height'))
-    if w and h:
-        return w, h
-    if root.get('viewBox'):
-        return vb_w, vb_h
-    return DEFAULT_SVG_SIZE_PX
-
-
 def _parse_svg(svg_bytes):
-    """Returns (vb, shapes, native_w_px, native_h_px) for one SVG file."""
+    """Returns (vb, shapes) for one SVG file."""
     root = ET.fromstring(svg_bytes)
     vb = root.get('viewBox', '0 0 100 100')
     vb_x, vb_y, vb_w, vb_h = (float(v) for v in vb.strip().split())
     gradients = extract_gradients(root)
     shapes = list(collect(root, gradients=gradients, vb=(vb_x, vb_y, vb_w, vb_h)))
-    native_w_px, native_h_px = native_size_px(root, vb_w, vb_h)
-    return (vb_x, vb_y, vb_w, vb_h), shapes, native_w_px, native_h_px
+    return (vb_x, vb_y, vb_w, vb_h), shapes
 
 
 def _wrap(resolved):
@@ -465,23 +436,23 @@ def build_clip_bundle(svg_sources, slide_w_pt, slide_h_pt):
     add-on's client-side `copy`-event clipboardData.setData() handler.
     Fits each SVG to a percentage of the given slide's dimensions.
     """
-    groups = []
-    for _name, svg_bytes in svg_sources:
-        vb, shapes, _native_w_px, _native_h_px = _parse_svg(svg_bytes)
-        groups.append((vb, shapes))
-
+    groups = [_parse_svg(svg_bytes) for _name, svg_bytes in svg_sources]
     resolved = add_shapes_to_clip(groups, slide_w_pt, slide_h_pt)
     return _wrap(resolved)
 
 
-def build_clip_bundle_at(svg_sources, x_pt, y_pt):
+def build_clip_bundle_at(svg_sources, x_pt, y_pt, box_w_pt, box_h_pt):
     """svg_sources: list of (filename, svg_bytes). Same return shape as
-    build_clip_bundle(), but places each SVG at its true native size at an
-    explicit absolute position (x_pt, y_pt) in points — no slide dimensions
-    needed anywhere. Used by the Chrome extension's insert-into-Slides mode.
+    build_clip_bundle(), but aspect-fits each SVG into a box sized
+    (box_w_pt, box_h_pt) centered at (x_pt, y_pt) — both estimates the
+    Chrome extension derives from the browser window size and an assumed
+    default slide size, not real values from any Google API. Used by the
+    extension's insert-into-Slides mode.
     """
     x_emu = round(x_pt * _PT_TO_EMU)
     y_emu = round(y_pt * _PT_TO_EMU)
+    box_w_emu = max(round(box_w_pt * _PT_TO_EMU), 1)
+    box_h_emu = max(round(box_h_pt * _PT_TO_EMU), 1)
     groups = [_parse_svg(svg_bytes) for _name, svg_bytes in svg_sources]
-    resolved = add_shapes_to_clip_at(groups, x_emu, y_emu)
+    resolved = add_shapes_to_clip_at(groups, x_emu, y_emu, box_w_emu, box_h_emu)
     return _wrap(resolved)

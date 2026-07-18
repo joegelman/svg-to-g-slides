@@ -1,23 +1,19 @@
 // Injected into Google Slides editor tabs only (see manifest.json's
 // content_scripts.matches). Deliberately passive: this script never performs
 // a privileged action (no clipboard write, no Slides API call) — it only
-// tracks mouse position and reports DOM geometry back to the popup on
-// request. That's what lets the popup's own click trigger the actual
-// clipboard write later without any user-activation-across-messaging
-// concerns (execCommand('copy') needs a fresh gesture in the SAME document
-// it's called from — see popup.js).
-
-// ── PLACEHOLDER — Stage 0 live validation required before trusting these ──
-// These selectors and the pixel->point formula below are not yet confirmed
-// against a real Slides tab. Open a real presentation, inspect the actual
-// editing-surface element (don't assume it's SVG — Slides has changed its
-// rendering internals before) and the zoom-percent control, and replace
-// these placeholders with what's actually found. See the "Stage 0" section
-// of the project plan for the exact validation steps (constancy check
-// across zoom levels, cross-check against a presentation of known size).
-const CANVAS_SELECTOR = '[TODO: fill in from live DOM inspection]';
-const ZOOM_SELECTOR = '[TODO: fill in from live DOM inspection]';
-// ────────────────────────────────────────────────────────────────────────
+// tracks mouse position and reports it back to the popup on request. That's
+// what lets the popup's own click trigger the actual clipboard write later
+// without any user-activation-across-messaging concerns (execCommand('copy')
+// needs a fresh gesture in the SAME document it's called from — see
+// popup.js).
+//
+// No DOM inspection of Slides' own editing-surface/zoom-control elements at
+// all — popup.js estimates canvas position and slide size from the browser
+// window size and an assumed-default Slides layout instead. That's a
+// deliberate choice, not a shortcut: reverse-engineering Slides' internal
+// rendering DOM would be exactly the kind of fragile, could-break-on-any-
+// Google-UI-update dependency this whole clipboard approach was built to
+// avoid needing in the first place. See popup.js for the estimation math.
 
 let lastMouse = null; // {x, y} in viewport client coords; null until first move
 
@@ -28,21 +24,11 @@ document.addEventListener('mousemove', (e) => {
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg.type !== 'GET_PLACEMENT_CONTEXT') return; // not for us
 
-  const canvas = document.querySelector(CANVAS_SELECTOR);
-  if (!canvas) {
-    sendResponse({ ok: false, reason: 'canvas-not-found' });
-    return;
-  }
-
-  const rect = canvas.getBoundingClientRect();
-  const zoomEl = document.querySelector(ZOOM_SELECTOR);
-  const zoomPercent = zoomEl ? parseFloat(zoomEl.textContent) : null;
-
   sendResponse({
     ok: true,
-    canvasRect: { left: rect.left, top: rect.top, width: rect.width, height: rect.height },
+    windowWidth: window.innerWidth,
+    windowHeight: window.innerHeight,
     mouse: lastMouse,
-    zoomPercent: Number.isFinite(zoomPercent) ? zoomPercent : null,
   });
   // Response is synchronous (no async work above) -> no `return true` needed.
 });
