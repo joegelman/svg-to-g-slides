@@ -17,15 +17,35 @@ function readFilesAsBase64(files) {
   })));
 }
 
+// ── Shared: which tab, and the active tab's URL ─────────────────────────
+// Queried once and shared between the auto-default-tab logic below and
+// Mode B's cursor-placement logic, rather than querying chrome.tabs twice.
+
+const SLIDES_EDIT_PREFIX = 'https://docs.google.com/presentation/d/';
+
+const activeTabPromise = new Promise((resolve) => {
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => resolve(tabs[0] || null));
+});
+
 // ── Tabs ─────────────────────────────────────────────────────────────────
 
+function activateTab(name) {
+  document.querySelectorAll('.tab-btn').forEach((b) => b.classList.toggle('active', b.dataset.tab === name));
+  document.querySelectorAll('.tab-panel').forEach((p) => p.classList.toggle('active', p.id === 'tab-' + name));
+}
+
 document.querySelectorAll('.tab-btn').forEach((btn) => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.tab-btn').forEach((b) => b.classList.remove('active'));
-    document.querySelectorAll('.tab-panel').forEach((p) => p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
-  });
+  btn.addEventListener('click', () => activateTab(btn.dataset.tab));
+});
+
+// Default straight to Insert mode if the popup was opened from an actual
+// Slides editor tab — that's almost certainly what the user wants there.
+// Bulk Upload stays the default everywhere else (a new tab, some other
+// page, etc.), since Insert mode is meaningless without a Slides tab.
+activeTabPromise.then((tab) => {
+  if (tab && tab.url && tab.url.startsWith(SLIDES_EDIT_PREFIX)) {
+    activateTab('insert');
+  }
 });
 
 // ══════════════════════════ Mode A: Bulk Upload ═══════════════════════════
@@ -144,8 +164,6 @@ document.querySelectorAll('.tab-btn').forEach((btn) => {
   const cancelBtn = document.getElementById('insert-cancel-btn');
   const clipTarget = document.getElementById('insert-clip-target');
 
-  const SLIDES_EDIT_PREFIX = 'https://docs.google.com/presentation/d/';
-
   let selectedFiles = [];
   let pendingBundle = null; // {mimeType: string} once converted, until copied
   let stage = 'idle';       // 'idle' -> 'converted' -> 'done'
@@ -167,8 +185,7 @@ document.querySelectorAll('.tab-btn').forEach((btn) => {
   }
 
   function resolvePlacement(callback) {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      const tab = tabs[0];
+    activeTabPromise.then((tab) => {
       if (!tab || !tab.url || !tab.url.startsWith(SLIDES_EDIT_PREFIX)) {
         setWarning('Open a Google Slides presentation to use Insert mode.');
         actionBtn.disabled = true;

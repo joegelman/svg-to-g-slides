@@ -34,6 +34,7 @@
 
   .tab-panel { display: none; padding: 20px; }
   .tab-panel.active { display: block; }
+  .mode-intro { margin: 0 0 14px; font-size: 12.5px; line-height: 1.5; color: #5f6368; }
 
   /* ── Shared drop zone ── */
   .drop-zone {
@@ -157,11 +158,12 @@
 
 <!-- ══════════════════════ Mode A: Bulk Upload ══════════════════════ -->
 <div id="tab-upload" class="tab-panel active">
+  <p class="mode-intro">Batch-convert a whole set of SVGs — an icon library, a logo kit, anything — into one shareable Drive file. Good for stocking a shared template or handing a whole set to a teammate at once.</p>
   <div id="upload-drop-zone" class="drop-zone">
     <input type="file" id="upload-file-input" class="file-input" accept=".svg" multiple>
     <div class="drop-icon">⬆</div>
-    <div class="drop-label">Drop SVG files here</div>
-    <div class="drop-hint">or click to browse</div>
+    <div class="drop-label">Drop as many SVGs as you want</div>
+    <div class="drop-hint">or click to browse — one file or a hundred, all at once</div>
     <div id="upload-file-list" class="file-list"></div>
   </div>
   <span id="upload-change-link" class="change-link">Choose different files</span>
