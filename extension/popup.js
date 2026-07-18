@@ -409,6 +409,18 @@ activeTabPromise.then((tab) => {
     if (stage === 'converted' && (e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'c') {
       e.preventDefault();
       copyShapes();
+      return;
+    }
+    if (stage === 'done') {
+      // A Chrome popup only auto-closes when you click elsewhere — pressing
+      // a key while it still has focus does NOT close it on its own. So the
+      // more natural flow (press ⌘V directly, without deliberately clicking
+      // the slide first) would otherwise have the popup itself swallow the
+      // keystroke. Same trick as the Apps Script add-on's Dialog.html: for a
+      // real ⌘V, the Cmd/Meta key's own keydown fires slightly before V's —
+      // closing here lets focus shift to the Slides tab while V is still
+      // held, so V can land as a genuine paste there instead.
+      window.close();
     }
   });
 })();
