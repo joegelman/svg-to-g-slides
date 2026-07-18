@@ -9,6 +9,15 @@ walking (expand_path) unchanged; the only new logic here is emitting Slides'
 run-length-encoded path arrays instead of DrawingML XML, and the final
 placement math.
 
+Two placement modes share the same per-shape geometry/encoding
+(_place_svg_group): `add_shapes_to_clip`/`build_clip_bundle` fit each SVG to
+a percentage of a given slide size (used by the Apps Script add-on, which
+knows the active presentation's dimensions); `add_shapes_to_clip_at`/
+`build_clip_bundle_at` place each SVG at its true native size at an explicit
+absolute position (used by the Chrome extension, which never touches the
+Slides API at all — it gets a cursor position from the page's own DOM
+instead of slide dimensions from the API, so it needs zero Google scopes).
+
 ── Calibration facts (2026-07) ──
 - Path opcodes: Move=0, Line=1, Quad=2, Cubic=3, Arc=4, Close=5. We only ever
   emit Move/Line/Cubic/Close — arcs are pre-normalized to cubics upstream by
@@ -21,6 +30,7 @@ placement math.
   controlled experiment — a native 75x75px rectangle placed at the slide's
   true top-left produced widthScale=0.2381 (=23812.5/100000) and x=y=0;
   75px * 9525 EMU/px = 714375 EMU; 714375 / 23812.5 = exactly 30.
+- PX_TO_EMU=9525: the standard 96dpi px->EMU factor used to derive the above.
 - Object IDs are arbitrary, client-generated, and not validated against any
   server-side state.
 - IMPORTANT (superseded an earlier wrong approach): same-session Slides-to-
@@ -39,16 +49,29 @@ placement math.
   chasing it was a dead end.
 """
 import json
+import re
 import secrets
 from xml.etree import ElementTree as ET
 
 from svg_to_slides import COORD, collect, expand_path, extract_gradients
 
 EMU_PER_UNIT = 30
+PX_TO_EMU = 9525
 _PT_TO_EMU = 12700
 _FIT_FRACTION = 0.85
 
+# Fallback true size (px) for an SVG with neither explicit width/height NOR a
+# viewBox to fall back to — deliberately separate from the 100x100 viewBox
+# default used elsewhere for local-coordinate math (that default is about
+# aspect ratio, not real-world magnitude, and would be a meaningless size to
+# actually paste at). 300x150 matches the common browser <img>-intrinsic-SVG
+# size convention.
+DEFAULT_SVG_SIZE_PX = (300, 150)
+
 _OP_MOVE, _OP_LINE, _OP_CUBIC, _OP_CLOSE = 0, 1, 3, 5
+
+_UNIT_TO_PX = {'': 1.0, 'px': 1.0, 'pt': 96 / 72, 'in': 96.0, 'cm': 96 / 2.54, 'mm': 96 / 25.4}
+_LENGTH_RE = re.compile(r'^\s*([-+]?\d*\.?\d+)\s*(px|pt|in|cm|mm)?\s*$')
 
 
 def path_to_clip_geometry(d, xfm, vb_x, vb_y, vb_w, vb_h):
@@ -258,11 +281,78 @@ def _build_group_entry(child_ids):
     return [2, obj_id, list(child_ids), [1, 0, 0, 1, 0, 0]]
 
 
+def _place_svg_group(shapes, vb, ox, oy, sw, sh):
+    """Builds clip entries (shape entries + a group entry if >1 shape) for
+    one SVG's shapes, fit into a box positioned at (ox,oy) sized (sw,sh) —
+    all in EMU. Shared by both placement modes below; they differ only in
+    how (ox,oy,sw,sh) get computed; everything downstream of that is
+    identical regardless of which mode is calling.
+    """
+    vb_x, vb_y, vb_w, vb_h = vb
+    cw = COORD
+    ch = round(COORD * vb_h / vb_w) if vb_w else COORD
+
+    resolved = []
+    group_child_ids = []
+    for d, xfm, fill_hex in shapes:
+        path_metadata, flat_coords = path_to_clip_geometry(d, xfm, vb_x, vb_y, vb_w, vb_h)
+        xs, ys = _endpoint_bbox(path_metadata, flat_coords)
+        if not xs:
+            continue
+        px_min, py_min = min(xs), min(ys)
+        px_max, py_max = max(xs), max(ys)
+        pw, ph = max(px_max - px_min, 1), max(py_max - py_min, 1)
+        flat_coords = _trim_to_origin(flat_coords, px_min, py_min)
+
+        shape_ox = ox + round(px_min / cw * sw)
+        shape_oy = oy + round(py_min / ch * sh)
+        shape_sw = max(round(pw / cw * sw), 1)
+        shape_sh = max(round(ph / ch * sh), 1)
+
+        # v1: gradient fills collapse to their first stop's solid color —
+        # full fillGradientType/Colors/Angle (keys 60/61/62) encoding is
+        # a fast-follow once those keys are decoded from a captured
+        # gradient-shape payload.
+        fill = fill_hex['stops'][0][1] if isinstance(fill_hex, dict) else fill_hex
+
+        # Bake local->final scaling directly into the coordinates
+        # (widthScale/heightScale left at 1) rather than emitting a
+        # local-normalized shape + separate scale factor — matches the
+        # proven-working reference structure, not the DrawingML-style
+        # split we originally mirrored.
+        scale_x = (shape_sw / EMU_PER_UNIT) / pw
+        scale_y = (shape_sh / EMU_PER_UNIT) / ph
+        final_coords = [
+            round(v * (scale_x if i % 2 == 0 else scale_y))
+            for i, v in enumerate(flat_coords)
+        ]
+        final_w = max(round(shape_sw / EMU_PER_UNIT), 1)
+        final_h = max(round(shape_sh / EMU_PER_UNIT), 1)
+        x_unit = round(shape_ox / EMU_PER_UNIT)
+        y_unit = round(shape_oy / EMU_PER_UNIT)
+
+        obj_id = 'ga' + secrets.token_hex(5)
+        group_child_ids.append(obj_id)
+        resolved.append(_build_shape_entry(
+            obj_id, path_metadata, final_coords, final_w, final_h,
+            x_unit, y_unit, fill))
+
+    # Group this SVG's shapes together (QoL parity with the old
+    # PPTX/SlidesApp pipeline's currentSlide.group(copied) call) so they
+    # move/resize as one unit after paste, rather than landing as loose
+    # individual shapes.
+    if len(group_child_ids) > 1:
+        resolved.append(_build_group_entry(group_child_ids))
+
+    return resolved
+
+
 def add_shapes_to_clip(svg_shape_groups, slide_w_pt, slide_h_pt):
     """svg_shape_groups: list of ((vb_x,vb_y,vb_w,vb_h), shapes) where shapes
-    is collect()'s (d, xfm, fill_hex) output for one SVG file. Mirrors
-    add_shapes()'s per-shape endpoint-bbox fit, retargeted from DrawingML
-    XML/EMU to the clip array structure/EMU_PER_UNIT-converted units.
+    is collect()'s (d, xfm, fill_hex) output for one SVG file. Fits each SVG
+    to a slot of the given slide's dimensions via layout_slots() + aspect-fit
+    (used by the Apps Script add-on, which knows the active presentation's
+    size). Unchanged behavior from before the _place_svg_group extraction.
     """
     slide_w_emu = round(slide_w_pt * _PT_TO_EMU)
     slide_h_emu = round(slide_h_pt * _PT_TO_EMU)
@@ -278,96 +368,120 @@ def add_shapes_to_clip(svg_shape_groups, slide_w_pt, slide_h_pt):
             sh = slot_h; sw = round(sh * aspect)
         ox = slot_x + (slot_w - sw) // 2
         oy = slot_y + (slot_h - sh) // 2
-
-        cw = COORD
-        ch = round(COORD * vb_h / vb_w) if vb_w else COORD
-
-        group_child_ids = []
-        for d, xfm, fill_hex in shapes:
-            path_metadata, flat_coords = path_to_clip_geometry(d, xfm, vb_x, vb_y, vb_w, vb_h)
-            xs, ys = _endpoint_bbox(path_metadata, flat_coords)
-            if not xs:
-                continue
-            px_min, py_min = min(xs), min(ys)
-            px_max, py_max = max(xs), max(ys)
-            pw, ph = max(px_max - px_min, 1), max(py_max - py_min, 1)
-            flat_coords = _trim_to_origin(flat_coords, px_min, py_min)
-
-            shape_ox = ox + round(px_min / cw * sw)
-            shape_oy = oy + round(py_min / ch * sh)
-            shape_sw = max(round(pw / cw * sw), 1)
-            shape_sh = max(round(ph / ch * sh), 1)
-
-            # v1: gradient fills collapse to their first stop's solid color —
-            # full fillGradientType/Colors/Angle (keys 60/61/62) encoding is
-            # a fast-follow once those keys are decoded from a captured
-            # gradient-shape payload.
-            fill = fill_hex['stops'][0][1] if isinstance(fill_hex, dict) else fill_hex
-
-            # Bake local->final scaling directly into the coordinates
-            # (widthScale/heightScale left at 1) rather than emitting a
-            # local-normalized shape + separate scale factor — matches the
-            # proven-working reference structure, not the DrawingML-style
-            # split we originally mirrored.
-            scale_x = (shape_sw / EMU_PER_UNIT) / pw
-            scale_y = (shape_sh / EMU_PER_UNIT) / ph
-            final_coords = [
-                round(v * (scale_x if i % 2 == 0 else scale_y))
-                for i, v in enumerate(flat_coords)
-            ]
-            final_w = max(round(shape_sw / EMU_PER_UNIT), 1)
-            final_h = max(round(shape_sh / EMU_PER_UNIT), 1)
-            x_unit = round(shape_ox / EMU_PER_UNIT)
-            y_unit = round(shape_oy / EMU_PER_UNIT)
-
-            obj_id = 'ga' + secrets.token_hex(5)
-            group_child_ids.append(obj_id)
-            resolved.append(_build_shape_entry(
-                obj_id, path_metadata, final_coords, final_w, final_h,
-                x_unit, y_unit, fill))
-
-        # Group this SVG's shapes together (QoL parity with the old
-        # PPTX/SlidesApp pipeline's currentSlide.group(copied) call) so they
-        # move/resize as one unit after paste, rather than landing as loose
-        # individual shapes.
-        if len(group_child_ids) > 1:
-            resolved.append(_build_group_entry(group_child_ids))
+        resolved.extend(_place_svg_group(shapes, vb, ox, oy, sw, sh))
 
     return resolved
 
 
-def build_clip_bundle(svg_sources, slide_w_pt, slide_h_pt):
-    """svg_sources: list of (filename, svg_bytes). Returns a dict of the 4
-    clipboard MIME types -> string payloads, ready to be written via the
-    add-on's client-side `copy`-event clipboardData.setData() handler.
+def add_shapes_to_clip_at(svg_shape_groups, x_emu, y_emu, cascade_px=24):
+    """svg_shape_groups: list of (vb, shapes, native_w_px, native_h_px).
+    Places each SVG at its true native size (no aspect-fit/scaling to any
+    slide dimension), positioned at (x_emu, y_emu) — the first file lands
+    exactly there; subsequent files in the same drop cascade diagonally by
+    a fixed offset so simultaneous multi-file drops don't fully overlap
+    (a deliberately simple convention, not smart non-overlap layout). Used
+    by the Chrome extension: no slide dimensions are needed anywhere in this
+    path, which is the whole point — it never has to call the Slides API.
     """
-    groups = []
-    for _name, svg_bytes in svg_sources:
-        root = ET.fromstring(svg_bytes)
-        vb = root.get('viewBox', '0 0 100 100')
-        vb_x, vb_y, vb_w, vb_h = (float(v) for v in vb.strip().split())
-        gradients = extract_gradients(root)
-        shapes = list(collect(root, gradients=gradients, vb=(vb_x, vb_y, vb_w, vb_h)))
-        groups.append(((vb_x, vb_y, vb_w, vb_h), shapes))
+    cascade_emu = round(cascade_px * PX_TO_EMU)
+    resolved = []
+    for i, (vb, shapes, native_w_px, native_h_px) in enumerate(svg_shape_groups):
+        ox = x_emu + i * cascade_emu
+        oy = y_emu + i * cascade_emu
+        sw = max(round(native_w_px * PX_TO_EMU), 1)
+        sh = max(round(native_h_px * PX_TO_EMU), 1)
+        resolved.extend(_place_svg_group(shapes, vb, ox, oy, sw, sh))
 
-    resolved = add_shapes_to_clip(groups, slide_w_pt, slide_h_pt)
+    return resolved
 
-    # Minimal structure, confirmed by direct paste test to work: just
-    # {"data": "{\"resolved\": [...]}"}. Earlier attempts added dih/edi/edrk/
-    # unresolved/autotext_content/etc. by matching same-session Slides-to-
-    # Slides copy captures — that richer structure turned out to be a red
-    # herring for external paste, which this minimal shape satisfies fine.
+
+def _parse_length_px(raw):
+    """Parse an SVG length attribute (width/height) to px, unit-converting
+    at 96dpi. Returns None if absent, percentage-valued, or unparsable —
+    all of which are treated as "no explicit size" by native_size_px().
+    """
+    if not raw:
+        return None
+    m = _LENGTH_RE.match(raw)
+    if not m:
+        return None
+    value, unit = m.groups()
+    return float(value) * _UNIT_TO_PX[unit or '']
+
+
+def native_size_px(root, vb_w, vb_h):
+    """True on-page size of an SVG in px: explicit width/height attributes
+    if present and parsable, else the viewBox dimensions treated as px (the
+    common convention for icon-only SVGs authored with no explicit physical
+    size), else DEFAULT_SVG_SIZE_PX if there's no viewBox either. Checks
+    root.get('viewBox') directly (not vb_w/vb_h, which may already reflect
+    build_clip_bundle's/_parse_svg's own 100x100 aspect-ratio-only default)
+    so that arbitrary default isn't silently reused as a real magnitude.
+    """
+    w = _parse_length_px(root.get('width'))
+    h = _parse_length_px(root.get('height'))
+    if w and h:
+        return w, h
+    if root.get('viewBox'):
+        return vb_w, vb_h
+    return DEFAULT_SVG_SIZE_PX
+
+
+def _parse_svg(svg_bytes):
+    """Returns (vb, shapes, native_w_px, native_h_px) for one SVG file."""
+    root = ET.fromstring(svg_bytes)
+    vb = root.get('viewBox', '0 0 100 100')
+    vb_x, vb_y, vb_w, vb_h = (float(v) for v in vb.strip().split())
+    gradients = extract_gradients(root)
+    shapes = list(collect(root, gradients=gradients, vb=(vb_x, vb_y, vb_w, vb_h)))
+    native_w_px, native_h_px = native_size_px(root, vb_w, vb_h)
+    return (vb_x, vb_y, vb_w, vb_h), shapes, native_w_px, native_h_px
+
+
+def _wrap(resolved):
+    """Minimal structure, confirmed by direct paste test to work: just
+    {"data": "{\"resolved\": [...]}"}. Earlier attempts added dih/edi/edrk/
+    unresolved/autotext_content/etc. by matching same-session Slides-to-
+    Slides copy captures — that richer structure turned out to be a red
+    herring for external paste, which this minimal shape satisfies fine.
+
+    Only this one MIME type — no text/plain, text/html, or clip-id.
+    SketchyShapes' demo (confirmed working by direct test) sets only this
+    single type. Real native-Slides captures always carry the other three
+    alongside it — but offering text/html at the same time may cause Slides
+    to prioritize it (as a more "standard" type) over the custom
+    drawings-object type and paste that instead, silently.
+    """
     data = {'resolved': resolved}
     wrapper = {'data': json.dumps(data, separators=(',', ':'))}
-
-    # Only this one MIME type — no text/plain, text/html, or clip-id.
-    # SketchyShapes' demo (confirmed working by direct test) sets only this
-    # single type. Real native-Slides captures always carry the other three
-    # alongside it, which is what we matched originally — but offering
-    # text/html at the same time may cause Slides to prioritize it (as a
-    # more "standard" type) over the custom drawings-object type and paste
-    # that instead, silently. Dropping them is the last structural gap
-    # versus the proven-working reference.
     return {
         'application/x-vnd.google-docs-drawings-object+wrapped': json.dumps(wrapper, separators=(',', ':')),
     }
+
+
+def build_clip_bundle(svg_sources, slide_w_pt, slide_h_pt):
+    """svg_sources: list of (filename, svg_bytes). Returns a dict of
+    clipboard MIME type -> string payload, ready to be written via the
+    add-on's client-side `copy`-event clipboardData.setData() handler.
+    Fits each SVG to a percentage of the given slide's dimensions.
+    """
+    groups = []
+    for _name, svg_bytes in svg_sources:
+        vb, shapes, _native_w_px, _native_h_px = _parse_svg(svg_bytes)
+        groups.append((vb, shapes))
+
+    resolved = add_shapes_to_clip(groups, slide_w_pt, slide_h_pt)
+    return _wrap(resolved)
+
+
+def build_clip_bundle_at(svg_sources, x_pt, y_pt):
+    """svg_sources: list of (filename, svg_bytes). Same return shape as
+    build_clip_bundle(), but places each SVG at its true native size at an
+    explicit absolute position (x_pt, y_pt) in points — no slide dimensions
+    needed anywhere. Used by the Chrome extension's insert-into-Slides mode.
+    """
+    x_emu = round(x_pt * _PT_TO_EMU)
+    y_emu = round(y_pt * _PT_TO_EMU)
+    groups = [_parse_svg(svg_bytes) for _name, svg_bytes in svg_sources]
+    resolved = add_shapes_to_clip_at(groups, x_emu, y_emu)
+    return _wrap(resolved)

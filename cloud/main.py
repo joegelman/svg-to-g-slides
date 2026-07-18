@@ -7,6 +7,7 @@ import tempfile
 from pathlib import Path
 
 from fastapi import FastAPI, File, Form, Header, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -14,13 +15,28 @@ from pydantic import BaseModel
 # Pull in svg_to_slides from the repo root (one level up)
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from svg_to_slides import convert  # noqa: E402
-from slides_clip import build_clip_bundle  # noqa: E402
+from slides_clip import build_clip_bundle, build_clip_bundle_at  # noqa: E402
 
 from drive import delete_old_files, upload_and_share  # noqa: E402
 
 RETENTION_DAYS = int(os.environ.get("RETENTION_DAYS", "7"))
 
 app = FastAPI(title="svg-to-slides")
+
+# Every endpoint here is already fully unauthenticated/public (no cookies or
+# auth headers involved), so a wildcard origin costs nothing and lets the
+# Chrome extension's popup (origin chrome-extension://<id>) call this API
+# directly. (Extension contexts with matching host_permissions can usually
+# bypass CORS on their own, but that's version-dependent Chrome behavior —
+# this makes it work regardless.) Not combined with allow_credentials=True,
+# which Starlette rejects alongside a wildcard origin anyway.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["GET", "POST"],
+    allow_headers=["*"],
+)
+
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 
@@ -166,5 +182,30 @@ async def insert_svg_clip_endpoint(req: _InsertRequest):
 
     sources = [(f.name, base64.b64decode(f.data)) for f in svg_files]
     bundle = build_clip_bundle(sources, req.slide_width_pt, req.slide_height_pt)
+
+    return JSONResponse({"clip": bundle})
+
+
+class _InsertAtRequest(BaseModel):
+    files: list[_SvgFile]
+    x_pt: float
+    y_pt: float
+
+
+@app.post("/insert-svg-clip-at")
+async def insert_svg_clip_at_endpoint(req: _InsertAtRequest):
+    """Same clipboard payload as /insert-svg-clip, but for the Chrome
+    extension: places each SVG at its true native size at an explicit
+    absolute position, rather than fitting to a given slide's dimensions.
+    No slide-dimension parameter exists on this endpoint at all — the
+    extension never calls the Slides API for anything, it reads cursor
+    position from the page's own DOM, so it needs zero Google OAuth scopes.
+    """
+    svg_files = [f for f in req.files if f.name.lower().endswith(".svg")]
+    if not svg_files:
+        raise HTTPException(status_code=400, detail="No .svg files provided.")
+
+    sources = [(f.name, base64.b64decode(f.data)) for f in svg_files]
+    bundle = build_clip_bundle_at(sources, req.x_pt, req.y_pt)
 
     return JSONResponse({"clip": bundle})
