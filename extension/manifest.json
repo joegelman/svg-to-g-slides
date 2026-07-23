@@ -1,11 +1,8 @@
 {
   "manifest_version": 3,
   "name": "SVG to Slides",
-  "version": "0.1.0",
-  "description": "Convert SVGs to editable PPTX, or paste them straight into Google Slides.",
-  "action": {
-    "default_popup": "popup.html"
-  },
+  "version": "1.0.0",
+  "description": "Drag and drop an SVG onto a Google Slides tab to insert it as an editable vector shape.",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
@@ -16,8 +13,17 @@
   "content_scripts": [
     {
       "matches": ["https://docs.google.com/presentation/d/*/edit*"],
-      "js": ["content.js"],
+      "js": ["pyodide/pyodide.js", "shared.js", "pyodide-bridge.js", "content.js"],
       "run_at": "document_idle"
     }
-  ]
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["pyodide/*", "svg_to_slides.py", "slides_clip.py"],
+      "matches": ["https://docs.google.com/*"]
+    }
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+  }
 }
