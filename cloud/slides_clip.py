@@ -56,6 +56,7 @@ better regardless of how precisely that assumption holds.
   chasing it was a dead end.
 """
 import json
+import math
 import secrets
 from xml.etree import ElementTree as ET
 
@@ -368,32 +369,65 @@ def add_shapes_to_clip(svg_shape_groups, slide_w_pt, slide_h_pt):
     return resolved
 
 
-def add_shapes_to_clip_at(svg_shape_groups, x_emu, y_emu, box_w_emu, box_h_emu, cascade_px=24):
-    """svg_shape_groups: list of (vb, shapes). Aspect-fits each SVG into a
-    box sized (box_w_emu, box_h_emu), CENTERED at (x_emu, y_emu) — the first
-    file lands exactly there; subsequent files in the same drop cascade
-    diagonally by a fixed offset so simultaneous multi-file drops don't
-    fully overlap (a deliberately simple convention, not smart non-overlap
-    layout). Used by the Chrome extension: the box and position are both
-    estimates derived client-side from the browser window size and an
-    assumed-default slide size, not real values from any Google API — no
-    slide dimensions or cursor-to-DOM-element mapping needed anywhere in
-    this path, which is the whole point (zero Google scopes required).
+_GRID_SCALE = 1.5       # overall multi-file bounding region vs. a single-file box
+_GRID_GUTTER = 0.08     # fraction of each cell reserved as a gap between icons
+
+
+def add_shapes_to_clip_at(svg_shape_groups, x_emu, y_emu, box_w_emu, box_h_emu):
+    """svg_shape_groups: list of (vb, shapes). A single file aspect-fits
+    into a box sized (box_w_emu, box_h_emu), centered at (x_emu, y_emu),
+    same as always. Multiple files are arranged in a roughly square grid
+    instead of a naive diagonal cascade (which just left them overlapping
+    at a barely-visible 24px offset) — the grid's overall bounding region
+    is _GRID_SCALE x that same single-file box, still centered at
+    (x_emu, y_emu), and each file aspect-fits into its own cell within it,
+    shrinking to slot in rather than overlapping. Used by the Chrome
+    extension: box/position are estimates derived client-side from the
+    browser window size and an assumed-default slide size, not real values
+    from any Google API.
     """
-    cascade_emu = round(cascade_px * PX_TO_EMU)
+    n = len(svg_shape_groups)
     resolved = []
-    for i, (vb, shapes) in enumerate(svg_shape_groups):
+
+    if n == 1:
+        vb, shapes = svg_shape_groups[0]
         vb_x, vb_y, vb_w, vb_h = vb
         aspect = vb_w / vb_h if vb_h else 1
         if aspect >= box_w_emu / box_h_emu:
             sw = box_w_emu; sh = round(sw / aspect)
         else:
             sh = box_h_emu; sw = round(sh * aspect)
+        ox = x_emu - sw // 2
+        oy = y_emu - sh // 2
+        resolved.extend(_place_svg_group(shapes, vb, ox, oy, sw, sh))
+        return resolved
 
-        cx = x_emu + i * cascade_emu
-        cy = y_emu + i * cascade_emu
-        ox = cx - sw // 2
-        oy = cy - sh // 2
+    overall_w = box_w_emu * _GRID_SCALE
+    overall_h = box_h_emu * _GRID_SCALE
+    cols = math.ceil(math.sqrt(n))
+    rows = math.ceil(n / cols)
+    cell_w = overall_w / cols
+    cell_h = overall_h / rows
+    top_left_x = x_emu - overall_w / 2
+    top_left_y = y_emu - overall_h / 2
+
+    for i, (vb, shapes) in enumerate(svg_shape_groups):
+        vb_x, vb_y, vb_w, vb_h = vb
+        row, col = divmod(i, cols)
+        cell_cx = top_left_x + col * cell_w + cell_w / 2
+        cell_cy = top_left_y + row * cell_h + cell_h / 2
+
+        slot_w = cell_w * (1 - _GRID_GUTTER)
+        slot_h = cell_h * (1 - _GRID_GUTTER)
+        aspect = vb_w / vb_h if vb_h else 1
+        if aspect >= slot_w / slot_h:
+            sw = slot_w; sh = sw / aspect
+        else:
+            sh = slot_h; sw = sh * aspect
+
+        sw = round(sw); sh = round(sh)
+        ox = round(cell_cx - sw / 2)
+        oy = round(cell_cy - sh / 2)
         resolved.extend(_place_svg_group(shapes, vb, ox, oy, sw, sh))
 
     return resolved

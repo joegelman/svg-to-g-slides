@@ -20,6 +20,7 @@ from slides_clip import build_clip_bundle, build_clip_bundle_at  # noqa: E402
 from drive import delete_old_files, upload_and_share  # noqa: E402
 
 RETENTION_DAYS = int(os.environ.get("RETENTION_DAYS", "7"))
+MAX_INSERT_FILES = 25  # grid layout is only reasonable up to this many at once; more should use the bulk uploader
 
 app = FastAPI(title="svg-to-slides")
 
@@ -207,6 +208,11 @@ async def insert_svg_clip_at_endpoint(req: _InsertAtRequest):
     svg_files = [f for f in req.files if f.name.lower().endswith(".svg")]
     if not svg_files:
         raise HTTPException(status_code=400, detail="No .svg files provided.")
+    if len(svg_files) > MAX_INSERT_FILES:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Too many files for a single insert (max {MAX_INSERT_FILES}) — use the bulk uploader instead.",
+        )
 
     sources = [(f.name, base64.b64decode(f.data)) for f in svg_files]
     bundle = build_clip_bundle_at(sources, req.x_pt, req.y_pt, req.box_w_pt, req.box_h_pt)

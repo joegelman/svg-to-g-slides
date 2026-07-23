@@ -33,7 +33,7 @@
   <p class="meta">Effective: July 2026 &nbsp;·&nbsp; Contact: <a href="mailto:shares@svgslid.es">shares@svgslid.es</a></p>
 
   <h2>What svgslid.es does</h2>
-  <p>svgslid.es converts SVG files into Google Slides format. It is available as a web app and as a Google Slides add-on. This policy describes, for each surface, exactly what Google user data is accessed, how it is used, whether it is shared, how it is stored and protected, and how long it is retained.</p>
+  <p>svgslid.es converts SVG files into Google Slides format. It is available as a web app, a Google Slides add-on, and a Chrome extension. This policy describes, for each surface, exactly what data is accessed, how it is used, whether it is shared, how it is stored and protected, and how long it is retained.</p>
 
   <h2>Data accessed</h2>
   <p><strong>Web app (svgslid.es):</strong></p>
@@ -55,13 +55,20 @@
     <li><code>script.container.ui</code> — display the add-on's dialog.</li>
   </ul>
   <p>Converted shapes are inserted by writing data to your device's own clipboard, which you then paste into the slide yourself (Cmd/Ctrl+V) — this happens entirely in your browser and does not involve any Google API call or server-side write to your presentation or Drive.</p>
+  <p><strong>Chrome extension:</strong></p>
+  <ul>
+    <li>The SVG file(s) you drag onto an open Google Slides tab.</li>
+    <li>No Google account data of any kind, and <strong>no Google OAuth scope is requested</strong> — the extension cannot access your Drive, your presentations via the Slides API, or any other Google data.</li>
+    <li>Two narrow Chrome permissions only: <code>activeTab</code> (lets the extension's script run on the Slides tab you're actively using — a browser permission, not a Google one) and a single, specific host permission to reach the svgslid.es backend described below.</li>
+  </ul>
 
   <h2>Data usage</h2>
   <ul>
-    <li><strong>SVG content</strong> is used solely to perform the requested conversion (to PPTX/Slides format for the web app, or to Google Slides' own clipboard format for the add-on). It is not analyzed, indexed, or used for any purpose other than fulfilling your conversion request.</li>
+    <li><strong>SVG content</strong> is used solely to perform the requested conversion (to PPTX/Slides format for the web app, or to Google Slides' own clipboard format for the add-on and the extension). It is not analyzed, indexed, or used for any purpose other than fulfilling your conversion request.</li>
     <li><strong>Email address</strong> (web app, optional) is used only as the recipient address for a one-time Drive sharing permission on the output file.</li>
     <li><strong>Slide dimensions</strong> (add-on) are used only to scale and center inserted elements to match your presentation.</li>
-    <li>We do not use any data accessed through Google APIs to train or improve machine-learning or AI models, ours or anyone else's.</li>
+    <li><strong>Chrome extension:</strong> SVG content is converted to Google Slides' shape format directly in your browser, using an embedded Python-in-WebAssembly runtime — in this (the common) case, your SVG file never leaves your device. Only if that in-browser conversion isn't available yet does the extension send the SVG to the svgslid.es backend for conversion, handled identically to the add-on's request-scoped processing described throughout this policy.</li>
+    <li>We do not use any data accessed through Google APIs, or any file you convert, to train or improve machine-learning or AI models, ours or anyone else's.</li>
     <li>We do not build profiles of users or track behavior across sessions.</li>
   </ul>
 
@@ -71,13 +78,15 @@
     <li>The only data transmitted to a third party is the SVG/PPTX file content sent to Google Cloud Run (our hosting provider) and Google Drive (for the web app's output storage) — both are Google infrastructure, not an external third party. See <a href="#third-party-services">Third-party services</a> below.</li>
     <li>The web app's output PPTX is shared via Drive's "anyone with the link" viewer permission so you can access it without signing in, plus a direct share to your email if you provided one. It is not made discoverable or indexed, and no one else is given access by us.</li>
     <li>The add-on never creates, shares, or touches any Drive file — the converted result is written only to your device's own clipboard, which never leaves your browser except for the SVG-to-shape-data conversion request described above.</li>
+    <li>The Chrome extension behaves the same as the add-on here: the converted result is written directly to your device's own clipboard. It never creates, shares, or touches any Drive file, and never calls any Google API.</li>
   </ul>
 
   <h2>Data storage &amp; protection</h2>
   <ul>
     <li>Uploaded SVG files are written only to an ephemeral temporary directory on the Cloud Run instance handling your request and are deleted as soon as that request finishes. They are never written to a database or other persistent storage.</li>
-    <li>The add-on's <code>/insert-svg-clip</code> endpoint holds your SVG and the resulting shape data only in memory for the duration of the request; nothing is persisted server-side, and nothing is written to Drive or any other Google service.</li>
+    <li>The add-on's <code>/insert-svg-clip</code> endpoint (and the extension's equivalent <code>/insert-svg-clip-at</code> fallback) holds your SVG and the resulting shape data only in memory for the duration of the request; nothing is persisted server-side, and nothing is written to Drive or any other Google service.</li>
     <li>The web app's output PPTX is stored in a single Google Drive folder owned by the service's Google Cloud service account, protected by Google Drive's standard infrastructure security (encryption at rest and in transit) and access controls. Anyone with the share link can view that specific file, per the sharing model described above.</li>
+    <li>When the Chrome extension converts a file locally in your browser (the common case), no SVG data is transmitted anywhere at all — it never reaches our servers, so there is nothing for us to store or protect.</li>
     <li>We do not maintain a separate database of user data, so there is no additional data store to secure beyond the Drive folder and Cloud Run's transient request handling.</li>
   </ul>
 
@@ -86,6 +95,7 @@
     <li>Uploaded SVG files and in-progress conversion data are deleted automatically within seconds, as soon as the request that created them completes.</li>
     <li>Output PPTX files in the web app's Drive folder are automatically deleted after 7 days by a scheduled daily cleanup job. To keep a file beyond that window, use Drive's <strong>File &rarr; Save to Drive &rarr; File &rarr; Make a copy</strong> — the copy belongs entirely to your own Google account and is unaffected by our cleanup.</li>
     <li>The add-on has nothing to retain or delete on our end beyond the transient in-memory conversion request — no file is ever created anywhere by the add-on.</li>
+    <li>The Chrome extension has nothing to retain or delete on our end either: local, in-browser conversions never reach our servers at all, and the rare fallback request is handled the same transient, in-memory-only way as the add-on.</li>
     <li><strong>To request deletion</strong> of any file, at any time, email <a href="mailto:shares@svgslid.es">shares@svgslid.es</a> with the Drive link or filename — we will delete it promptly, typically within 2 business days. You may also delete any file you were shared with directly from your own Google Drive.</li>
   </ul>
 
@@ -95,6 +105,7 @@
     <li>We do not use cookies or analytics tracking.</li>
     <li>We do not sell, share, or monetise any data.</li>
     <li>We do not use your files to train models or improve any AI system.</li>
+    <li>The Chrome extension requests no Google account access or OAuth permission of any kind.</li>
   </ul>
 
   <h2 id="third-party-services">Third-party services</h2>
