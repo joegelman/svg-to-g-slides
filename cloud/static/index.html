@@ -4,7 +4,17 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>svgslid.es</title>
+  <meta name="description" content="Drag and drop SVG files onto Google Slides to insert them as editable, native vector shapes — not flattened images.">
   <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32.png">
+  <meta property="og:title" content="svgslid.es — SVG files → editable vector shapes in Google Slides">
+  <meta property="og:description" content="Drag and drop SVG files onto Google Slides to insert them as editable, native vector shapes — not flattened images.">
+  <meta property="og:image" content="https://svgslid.es/static/og-image.png">
+  <meta property="og:url" content="https://svgslid.es/">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="svgslid.es — SVG files → editable vector shapes in Google Slides">
+  <meta name="twitter:description" content="Drag and drop SVG files onto Google Slides to insert them as editable, native vector shapes — not flattened images.">
+  <meta name="twitter:image" content="https://svgslid.es/static/og-image.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -27,7 +37,39 @@
     /* ── Header ─────────────────────────────────────── */
 
     h1 { margin: 0 0 4px; font-size: 1.6rem; font-family: 'Barlow Semi Condensed', sans-serif; font-weight: 700; }
-    p.tagline { margin: 0 0 36px; color: #555; }
+    p.tagline { margin: 0 0 16px; color: #555; }
+
+    ol.steps {
+      list-style: none;
+      counter-reset: step;
+      margin: 0 0 32px;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    ol.steps li {
+      counter-increment: step;
+      font-size: 0.88rem;
+      color: #555;
+      padding-left: 24px;
+      position: relative;
+    }
+    ol.steps li::before {
+      content: counter(step);
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #fde68a;
+      color: #78350f;
+      font-size: 0.68rem;
+      font-weight: 700;
+      line-height: 16px;
+      text-align: center;
+    }
 
     /* ── Labels ─────────────────────────────────────── */
 
@@ -243,6 +285,12 @@
   </div>
   <p class="tagline">SVG files &rarr; editable vector shapes in Google Slides</p>
 
+  <ol class="steps">
+    <li>Upload your <strong>.svg</strong> file(s)</li>
+    <li>Get a Slides file with real, editable vector shapes</li>
+    <li>Resize, recolor, and edit points like any native shape</li>
+  </ol>
+
   <div class="popover-overlay" id="popover-overlay">
     <div class="popover">
       <button class="popover-close" id="popover-close">&times;</button>
@@ -279,7 +327,7 @@
     <a id="result-link" href="#" target="_blank" rel="noopener">Open in Drive &#8599;</a>
   </div>
 
-  <div class="footer">Built by Joe Gelman &middot; 2026 &middot; <a href="/privacy" style="color:#aaa">Privacy</a> &middot; <a href="/terms" style="color:#aaa">Terms</a></div>
+  <div class="footer">Built by Joe Gelman &middot; 2026 &middot; <a href="/guide" style="color:#aaa">Guide</a> &middot; <a href="/privacy" style="color:#aaa">Privacy</a> &middot; <a href="/terms" style="color:#aaa">Terms</a></div>
 
   <script>
     const overlay    = document.getElementById('popover-overlay');

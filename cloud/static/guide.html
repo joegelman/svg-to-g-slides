@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SVG vs PNG in Google Slides — svgslid.es</title>
+  <meta name="description" content="Pasting an SVG into Google Slides normally flattens it to an image. Here's how to keep it a real, editable vector shape instead.">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32.png">
+  <meta property="og:title" content="SVG vs PNG in Google Slides">
+  <meta property="og:description" content="Pasting an SVG into Google Slides normally flattens it to an image. Here's how to keep it a real, editable vector shape instead.">
+  <meta property="og:image" content="https://svgslid.es/static/og-image.png">
+  <meta property="og:url" content="https://svgslid.es/guide">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="SVG vs PNG in Google Slides">
+  <meta name="twitter:description" content="Pasting an SVG into Google Slides normally flattens it to an image. Here's how to keep it a real, editable vector shape instead.">
+  <meta name="twitter:image" content="https://svgslid.es/static/og-image.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body {
+      max-width: 640px;
+      margin: 48px auto;
+      padding: 0 20px 64px;
+      font-family: 'Inter', system-ui, sans-serif;
+      font-size: 16px;
+      color: #111;
+      line-height: 1.6;
+    }
+    a { color: #111; }
+    h1 { margin: 0 0 8px; font-size: 1.7rem; font-family: 'Barlow Semi Condensed', sans-serif; font-weight: 700; }
+    h2 { margin: 40px 0 8px; font-size: 1.15rem; font-family: 'Barlow Semi Condensed', sans-serif; font-weight: 700; }
+    p, ul, table { margin: 0 0 14px; }
+    ul { padding-left: 20px; }
+    li { margin-bottom: 6px; }
+    .lede { color: #555; font-size: 1.05rem; margin: 0 0 32px; }
+    .back { display: inline-block; margin-bottom: 32px; font-size: 0.9rem; color: #555; text-decoration: none; }
+    .back:hover { color: #111; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #eee; vertical-align: top; }
+    th { font-family: 'Barlow Semi Condensed', sans-serif; font-weight: 700; font-size: 0.95rem; }
+    td.no { color: #b91c1c; }
+    td.yes { color: #15803d; }
+
+    .surfaces { display: grid; gap: 10px; margin: 0 0 20px; }
+    .surface { border: 1.5px solid #eee; border-radius: 8px; padding: 14px 16px; }
+    .surface strong { display: block; margin-bottom: 4px; font-family: 'Barlow Semi Condensed', sans-serif; font-weight: 700; font-size: 1rem; }
+    .surface p { margin: 0; font-size: 0.92rem; color: #555; }
+
+    details { border: 1px solid #eee; border-radius: 6px; padding: 12px 16px; margin-bottom: 10px; }
+    summary { cursor: pointer; font-weight: 600; }
+    details p { margin: 10px 0 0; color: #333; font-size: 0.95rem; }
+
+    .cta {
+      margin-top: 40px;
+      padding: 20px;
+      border-radius: 8px;
+      background: #fffbeb;
+      border: 1.5px solid #fde68a;
+      text-align: center;
+    }
+    .cta a {
+      display: inline-block;
+      margin-top: 10px;
+      background: #111;
+      color: #fff;
+      text-decoration: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+  <a class="back" href="/">← svgslid.es</a>
+  <h1>SVG vs PNG in Google Slides</h1>
+  <p class="lede">Drop an SVG onto a Slides canvas the normal way and Google flattens it into a raster image on paste. Here's what that costs you, and how to avoid it.</p>
+
+  <h2>What you lose when Slides flattens your SVG</h2>
+  <table>
+    <tr><th>Pasted as PNG (default)</th><th>Inserted as vector (svgslid.es)</th></tr>
+    <tr><td class="no">Blurs or pixelates when resized</td><td class="yes">Resizes at any size, always crisp</td></tr>
+    <tr><td class="no">One flattened image, single object</td><td class="yes">Every path is its own selectable shape</td></tr>
+    <tr><td class="no">Can't recolor without re-exporting</td><td class="yes">Recolor any shape directly in Slides</td></tr>
+    <tr><td class="no">Can't animate individual elements</td><td class="yes">Animate each shape independently</td></tr>
+    <tr><td class="no">Can't edit points/paths</td><td class="yes">Right-click → Edit points, like any native shape</td></tr>
+  </table>
+
+  <h2>How svgslid.es keeps it a vector</h2>
+  <p>Every <code>&lt;path&gt;</code> in your SVG is converted directly into Google Slides' own native shape format — not re-rendered as an image and not a third-party embed. The result behaves exactly like a shape you drew in Slides yourself: resizable, recolorable, editable.</p>
+
+  <div class="surfaces">
+    <div class="surface">
+      <strong>Web app</strong>
+      <p>Upload one or more SVGs at <a href="/">svgslid.es</a>, get back a Google Drive link to a ready-made Slides deck — one slide per file. Best for bulk conversion or building an icon library.</p>
+    </div>
+    <div class="surface">
+      <strong>Google Slides add-on</strong>
+      <p>Insert SVGs into a presentation you're already editing, from a dialog inside Slides itself, without leaving the tab.</p>
+    </div>
+    <div class="surface">
+      <strong>Chrome extension</strong>
+      <p>Drag an SVG file straight onto an open Slides tab and drop it in place — no dialog, no upload step.</p>
+    </div>
+  </div>
+
+  <h2>Frequently asked</h2>
+
+  <details>
+    <summary>Does Google Slides support SVG natively?</summary>
+    <p>Not as an editable format. Slides will accept a pasted or inserted SVG, but it rasterizes it into a flattened image on the way in — you lose the ability to edit individual paths or recolor parts of it. svgslid.es converts it into Slides' native shape format instead, so it stays fully editable.</p>
+  </details>
+
+  <details>
+    <summary>What happens to gradients and complex curves?</summary>
+    <p>Solid fills and strokes convert cleanly. Gradients currently collapse to a solid approximate color, and arc commands (A/a) in paths are approximated as straight line segments. Re-exporting with more path segments avoids visibly angular curves.</p>
+  </details>
+
+  <details>
+    <summary>Is my file uploaded anywhere?</summary>
+    <p>Depends on the surface. The Chrome extension converts entirely on your device using an embedded WebAssembly engine — your file usually never leaves the browser. The web app and add-on send the file to our backend for conversion, which discards it immediately afterward. See the <a href="/privacy">privacy policy</a> for specifics per surface.</p>
+  </details>
+
+  <details>
+    <summary>Is it free?</summary>
+    <p>Yes, all three surfaces are free.</p>
+  </details>
+
+  <div class="cta">
+    <p><strong>Try it on your own SVG</strong> — no account needed for the web app.</p>
+    <a href="/">Open svgslid.es →</a>
+  </div>
+</body>
+</html>
