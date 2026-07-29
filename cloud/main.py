@@ -8,7 +8,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, File, Form, Header, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -79,9 +79,12 @@ def support():
 
 @app.get("/chrome")
 def chrome_redirect():
-    # authuser/hl query params stripped — those were session-specific to
-    # whichever Google account/locale was active when the link was grabbed.
-    return RedirectResponse("https://chromewebstore.google.com/detail/svg-to-slides/bdhhnakellmdnbgbdokiojipaebdeioi")
+    # Serves a real HTML page (with its own OG/Twitter tags) rather than a
+    # raw HTTP redirect, so link-preview crawlers read our branded meta tags
+    # instead of following straight through to the Chrome Web Store's own
+    # (or absent) preview. The page itself redirects human visitors via
+    # meta-refresh + a JS fallback.
+    return FileResponse("static/chrome.html")
 
 
 @app.post("/cleanup")
