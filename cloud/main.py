@@ -8,7 +8,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, File, Form, Header, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -75,6 +75,13 @@ def guide():
 @app.get("/support")
 def support():
     return FileResponse("static/support.html")
+
+
+@app.get("/chrome")
+def chrome_redirect():
+    # authuser/hl query params stripped — those were session-specific to
+    # whichever Google account/locale was active when the link was grabbed.
+    return RedirectResponse("https://chromewebstore.google.com/detail/svg-to-slides/bdhhnakellmdnbgbdokiojipaebdeioi")
 
 
 @app.post("/cleanup")
