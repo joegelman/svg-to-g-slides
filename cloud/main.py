@@ -72,6 +72,11 @@ def guide():
     return FileResponse("static/guide.html")
 
 
+@app.get("/support")
+def support():
+    return FileResponse("static/support.html")
+
+
 @app.post("/cleanup")
 def cleanup(x_cleanup_token: str = Header(default="")):
     """Delete output files older than RETENTION_DAYS from the Drive output folder.

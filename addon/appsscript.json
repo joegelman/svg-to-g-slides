@@ -8,6 +8,9 @@
     "https://www.googleapis.com/auth/script.external_request",
     "https://www.googleapis.com/auth/script.container.ui"
   ],
+  "urlFetchWhitelist": [
+    "https://svg-to-slides-jwxfsrfexq-uc.a.run.app/"
+  ],
   "addOns": {
     "common": {
       "name": "SVG Slides",
