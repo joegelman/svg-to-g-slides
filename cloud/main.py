@@ -82,9 +82,15 @@ def chrome_redirect():
     # Serves a real HTML page (with its own OG/Twitter tags) rather than a
     # raw HTTP redirect, so link-preview crawlers read our branded meta tags
     # instead of following straight through to the Chrome Web Store's own
-    # (or absent) preview. The page itself redirects human visitors via
-    # meta-refresh + a JS fallback.
+    # (or absent) preview. Bots don't execute the JS redirect below, so they
+    # never leave this page; human visitors do and get bounced through.
     return FileResponse("static/chrome.html")
+
+
+@app.get("/addon")
+def addon_redirect():
+    # Same pattern as /chrome, pointed at the Google Workspace Marketplace listing.
+    return FileResponse("static/addon.html")
 
 
 @app.post("/cleanup")
