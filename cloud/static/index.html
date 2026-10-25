@@ -2,414 +2,196 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>svgslid.es</title>
-  <meta name="description" content="Drag and drop SVG files onto Google Slides to insert them as editable, native vector shapes — not flattened images.">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>SVG to Slides — Editable SVGs in Google Slides</title>
+  <meta name="description" content="Drag an SVG into Google Slides and get native, editable shapes. Edit elements, change colours, resize without losing quality. Free Chrome extension.">
+  <link rel="canonical" href="https://svgslid.es/">
   <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32.png">
-  <meta property="og:title" content="svgslid.es — SVG files → editable vector shapes in Google Slides">
-  <meta property="og:description" content="Drag and drop SVG files onto Google Slides to insert them as editable, native vector shapes — not flattened images.">
+  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+  <meta property="og:title" content="SVG to Slides — Editable SVGs in Google Slides">
+  <meta property="og:description" content="Drag an SVG into Google Slides and get native, editable shapes. Edit elements, change colours, resize without losing quality. Free Chrome extension.">
   <meta property="og:image" content="https://svgslid.es/static/og-image.png">
   <meta property="og:url" content="https://svgslid.es/">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="svgslid.es — SVG files → editable vector shapes in Google Slides">
-  <meta name="twitter:description" content="Drag and drop SVG files onto Google Slides to insert them as editable, native vector shapes — not flattened images.">
+  <meta name="twitter:title" content="SVG to Slides — Editable SVGs in Google Slides">
+  <meta name="twitter:description" content="Drag an SVG into Google Slides and get native, editable shapes. Edit elements, change colours, resize without losing quality. Free Chrome extension.">
   <meta name="twitter:image" content="https://svgslid.es/static/og-image.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Overpass:wght@700&display=swap" rel="stylesheet">
-  <style>
-    *, *::before, *::after { box-sizing: border-box; }
+<style>
+html{scroll-behavior:smooth}
+/* Layout: one centred column, 2010-Apple cadence — headline, one product shot, hairline rules between quiet sections. */
+:root{
+  --bg:#ffffff; --fg:#1c1e22; --mute:#6b6f76; --rule:#e6e8eb; --tint:#fffbea;
+  --yellow:#FFC700; --blue:#0066FF; --blue-ink:#0a57d0; --check:#4CCB3E;
+  --display:"Overpass","Helvetica Neue",Arial,sans-serif; --body:Verdana,"DejaVu Sans",Geneva,sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg:#141518; --fg:#f1f2f4; --mute:#a4a8b0; --rule:#2a2d33; --tint:#1e1c14; --blue:#4d8dff; --blue-ink:#2f74e8; color-scheme:dark } }
+:root[data-theme="dark"]{ --bg:#141518; --fg:#f1f2f4; --mute:#a4a8b0; --rule:#2a2d33; --tint:#1e1c14; --blue:#4d8dff; --blue-ink:#2f74e8; color-scheme:dark }
 
-    body {
-      max-width: 520px;
-      margin: 48px auto;
-      padding: 0 20px 48px;
-      font-family: Verdana, Geneva, sans-serif;
-      font-size: 15px;
-      color: #111;
-    }
+*{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1040px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--display);font-weight:600;letter-spacing:-.015em;text-wrap:balance;margin:0}
+h1{font-size:clamp(38px,6.2vw,66px);line-height:1.05}
+h2{font-size:clamp(28px,3.6vw,40px);line-height:1.12}
+h3{font-size:22px;line-height:1.2}
+p{margin:0}
+.lede{font-size:clamp(17px,1.6vw,20px);line-height:1.5;color:var(--mute);max-width:46em}
+a{color:inherit}
+.btn{display:inline-flex;align-items:center;gap:10px;height:52px;padding:0 24px;border-radius:26px;font:600 17px var(--display);text-decoration:none;white-space:nowrap}
+.btn-primary{background:var(--blue);color:#fff;box-shadow:0 1px 2px rgba(0,0,0,.18)} .btn-primary:hover{background:var(--blue-ink)}
+.btn-primary img{width:22px;height:22px}
+.btn-ghost{color:var(--fg);border:1.5px solid var(--rule)} .btn-ghost:hover{border-color:var(--mute)}
+.btn:focus-visible,a:focus-visible{outline:3px solid var(--yellow);outline-offset:3px}
+.rule{border:0;border-top:1px solid var(--rule);margin:0}
 
-    @media (max-width: 540px) {
-      body { margin-top: 24px; }
-    }
+/* nav */
+.nav{display:flex;align-items:center;justify-content:space-between;padding-block:22px}
+.brand{display:flex;align-items:center;gap:10px;font:600 20px var(--display);text-decoration:none}
+.brand img{width:32px;height:32px}
+.nav .btn{height:40px;padding:0 18px;font-size:15px}
 
-    /* ── Header ─────────────────────────────────────── */
+/* hero */
+.hero{text-align:center;padding-block:56px 0}
+.hero h1{max-width:14em;margin:0 auto 20px}
+.hero .lede{margin:0 auto 30px}
+.ctas{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:18px}
+.proof{font-size:14px;color:var(--mute);margin-bottom:44px}
+.alt{font-size:14px;color:var(--mute);margin:-6px 0 14px} .alt a{color:var(--mute)}
+.proof b{color:var(--fg);font-weight:600}
+.shot{width:100%;max-width:100%;aspect-ratio:16/9;border-radius:14px;overflow:hidden;background:#F9FAFD;box-shadow:0 1px 2px rgba(0,0,0,.06),0 24px 60px rgba(20,30,60,.16);position:relative}
+.shot::before{content:"";position:absolute;inset:-60px;background:radial-gradient(60% 50% at 50% 100%,rgba(255,199,0,.22),transparent 70%);z-index:0;pointer-events:none}
+.shot .lot{position:absolute;inset:0;z-index:1}
 
-    h1 { margin: 0 0 4px; font-size: 1.725rem; font-family: 'Overpass', sans-serif; font-weight: 700; }
-    p.tagline { margin: 0 0 16px; color: #555; }
+/* problem */
+.problem{padding-block:64px;display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}
+.problem p{font-size:clamp(17px,1.5vw,19px);line-height:1.55}
+.problem .now{color:var(--mute)}
+.problem .then{font-family:var(--display);font-weight:600;font-size:clamp(22px,2.4vw,28px);line-height:1.25;color:var(--fg)}
+.problem .then mark{background:linear-gradient(transparent 55%,var(--yellow) 55%,var(--yellow) 92%,transparent 92%);color:inherit;padding:0 2px}
 
-    ol.steps {
-      list-style: none;
-      counter-reset: step;
-      margin: 0 0 32px;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-    ol.steps li {
-      counter-increment: step;
-      font-size: 0.88rem;
-      color: #555;
-      padding-left: 24px;
-      position: relative;
-    }
-    ol.steps li::before {
-      content: counter(step);
-      position: absolute;
-      left: 0;
-      top: 0;
-      width: 16px;
-      height: 16px;
-      border-radius: 50%;
-      background: #fde68a;
-      color: #78350f;
-      font-size: 0.68rem;
-      font-weight: 700;
-      line-height: 16px;
-      text-align: center;
-    }
+/* features */
+.features{padding-block:64px 72px}
+.features h2{text-align:center;max-width:16em;margin:0 auto 44px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+.card{background:var(--tint);border-radius:18px;padding:30px 30px 0;display:flex;flex-direction:column;gap:12px;min-width:0}
+.card p{color:var(--mute);font-size:15px;line-height:1.5;max-width:30em}
+.card .lot{margin:14px -30px 0;aspect-ratio:16/9;border-radius:0 0 18px 18px;overflow:hidden;background:#F9FAFD}
 
-    /* ── Labels ─────────────────────────────────────── */
+/* steps */
+.steps{padding-block:64px}
+.steps h2{text-align:center;margin-bottom:40px}
+.steprow{display:grid;grid-template-columns:repeat(3,1fr);gap:32px}
+.step{min-width:0}
+.step .n{font:600 13px var(--display);letter-spacing:.08em;color:var(--mute);text-transform:uppercase;margin-bottom:8px}
+.step p{color:var(--mute);font-size:15px;margin-top:6px}
 
-    label {
-      display: block;
-      font-weight: 600;
-      margin-bottom: 6px;
-    }
-    .hint { font-size: 0.85rem; color: #666; margin: 6px 0 20px; }
+/* trust */
+.trust{padding-block:40px;display:flex;justify-content:center;gap:40px;flex-wrap:wrap;font-size:15px}
+.trust span{display:flex;align-items:center;gap:10px}
+.trust i{width:22px;height:22px;border-radius:5px;background:var(--check);display:inline-grid;place-items:center;flex:none}
+.trust i::after{content:"";width:10px;height:5px;border:3px solid #fff;border-top:0;border-right:0;transform:translateY(-1px) rotate(-45deg)}
 
-    /* ── Drop zone ──────────────────────────────────── */
+/* close */
+.close{text-align:center;padding-block:72px 80px}
+.close .lot{width:min(520px,100%);aspect-ratio:16/9;margin:0 auto 28px}
+.close h2{margin-bottom:26px}
+.foot{padding-block:28px 40px;font-size:13px;color:var(--mute);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.foot a{text-decoration:none} .foot a:hover{text-decoration:underline}
 
-    #dropzone {
-      border: 2px dashed #bbb;
-      border-radius: 6px;
-      padding: 36px 16px;
-      text-align: center;
-      cursor: pointer;
-      position: relative;
-      margin-bottom: 12px;
-      transition: border-color 0.15s, background 0.15s;
-      background: #fafafa;
-    }
-    #dropzone:hover {
-      border-color: #2563eb;
-      background: #eff6ff;
-    }
-    #dropzone.over {
-      border-color: #2563eb;
-      background: #dbeafe;
-    }
-    #dropzone input[type=file] {
-      position: absolute; inset: 0; opacity: 0; cursor: pointer;
-      width: 100%; height: 100%;
-    }
-    #dropzone .drop-icon { font-size: 2rem; line-height: 1; margin-bottom: 8px; }
-    #dropzone p { margin: 0; color: #555; font-size: 0.95rem; }
-    #dropzone strong { color: #2563eb; }
-
-    /* ── File list ──────────────────────────────────── */
-
-    #file-list { margin-bottom: 20px; }
-    .file-row {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 8px 10px;
-      border-radius: 4px;
-      font-size: 0.9rem;
-      transition: background 0.1s;
-    }
-    .file-row:hover { background: #f3f4f6; }
-    .file-row .fname { display: flex; align-items: center; gap: 8px; color: #333; }
-    .file-row button {
-      background: none;
-      border: none;
-      cursor: pointer;
-      color: #aaa;
-      font-size: 1rem;
-      padding: 4px 6px;
-      border-radius: 4px;
-      line-height: 1;
-      transition: color 0.1s, background 0.1s;
-    }
-    .file-row button:hover { color: #dc2626; background: #fee2e2; }
-
-    /* ── Email input ────────────────────────────────── */
-
-    input[type=email] {
-      width: 100%;
-      font-size: 1rem;
-      padding: 9px 11px;
-      border: 1.5px solid #ccc;
-      border-radius: 5px;
-      transition: border-color 0.15s, box-shadow 0.15s;
-      background: #fff;
-      color: #111;
-    }
-    input[type=email]:focus {
-      outline: none;
-      border-color: #2563eb;
-      box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
-    }
-
-    /* ── Submit button ──────────────────────────────── */
-
-    button#submit {
-      width: 100%;
-      min-height: 44px;
-      padding: 10px 16px;
-      font-size: 1rem;
-      font-weight: 600;
-      margin-top: 20px;
-      cursor: pointer;
-      background: #2563eb;
-      color: #fff;
-      border: none;
-      border-radius: 6px;
-      transition: background 0.15s, opacity 0.15s;
-    }
-    button#submit:hover:not(:disabled) { background: #1d4ed8; }
-    button#submit:active:not(:disabled) { background: #1e40af; }
-    button#submit:disabled {
-      background: #e5e7eb;
-      color: #9ca3af;
-      cursor: not-allowed;
-    }
-
-    /* ── Status ─────────────────────────────────────── */
-
-    /* ── Help button + popover ──────────────────────── */
-
-    .help-btn {
-      background: none;
-      border: 1.5px solid #ccc;
-      border-radius: 50%;
-      width: 22px;
-      height: 22px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      color: #666;
-      cursor: pointer;
-      line-height: 1;
-      padding: 0;
-      vertical-align: middle;
-      transition: border-color 0.15s, color 0.15s;
-    }
-    .help-btn:hover { border-color: #2563eb; color: #2563eb; }
-
-    .popover-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.3);
-      z-index: 100;
-      align-items: center;
-      justify-content: center;
-      padding: 16px;
-    }
-    .popover-overlay.open { display: flex; }
-
-    .popover {
-      background: #fff;
-      border: 1.5px solid #ddd;
-      border-radius: 8px;
-      max-width: 460px;
-      width: 100%;
-      padding: 24px;
-      position: relative;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.12);
-    }
-    .popover h2 { font-size: 1.225rem; margin: 0 0 16px; font-family: 'Overpass', sans-serif; font-weight: 700; }
-    .popover ol { padding-left: 20px; margin: 0 0 16px; }
-    .popover li { margin-bottom: 8px; font-size: 0.9rem; line-height: 1.5; color: #333; }
-    .popover .note { font-size: 0.8rem; color: #666; border-top: 1px solid #eee; padding-top: 12px; margin: 0; }
-    .popover-close {
-      position: absolute;
-      top: 12px; right: 14px;
-      background: none; border: none;
-      font-size: 1.2rem; cursor: pointer;
-      color: #999; line-height: 1;
-    }
-    .popover-close:hover { color: #000; }
-
-    /* ── Footer ─────────────────────────────────────── */
-
-    .footer {
-      margin-top: 24px;
-      font-size: 0.8rem;
-      color: #aaa;
-      text-align: center;
-    }
-
-    #status {
-      margin-top: 14px;
-      font-size: 0.9rem;
-      color: #555;
-      min-height: 1.4em;
-      text-align: center;
-    }
-    #status.error { color: #dc2626; }
-
-    /* ── Result ─────────────────────────────────────── */
-
-    #result {
-      display: none;
-      margin-top: 20px;
-      padding: 16px;
-      border: 1.5px solid #86efac;
-      border-radius: 6px;
-      background: #f0fdf4;
-    }
-    #result p { margin: 0 0 10px; font-size: 0.95rem; color: #166534; font-weight: 500; }
-    #result a {
-      display: inline-block;
-      background: #16a34a;
-      color: #fff;
-      text-decoration: none;
-      padding: 8px 16px;
-      border-radius: 5px;
-      font-size: 0.9rem;
-      font-weight: 600;
-      transition: background 0.15s;
-    }
-    #result a:hover { background: #15803d; }
-  </style>
+@media (max-width:760px){
+  .problem,.grid,.steprow{grid-template-columns:1fr}
+  .card{padding:24px 22px 0} .card .lot{margin:12px -22px 0}
+  .nav .brand span{display:none}
+  .trust{gap:16px;flex-direction:column;align-items:center}
+}
+@media (prefers-reduced-motion:reduce){ .lot svg{display:none} .lot{background:var(--tint)} }
+</style>
 </head>
 <body>
+<div class="wrap">
+  <nav class="nav">
+    <a class="brand" href="#top"><img src="/static/mark.svg" alt=""><span>SVG to Slides</span></a>
+    <a class="btn btn-primary" href="https://chromewebstore.google.com/detail/svg-to-slides/bdhhnakellmdnbgbdokiojipaebdeioi"><img src="/static/chrome-glyph.svg" alt="">Add to Chrome</a>
+  </nav>
+</div>
 
-  <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:4px;">
-    <h1 style="margin:0">svgslid.es</h1>
-    <button class="help-btn" id="help-btn" title="How it works">?</button>
-  </div>
-  <p class="tagline">SVG files &rarr; editable vector shapes in Google Slides</p>
-
-  <ol class="steps">
-    <li>Upload your <strong>.svg</strong> file(s)</li>
-    <li>Get a Slides file with real, editable vector shapes</li>
-    <li>Resize, recolor, and edit points like any native shape</li>
-  </ol>
-
-  <div class="popover-overlay" id="popover-overlay">
-    <div class="popover">
-      <button class="popover-close" id="popover-close">&times;</button>
-      <h2>How it works</h2>
-      <ol>
-        <li>Upload one or more <strong>.svg</strong> files using the drop zone or file browser.</li>
-        <li>Every <code>&lt;path&gt;</code> element in your SVG is converted to a discrete, individually selectable vector shape in Google Slides — not a flattened image.</li>
-        <li>Each SVG becomes one slide in the output file.</li>
-        <li>The resulting PPTX is uploaded to Google Drive and a shareable link is returned — optionally shared directly to a Google account email you provide.</li>
-        <li>The link is automatically deleted after <strong>7 days</strong>. To keep a file permanently, open it in Drive &rarr; <strong>File &rarr; Save to Drive</strong> &rarr; <strong>File &rarr; Make a copy</strong> — the copy is fully yours, with no expiry, and is also a fully editable native Slides file.</li>
-      </ol>
-      <p class="note"><strong>Note:</strong> Arc commands (A/a) in SVG paths are approximated as straight lines. Re-export with more path segments if curves appear angular.</p>
+<main id="top">
+  <section class="wrap hero">
+    <h1>Editable SVGs in Google Slides&trade;</h1>
+    <p class="lede">Drag an SVG into your deck. SVG to Slides converts it into native Google Slides shapes, so you can edit individual elements, change colours, and resize without losing quality.</p>
+    <div class="ctas">
+      <a class="btn btn-primary" href="https://chromewebstore.google.com/detail/svg-to-slides/bdhhnakellmdnbgbdokiojipaebdeioi"><img src="/static/chrome-glyph.svg" alt="">Add to Chrome &mdash; free</a>
+      <a class="btn btn-ghost" href="#how">See how it works</a>
     </div>
-  </div>
+    <p class="alt">Prefer not to install? <a href="/convert">Convert a file in the browser instead &rarr;</a></p>
+    <p class="proof"><b>&#9733; 5.0</b> on the Chrome Web Store &nbsp;&middot;&nbsp; Free forever &nbsp;&middot;&nbsp; No sign-up</p>
+    <div class="shot"><div class="lot" data-lottie="/static/lottie/svgslides_drop.json"></div></div>
+  </section>
 
-  <label>SVG files</label>
-  <div id="dropzone">
-    <input type="file" id="file-input" accept=".svg" multiple>
-    <div class="drop-icon">&#128194;</div>
-    <p><strong>Drop files here</strong> or click to browse</p>
-  </div>
-  <div id="file-list"></div>
+  <section class="wrap problem">
+    <p class="now">Google Slides&trade; doesn&rsquo;t support SVG files. Your options are to flatten them into PNGs or take the long way through EMF conversion, Google Drawings, and copy-paste.</p>
+    <p class="then">SVG to Slides lets you <mark>drag the original file straight into your deck.</mark></p>
+  </section>
 
-  <label for="email">Google account <span style="font-weight:400; color:#666">(optional)</span></label>
-  <input type="email" id="email" placeholder="you@example.com">
-  <p class="hint">If provided, the file will be shared directly to this account. Either way, the link stays active for 7 days — use "Make a copy" in Drive to keep a file permanently.</p>
+  <div class="wrap"><hr class="rule"></div>
 
-  <button id="submit" disabled>Convert &rarr;</button>
+  <section class="wrap features">
+    <h2>Your SVGs, with all the flexibility of native Slides shapes.</h2>
+    <div class="grid">
+      <article class="card"><h3>Edit individual elements.</h3><p>Every SVG path becomes its own Slides shape. Select the palm without touching the wordmark.</p><div class="lot" data-lottie="/static/lottie/svgslides_recolor.json" data-segment="0,150"></div></article>
+      <article class="card"><h3>Change colours in Slides.</h3><p>Use the standard fill picker to match your deck. No need to reopen the original in a design app.</p><div class="lot" data-lottie="/static/lottie/svgslides_recolor.json"></div></article>
+      <article class="card"><h3>Resize without losing quality.</h3><p>From a small footer icon to a full-slide graphic, every edge stays sharp.</p><div class="lot" data-lottie="/static/lottie/svgslides_scale.json"></div></article>
+      <article class="card"><h3>Use SVGs in your themes.</h3><p>Add converted graphics to your theme layouts and reuse them across slides. The native shapes also work in Google Drawings.</p><div class="lot" data-lottie="/static/lottie/svgslides_reuse.json"></div></article>
+    </div>
+  </section>
 
-  <div id="status"></div>
+  <div class="wrap"><hr class="rule"></div>
 
-  <div id="result">
-    <p id="result-message">&#10003;&nbsp; Done &mdash; your file is ready in Google Drive.</p>
-    <a id="result-link" href="#" target="_blank" rel="noopener">Open in Drive &#8599;</a>
-  </div>
+  <section class="wrap steps" id="how">
+    <h2>How it works</h2>
+    <div class="steprow">
+      <div class="step"><div class="n">Step 1</div><h3>Install the extension.</h3><p>Add SVG to Slides from the Chrome Web Store. No account required.</p></div>
+      <div class="step"><div class="n">Step 2</div><h3>Open Google Slides&trade;.</h3><p>Work in any existing or new presentation.</p></div>
+      <div class="step"><div class="n">Step 3</div><h3>Drag in your SVG.</h3><p>Drop the file onto a slide. Its paths become editable shapes.</p></div>
+    </div>
+  </section>
 
-  <div class="footer">Built by Joe Gelman &middot; 2026 &middot; <a href="/guide" style="color:#aaa">Guide</a> &middot; <a href="/privacy" style="color:#aaa">Privacy</a> &middot; <a href="/terms" style="color:#aaa">Terms</a></div>
+  <div class="wrap"><hr class="rule"></div>
 
-  <script>
-    const overlay    = document.getElementById('popover-overlay');
-    document.getElementById('help-btn').addEventListener('click', () => overlay.classList.add('open'));
-    document.getElementById('popover-close').addEventListener('click', () => overlay.classList.remove('open'));
-    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.classList.remove('open'); });
+  <section class="wrap trust">
+    <span><i></i>Free forever</span><span><i></i>No account required</span><span><i></i>Basic Google permissions only</span>
+  </section>
 
-    const dropzone   = document.getElementById('dropzone');
-    const fileInput  = document.getElementById('file-input');
-    const fileList   = document.getElementById('file-list');
-    const emailInput = document.getElementById('email');
-    const submitBtn  = document.getElementById('submit');
-    const statusEl      = document.getElementById('status');
-    const resultEl      = document.getElementById('result');
-    const resultLink    = document.getElementById('result-link');
-    const resultMessage = document.getElementById('result-message');
+  <div class="wrap"><hr class="rule"></div>
 
-    let files = [];
+  <section class="wrap close">
+    <div class="lot" data-lottie="/static/lottie/svgslides_signoff.json"></div>
+    <h2>Bring your SVGs into Google Slides&trade;.</h2>
+    <a class="btn btn-primary" href="https://chromewebstore.google.com/detail/svg-to-slides/bdhhnakellmdnbgbdokiojipaebdeioi"><img src="/static/chrome-glyph.svg" alt="">Add to Chrome &mdash; free</a>
+  </section>
 
-    function renderFiles() {
-      fileList.innerHTML = '';
-      files.forEach((f, i) => {
-        const row = document.createElement('div');
-        row.className = 'file-row';
-        row.innerHTML = `
-          <span class="fname">&#128196; ${f.name}</span>
-          <button data-i="${i}" title="Remove">&#10005;</button>`;
-        fileList.appendChild(row);
-      });
-      submitBtn.disabled = files.length === 0;
-    }
+  <div class="wrap"><hr class="rule"></div>
+  <footer class="wrap foot">
+    <span>svgslid.es &nbsp;&middot;&nbsp; <a href="/privacy">Privacy</a> &nbsp;&middot;&nbsp; <a href="/terms">Terms</a> &nbsp;&middot;&nbsp; Built by Joe Gelman</span>
+    <span>Google Slides&trade; and Google Drawings&trade; are trademarks of Google LLC.</span>
+  </footer>
+</main>
 
-    fileList.addEventListener('click', e => {
-      const btn = e.target.closest('button[data-i]');
-      if (btn) { files.splice(Number(btn.dataset.i), 1); renderFiles(); }
-    });
-
-    fileInput.addEventListener('change', () => {
-      files = [...files, ...[...fileInput.files].filter(f => f.name.endsWith('.svg'))];
-      fileInput.value = '';
-      renderFiles();
-    });
-
-    dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('over'); });
-    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('over'));
-    dropzone.addEventListener('drop', e => {
-      e.preventDefault();
-      dropzone.classList.remove('over');
-      files = [...files, ...[...e.dataTransfer.files].filter(f => f.name.endsWith('.svg'))];
-      renderFiles();
-    });
-
-    submitBtn.addEventListener('click', async () => {
-      if (!files.length) return;
-      submitBtn.disabled = true;
-      resultEl.style.display = 'none';
-      statusEl.className = '';
-      statusEl.textContent = 'Converting…';
-
-      const fd = new FormData();
-      files.forEach(f => fd.append('files', f));
-      fd.append('email', emailInput.value.trim());
-
-      try {
-        const res = await fetch('/convert', { method: 'POST', body: fd });
-        const json = await res.json();
-        if (!res.ok) throw new Error(json.detail || 'Server error');
-        statusEl.textContent = '';
-        resultLink.href = json.link;
-        resultMessage.innerHTML = json.retention_days
-          ? `&#10003;&nbsp; Done &mdash; your file is ready. This link stays active for ${json.retention_days} days (use "Make a copy" in Drive to keep it permanently).`
-          : '&#10003;&nbsp; Done &mdash; your file is ready in Google Drive.';
-        resultEl.style.display = 'block';
-        files = [];
-        renderFiles();
-        emailInput.value = '';
-      } catch (err) {
-        statusEl.className = 'error';
-        statusEl.textContent = err.message;
-        submitBtn.disabled = false;
-      }
-    });
-  </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js"></script>
+<script>
+(function(){
+  if(!window.lottie||matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  var anims=[];
+  document.querySelectorAll('.lot[data-lottie]').forEach(function(el){
+    var a=lottie.loadAnimation({container:el,renderer:'svg',loop:true,autoplay:false,path:el.dataset.lottie,rendererSettings:{preserveAspectRatio:'xMidYMid slice'}});
+    var seg=el.dataset.segment; if(seg){var s=seg.split(',').map(Number); a.addEventListener('DOMLoaded',function(){a.playSegments([s[0],s[1]],true)});}
+    anims.push({el:el,a:a});
+  });
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){var x=anims.find(function(z){return z.el===e.target}); if(!x)return; e.isIntersecting?x.a.play():x.a.pause();})},{threshold:.25});
+  anims.forEach(function(x){io.observe(x.el)});
+})();
+</script>
 </body>
 </html>
