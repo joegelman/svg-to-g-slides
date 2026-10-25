@@ -43,7 +43,13 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 
 @app.get("/")
 def index():
+    # Extension splash page. The browser converter moved to /convert.
     return FileResponse("static/index.html")
+
+
+@app.get("/convert")
+def convert_page():
+    return FileResponse("static/convert.html")
 
 
 @app.get("/health")
