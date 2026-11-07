@@ -17,6 +17,9 @@ Google Slides doesn't keep SVG files as editable vectors. SVG to Slides converts
 - [SVG logos & icons in Slides themes](https://svgslid.es/svg-logos-icons-google-slides.md): Convert your logo or icon set with SVG to Slides, add it to your theme layouts, and reuse it on every slide. The shapes resize without losing quality and also work in Google Drawings.
 - [Online converter](https://svgslid.es/convert.md): upload SVGs, get a Slides-ready Drive file
 
+## Blog
+- [Google Slides finally does letter spacing](https://svgslid.es/blog/letter-spacing-google-slides.md): Tracking has landed in Slides. Here's what it is, how to use it well, and why Docs looks next.
+
 ## Optional
 - [Privacy policy](https://svgslid.es/privacy): per-surface data handling
 - [Support](https://svgslid.es/support)

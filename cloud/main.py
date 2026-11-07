@@ -311,6 +311,11 @@ def favicon():
 
 # --- Content pages (landing pages, blog) + their markdown twins ------------
 # Registered last so every explicit route above wins.
+@app.get("/blog/feed.xml", include_in_schema=False)
+def blog_feed():
+    return FileResponse(STATIC / "blog" / "feed.xml", media_type="application/rss+xml; charset=utf-8")
+
+
 @app.get("/{path:path}", include_in_schema=False)
 def content_page(path: str):
     path = path.strip("/")

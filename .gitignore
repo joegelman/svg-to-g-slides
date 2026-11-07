@@ -6,6 +6,7 @@
 *.svg
 !assets/icon.png
 !cloud/static/*.png
+!cloud/static/blog/img/*.png
 !cloud/static/*.svg
 !extension/icons/*.png
 
