@@ -1,0 +1,4 @@
+{
+  "_doc": "Featured guide on /guides. 'override' (a guide slug) always wins. Leave it null to let the server feature the guide with the most views over the last 7 days (GA4), falling back to DEFAULT_FEATURED in site_content.py.",
+  "override": null
+}

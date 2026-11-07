@@ -25,7 +25,7 @@ POSTS = [
         "hero": ("hero-letter-spacing", "Close-up of the new Letter spacing button in the Google Slides toolbar, with cursor and tooltip"),
         "og": "og-letter-spacing.png",
         "tldr": [
-            "Slides now has <b>letter spacing</b> &mdash; what type designers call <b>tracking</b>.",
+            "Slides now has <b>letter spacing</b>, which type designers call <b>tracking</b>.",
             "Find it in the toolbar (the <b>|A|</b> button next to line spacing) or <b>Format › Text › Letter spacing</b>.",
             "Presets: <b>6, 3, 0, &minus;1.5</b>, plus <b>Custom spacing</b>.",
             "Docs&rsquo; help center already documents it. The Docs editor doesn&rsquo;t show it yet.",
@@ -84,7 +84,7 @@ POSTS = [
 <p><b>Our read:</b> strong signal, not a promise. We haven&rsquo;t found a Workspace Updates announcement yet. We&rsquo;ll update this post when Docs gets the button.</p>
 """,
         "sources": [
-            ("Change how paragraphs & fonts look — Google Docs Editors Help", HELP),
+            ("Change how paragraphs & fonts look (Google Docs Editors Help)", HELP),
             ("Wayback Machine capture, Oct 5, 2026 (no letter spacing)", WB_BEFORE),
             ("Wayback Machine capture, Oct 12, 2026 (letter spacing present)", WB_AFTER),
             ("Better line spacing support for branding in Google Docs and Slides (Sept 2019)", LINE_2019),
@@ -96,7 +96,7 @@ POSTS = [
 Tracking has landed in Google Slides. Here's what it is, how to use it well, and why Docs looks next.
 
 ## TL;DR
-- Slides now has **letter spacing** — what type designers call **tracking**.
+- Slides now has **letter spacing**, which type designers call **tracking**.
 - Toolbar: the **|A|** button next to line spacing. Menu: **Format › Text › Letter spacing**.
 - Presets: **6, 3, 0, −1.5**, plus **Custom spacing** (any value, decimals and negatives allowed; no unit shown).
 - The Docs help center documents it; the Docs editor doesn't show it yet (as of Nov 7, 2026).
@@ -118,7 +118,7 @@ Tracking has landed in Google Slides. Here's what it is, how to use it well, and
 ## Steps
 1. Select text or a whole text box.
 2. Click Letter spacing (|A|) in the toolbar, or Format › Text › Letter spacing.
-3. Pick 6, 3, 0 or −1.5 — or Custom spacing, enter a value, Apply.
+3. Pick 6, 3, 0 or −1.5. Or choose Custom spacing, enter a value, Apply.
 4. Reset by choosing 0.
 
 ## The slip-up that points to Docs

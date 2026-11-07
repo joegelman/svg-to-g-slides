@@ -1,9 +1,10 @@
-# svgslid.es — all public pages are open to search engines and AI agents.
+# svgslid.es: all public pages are open to search engines and AI agents.
 User-agent: *
 Allow: /
 Disallow: /cleanup
 Disallow: /insert-svg-clip
 Disallow: /insert-svg-clip-at
+Disallow: /static/_lobby/
 
 User-agent: GPTBot
 Allow: /

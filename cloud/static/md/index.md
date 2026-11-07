@@ -22,8 +22,8 @@ Google Slides doesn't support SVG files. Your options are to flatten them into P
 3. Drag in your SVG. Its paths become editable shapes.
 
 ## Limits
-- Gradients currently collapse to a solid approximate colour.
-- Arc commands (A/a) in paths are approximated as straight line segments.
+- Gradients come through in the online converter; in the extension and add-on they currently collapse to a single solid colour.
+- Arc commands (A/a) are converted into smooth curves.
 - Up to 25 files per drop in the extension; use the online converter for larger batches.
 
 ## Privacy

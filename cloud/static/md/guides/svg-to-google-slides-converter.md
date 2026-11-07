@@ -9,7 +9,7 @@ _Free forever. Every feature, no daily cap, no account, no Pro tier._
 
 ## Pick your route
 - **Chrome extension** — Drag an SVG straight onto an open Slides tab and drop it in place. No dialog, no upload step. Converts in your browser. (https://chromewebstore.google.com/detail/svg-to-slides/bdhhnakellmdnbgbdokiojipaebdeioi)
-- **Online converter** — Upload one or more SVGs and get back a Google Drive link to a Slides-ready file, one slide per SVG. Best for bulk conversion or building an icon library. (https://svgslid.es/convert)
+- **Web Uploader** — Upload one or more SVGs and get back a Google Drive link to a Slides-ready file, one slide per SVG. Best for bulk conversion or building an icon library. (https://svgslid.es/convert)
 - **Google Slides add-on** — Insert SVGs into a presentation you're already editing, from a dialog inside Slides itself. (https://svgslid.es/addon)
 
 ## Questions

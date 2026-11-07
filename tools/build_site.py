@@ -78,6 +78,11 @@ def crumbs_ld(name, path):
         {"@type": "ListItem", "position": 1, "name": "SVG to Slides", "item": C.SITE + "/"},
         {"@type": "ListItem", "position": 2, "name": plain(name), "item": C.SITE + path}]}
 
+def crumbs_multi(items):
+    out = [{"@type": "ListItem", "position": 1, "name": "SVG to Slides", "item": C.SITE + "/"}]
+    out += [{"@type": "ListItem", "position": i + 2, "name": plain(n), "item": C.SITE + u} for i, (n, u) in enumerate(items)]
+    return {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": out}
+
 def howto_ld(name, steps):
     return {"@context": "https://schema.org", "@type": "HowTo", "name": plain(name),
             "tool": [{"@type": "HowToTool", "name": "SVG to Slides Chrome extension"}],
@@ -168,8 +173,10 @@ EXTRA_CSS = """
 @media (max-width:760px){ .cards3{grid-template-columns:1fr} }
 """
 
+VB = {"svgslides_recolor.json": ' data-viewbox="0 0 2080 1440" style="aspect-ratio:2080/1440"'}
+
 def landing_html(p, css, head_icons):
-    slug, path = p["slug"], "/" + p["slug"]
+    slug, path = p["slug"], "/guides/" + p["slug"]
     cta = lambda pos, label="Add to Chrome &mdash; free": (
         f'<a class="btn btn-primary" href="{C.CWS}"><img src="/static/chrome-glyph.svg" alt="">{label}</a>')
     body = []
@@ -195,10 +202,10 @@ def landing_html(p, css, head_icons):
     faq = "".join(f"<details><summary>{q}</summary><p>{a}</p></details>" for q, a in p["faq"])
     body.append(f'<section class="wrap sec"><h2>Questions</h2><div class="faq">{faq}</div></section>')
     rel = {x["slug"]: x for x in C.PAGES}
-    links = "".join(f'<a href="/{s}">{rel[s]["nav"]}</a>' for s in p["related"])
-    body.append(f'<section class="wrap sec"><h2>Related</h2><nav class="related" aria-label="Related guides"><a href="/guide">SVG vs PNG in Google Slides</a>{links}</nav></section>')
+    links = "".join(f'<a href="/guides/{s}">{rel[s]["nav"]}</a>' for s in p["related"] if s in rel)
+    body.append(f'<section class="wrap sec"><h2>Related guides</h2><nav class="related" aria-label="Related guides">{links}<a href="/guides">All guides &rarr;</a></nav></section>')
     rule = '\n  <div class="wrap"><hr class="rule"></div>\n  '
-    lds = [software_ld(), faq_ld(p["faq"]), crumbs_ld(p["nav"], path)]
+    lds = [software_ld(), faq_ld(p["faq"]), crumbs_multi([("Guides", "/guides"), (p["nav"], path)])]
     if p.get("howto"):
         lds.append(howto_ld(p["h1"], p["howto"]))
     return f"""<!DOCTYPE html>
@@ -219,17 +226,12 @@ def landing_html(p, css, head_icons):
   <meta name="twitter:image" content="https://svgslid.es/static/og-image.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Overpass:wght@600&display=swap" rel="stylesheet">
-<style>{css}{EXTRA_CSS}</style>
+  <link href="https://fonts.googleapis.com/css2?family=Overpass:wght@600;700;800&display=swap" rel="stylesheet">
+<style>{css}{EXTRA_CSS}{P.SHELL_CSS}</style>
 </head>
 <body>
-<div class="wrap">
-  <nav class="nav">
-    <a class="brand" href="/"><img src="/static/mark.svg" alt=""><span>SVG to Slides</span></a>
-    {cta("nav", "Add to Chrome")}
-  </nav>
-  <p class="crumb"><a href="/">SVG to Slides</a> &rsaquo; {p["nav"]}</p>
-</div>
+{P.nav_html(slug, LOGO_SVG)}
+<div class="wrap"><p class="crumb"><a href="/">SVG to Slides</a> &rsaquo; <a href="/guides">Guides</a> &rsaquo; {p["nav"]}</p></div>
 <main>
   <section class="wrap hero">
     <h1>{p["h1"]}</h1>
@@ -239,7 +241,7 @@ def landing_html(p, css, head_icons):
       <a class="btn btn-ghost" href="/convert">Convert online instead</a>
     </div>
     <p class="free">{C.FREE_LINE}</p>
-    <div class="shot"><div class="lot" data-lottie="/static/lottie/{p["lottie"]}"></div></div>
+    <div class="shot"><div class="lot" data-lottie="/static/lottie/{p["lottie"]}"{VB.get(p["lottie"], "")}></div></div>
     <p class="answer"><b>Short answer:</b> {p["answer"]}</p>
   </section>
   <div class="wrap"><hr class="rule" style="margin-top:56px"></div>
@@ -250,12 +252,8 @@ def landing_html(p, css, head_icons):
     {cta("close")}
     <p class="free" style="margin-top:16px">{C.FREE_LINE}</p>
   </section>
-  <div class="wrap"><hr class="rule"></div>
-  <footer class="wrap foot">
-    <span>svgslid.es &nbsp;&middot;&nbsp; <a href="/privacy">Privacy</a> &nbsp;&middot;&nbsp; <a href="/terms">Terms</a> &nbsp;&middot;&nbsp; <a href="/support">Support</a> &nbsp;&middot;&nbsp; Built by Joe Gelman</span>
-    <span>Google Slides&trade; and Google Drawings&trade; are trademarks of Google LLC.</span>
-  </footer>
 </main>
+{P.footer_html(LOGO_SVG)}
 {LOTTIE_JS}
 </body>
 </html>
@@ -289,7 +287,8 @@ LOTTIE_JS = """<script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.1
   if(!window.lottie||matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   var anims=[];
   document.querySelectorAll('.lot[data-lottie]').forEach(function(el){
-    var a=lottie.loadAnimation({container:el,renderer:'svg',loop:true,autoplay:false,path:el.dataset.lottie,rendererSettings:{preserveAspectRatio:'xMidYMid meet'}});
+    var a=lottie.loadAnimation({container:el,renderer:'svg',loop:true,autoplay:false,path:el.dataset.lottie,rendererSettings:Object.assign({preserveAspectRatio:'xMidYMid meet'},el.dataset.viewbox?{viewBoxSize:el.dataset.viewbox}:{})});
+    if(el.dataset.viewbox){a.addEventListener('DOMLoaded',function(){var g=el.querySelector('svg > g[clip-path]'); if(g) g.removeAttribute('clip-path');});}
     anims.push({el:el,a:a});
   });
   var io=new IntersectionObserver(function(es){es.forEach(function(e){var x=anims.find(function(z){return z.el===e.target}); if(!x)return; e.isIntersecting?x.a.play():x.a.pause();})},{threshold:.25});
@@ -350,6 +349,7 @@ _{free}_
 
 # ------------------------------------------------------------------- blog
 import blog_content as B
+import site_pages as P
 from PIL import Image
 
 BLOG_IMG = STATIC / "blog" / "img"
@@ -446,20 +446,11 @@ def blog_shell(title, desc, path, og, ld, body, css, head_icons, campaign, md, o
 {ld_block(ld)}<style>{css}{EXTRA_CSS}{BLOG_CSS}</style>
 </head>
 <body>
-<div class="wrap">
-  <nav class="nav">
-    <a class="brand" href="/"><img src="/static/mark.svg" alt=""><span>SVG to Slides</span></a>
-    <span class="bnav"><a class="txt" href="/blog">Blog</a><a class="btn btn-primary" href="{cws(campaign, 'nav')}" data-cta="nav"><img src="/static/chrome-glyph.svg" alt="">Add to Chrome</a></span>
-  </nav>
-</div>
+{P.nav_html(campaign, LOGO_SVG)}
 <main>
 {body}
-  <div class="wrap"><hr class="rule" style="margin-top:64px"></div>
-  <footer class="wrap foot">
-    <span>svgslid.es &nbsp;&middot;&nbsp; <a href="/blog">Blog</a> &nbsp;&middot;&nbsp; <a href="/privacy">Privacy</a> &nbsp;&middot;&nbsp; <a href="/terms">Terms</a> &nbsp;&middot;&nbsp; <a href="/support">Support</a> &nbsp;&middot;&nbsp; Built by Joe Gelman</span>
-    <span>Google Slides&trade; and Google Docs&trade; are trademarks of Google LLC. Not affiliated with Google.</span>
-  </footer>
 </main>
+{P.footer_html(LOGO_SVG)}
 <script src="/static/site.js" defer></script>
 </body>
 </html>
@@ -547,9 +538,15 @@ def build_blog(css, head_icons):
 LOGO_SVG = re.sub(r'<svg[^>]*>', '<svg class="logo" viewBox="0 0 384 383" aria-hidden="true" focusable="false">',
                   (STATIC / "logo.svg").read_text().strip(), count=1).replace("\n", "")
 DARK_RE = re.compile(r'@media \(prefers-color-scheme: dark\)\{ :root:not\(\[data-theme="light"\]\)\{[^}]*\} \}\s*')
-SW_CSS = ('<style id="sw">.brand svg.logo{width:40px;height:40px;display:block;flex:none}'
-          '.nav .sm{display:none}@media (max-width:560px){.nav .lg{display:none}.nav .sm{display:inline}'
-          '.nav .btn{padding:0 16px}}html{scroll-behavior:smooth}</style>')
+def sw_css():
+    return ('<style id="sw">.brand svg.logo{width:40px;height:40px;display:block;flex:none}'
+            '.nav .sm{display:none}@media (max-width:560px){.nav .lg{display:none}.nav .sm{display:inline}'
+            '.nav .btn{padding:0 16px}.nav .brand span{display:none}}html{scroll-behavior:smooth}'
+            '.bnav{display:flex;gap:22px;align-items:center}.bnav a.txt{color:#1c1e22;text-decoration:none;font-family:Overpass,Verdana,sans-serif;font-weight:700;font-size:16px}'
+            '.bnav a.txt:hover{text-decoration:underline}@media (max-width:560px){.bnav{gap:14px}.bnav a.txt{font-size:15px}}'
+            + P.FOOTER_CSS.replace("\n", "") + '</style>')
+
+HAND_PAGES = {"index.html", "privacy.html", "terms.html", "support.html", "features.html"}
 
 def sitewide_polish(text):
     text = DARK_RE.sub("", text)
@@ -559,9 +556,17 @@ def sitewide_polish(text):
     text = re.sub(r'<img src="/static/mark\.svg" alt="">', lambda m: LOGO_SVG, text)
     text = re.sub(r'(data-cta="nav"><img src="/static/chrome-glyph\.svg" alt="">)Add to Chrome</a>',
                   r'\1<span class="lg">Add to Chrome</span><span class="sm">Add</span></a>', text)
-    if 'id="sw"' not in text:
-        text = text.replace("</head>", SW_CSS + "\n</head>", 1)
+    text = re.sub(r'<style id="sw">.*?</style>\n?', "", text, flags=re.S)
+    text = text.replace("</head>", sw_css() + "\n</head>", 1)
     return text
+
+def with_footer(text):
+    text = re.sub(r'\s*<footer class="wrap foot">.*?</footer>', "", text, flags=re.S)
+    text = re.sub(r'<!-- sitefoot:start -->.*?<!-- sitefoot:end -->\n?', "", text, flags=re.S)
+    foot = P.footer_html(LOGO_SVG) + "\n"
+    if "</main>" in text:
+        return text.replace("</main>", "</main>\n" + foot, 1)
+    return text.replace("</body>", foot + "</body>", 1)
 
 def latest_block():
     p = B.POSTS[0]
@@ -575,126 +580,145 @@ def polish_all():
     idx = STATIC / "index.html"
     t = idx.read_text()
     idx.write_text(re.sub(r"<!-- latest:start -->.*?<!-- latest:end -->", lambda m: latest_block(), t, flags=re.S))
-    for f in list(STATIC.glob("*.html")) + list((STATIC / "blog").glob("*.html")):
+    for f in list(STATIC.glob("*.html")) + list((STATIC / "blog").glob("*.html")) + list((STATIC / "guides").glob("*.html")) + list((STATIC / "_lobby").glob("*.html")):
         t = f.read_text()
         n = sitewide_polish(t)
+        if f.parent == STATIC and f.name in HAND_PAGES:
+            n = with_footer(n)
+            if f.name == "index.html":  # hand-built nav -> shared nav
+                nav = re.search(r'<nav class="nav">.*?</nav>', P.nav_html("home", LOGO_SVG), re.S).group(0)
+                n = re.sub(r'<nav class="nav">.*?</nav>', lambda m: nav, n, count=1, flags=re.S)
         if n != t:
             f.write_text(n)
 
 def main():
+    import json, shutil
     MD.mkdir(exist_ok=True)
     index = (STATIC / "index.html").read_text()
     css = re.search(r"<style>(.*?)</style>", index, re.S).group(1)
     head_icons = ('  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32.png">\n'
                   '  <link rel="icon" type="image/svg+xml" href="/static/favicon.svg">\n')
+    ctx = {"common": {"css": css, "head_icons": head_icons, "analytics": analytics_block(), "logo_svg": LOGO_SVG},
+           "ld_block": ld_block, "crumbs": crumbs_multi, "software_ld": software_ld, "lottie_js": LOTTIE_JS,
+           "extra_css": EXTRA_CSS}
 
-    # 1. landing pages
+    # 0. retire old flat URLs (301s come from redirects.json)
+    for old in ["guide.html", "convert.html.bak"] + [f"{p['slug']}.html" for p in C.PAGES]:
+        (STATIC / old).unlink(missing_ok=True)
+    for old in ["guide.md"] + [f"{p['slug']}.md" for p in C.PAGES]:
+        (MD / old).unlink(missing_ok=True)
+
+    # 1. guides
+    (STATIC / "guides").mkdir(exist_ok=True)
+    (MD / "guides").mkdir(exist_ok=True)
     for p in C.PAGES:
+        path = f"/guides/{p['slug']}"
         doc = landing_html(p, css, head_icons)
-        doc = set_meta(doc, "/" + p["slug"], md=f"/{p['slug']}.md")
+        doc = set_meta(doc, path, md=f"{path}.md")
         doc = tag_ctas(doc, p["slug"])
         doc = add_sitejs(doc)
-        (STATIC / f"{p['slug']}.html").write_text(doc)
-        (MD / f"{p['slug']}.md").write_text(landing_md(p))
+        (STATIC / "guides" / f"{p['slug']}.html").write_text(doc)
+        (MD / "guides" / f"{p['slug']}.md").write_text(landing_md(p))
+    lobby, lobby_md = P.guides_lobby(ctx, B.POSTS)
+    (STATIC / "guides" / "index.html").write_text(lobby)
+    (MD / "guides.md").write_text(lobby_md)
+    # one prebuilt lobby per possible featured guide; main.py picks one per request
+    lob = STATIC / "_lobby"
+    shutil.rmtree(lob, ignore_errors=True)
+    lob.mkdir()
+    for p in C.PAGES:
+        (lob / f"{p['slug']}.html").write_text(P.guides_lobby(ctx, B.POSTS, p["slug"], "auto")[0])
+    feat, source = P.featured_slug()
+    (lob / "featured.json").write_text(json.dumps({"override": feat if source == "override" else None,
+                                                   "default": C.DEFAULT_FEATURED,
+                                                   "guides": [p["slug"] for p in C.PAGES]}) + "\n")
 
+    # 2. blog, converter, about
     build_blog(css, head_icons)
+    (STATIC / "convert.html").write_text(P.convert_page(ctx))
+    (MD / "convert.md").write_text(P.CONVERT_MD.format(site=C.SITE, cws=C.CWS, free=C.FREE_LINE))
+    about, about_md = P.about_page(ctx)
+    (STATIC / "about.html").write_text(about)
+    (MD / "about.md").write_text(about_md)
 
-    # 2. existing pages
-    md_for = {"index.html": "/index.md", "guide.html": "/guide.md", "convert.html": "/convert.md"}
-    camp = {"index.html": "home", "guide.html": "guide", "convert.html": "convert", "features.html": "features",
-            "support.html": "support", "privacy.html": "privacy", "terms.html": "terms", "chrome.html": "chrome", "addon.html": "addon"}
+    # 3. hand-maintained pages
+    camp = {"index.html": "home", "features.html": "features", "support.html": "support",
+            "privacy.html": "privacy", "terms.html": "terms", "chrome.html": "chrome", "addon.html": "addon"}
     for fname, meta in C.EXISTING.items():
+        if fname not in camp:
+            continue
         f = STATIC / fname
         doc = f.read_text()
         doc = set_analytics(doc)
-        doc = set_meta(doc, meta["path"], meta.get("title"), meta.get("desc"), meta.get("noindex", False), md_for.get(fname))
+        doc = set_meta(doc, meta["path"], meta.get("title"), meta.get("desc"), meta.get("noindex", False),
+                       "/index.md" if fname == "index.html" else None)
         if fname == "index.html":
             doc = set_ld(doc, [software_ld(), {"@context": "https://schema.org", "@type": "WebSite", "name": "SVG to Slides", "url": C.SITE + "/"}])
-            doc = set_guides(doc)
-        elif fname == "guide.html":
-            doc = doc.replace("<h1>SVG vs PNG in Google Slides</h1>", "<h1>SVG in Google Slides: vector vs. flattened PNG</h1>")
-            doc = doc.replace("Yes, all three surfaces are free.", "Yes. " + C.FREE_LINE)
-            doc = doc.replace('<p><strong>Try it on your own SVG</strong> — no account needed for the web app.</p>\n    <a href="/">Open svgslid.es →</a>',
-                              f'<p><strong>Try it on your own SVG.</strong> {C.FREE_LINE}</p>\n    <a href="{C.CWS}">Add to Chrome — free →</a> &nbsp; <a href="/convert">Or convert online →</a>')
-        if fname == "convert.html":
-            doc = doc.replace('<h1 style="margin:0">svgslid.es</h1>', '<h1 style="margin:0">SVG to Google Slides converter</h1>')
-            if "cta-ext" not in doc:
-                doc = doc.replace('<p class="tagline">SVG files &rarr; editable vector shapes in Google Slides</p>',
-                                  '<p class="tagline">SVG files &rarr; editable vector shapes in Google Slides</p>\n'
-                                  f'  <p class="tagline cta-ext">Rather drop files straight onto a slide? <a href="{C.CWS}">Get the free Chrome extension &rarr;</a></p>')
-            doc = set_ld(doc, [software_ld(), faq_ld(GUIDE_FAQ), crumbs_ld("SVG vs PNG in Google Slides", "/guide")])
-            doc = set_guides(doc)
-        elif fname == "convert.html":
-            doc = set_ld(doc, [software_ld(), crumbs_ld("SVG to Google Slides converter", "/convert")])
+            doc = re.sub(r"  <!-- guides:start -->.*?<!-- guides:end -->\n", "", doc, flags=re.S)
         if fname != "chrome.html":  # chrome.html's CWS link is a JS redirect, leave its target bare
             doc = tag_ctas(doc, camp[fname])
         doc = add_sitejs(doc)
         f.write_text(doc)
-
-    # 3. markdown for agents
     (MD / "index.md").write_text(C.HOME_MD.format(cws=C.CWS, site=C.SITE))
-    gmd = GUIDE_MD.format(site=C.SITE, cws=C.CWS) + "\n".join(f"\n### {q}\n{a}" for q, a in GUIDE_FAQ) + "\n"
-    (MD / "guide.md").write_text(gmd)
-    (MD / "convert.md").write_text(CONVERT_MD.format(site=C.SITE, cws=C.CWS, free=C.FREE_LINE))
 
-    # 4. sitemap
-    urls = [("/", "1.0"), ("/convert", "0.8"), ("/guide", "0.8")] + [("/" + p["slug"], "0.8") for p in C.PAGES] + \
+    # 4. redirects (old flat URLs -> /guides/...), served as 301 by main.py
+    redirects = dict(C.LEGACY)
+    redirects.update({k + ".md": v + ".md" for k, v in C.LEGACY.items()})
+    (STATIC / "redirects.json").write_text(json.dumps(redirects, indent=1, sort_keys=True) + "\n")
+
+    # 5. sitemap
+    urls = [("/", "1.0"), ("/convert", "0.8"), ("/guides", "0.9")] + [(f"/guides/{p['slug']}", "0.8") for p in C.PAGES] + \
            [("/blog", "0.7")] + [(f"/blog/{p['slug']}", "0.7") for p in B.POSTS] + \
-           [("/features", "0.5"), ("/support", "0.4"), ("/privacy", "0.2"), ("/terms", "0.2")]
+           [("/about", "0.5"), ("/support", "0.4"), ("/privacy", "0.2"), ("/terms", "0.2")]
     sm = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
     sm += [f"  <url><loc>{C.SITE}{u}</loc><lastmod>{TODAY}</lastmod><priority>{pr}</priority></url>" for u, pr in urls]
     sm.append("</urlset>")
     (STATIC / "sitemap.xml").write_text("\n".join(sm) + "\n")
 
-    # 5. robots
+    # 6. robots
     bots = ["GPTBot", "OAI-SearchBot", "ChatGPT-User", "ClaudeBot", "Claude-User", "Claude-SearchBot",
             "PerplexityBot", "Perplexity-User", "Google-Extended", "Applebot-Extended", "CCBot"]
-    robots = ["# svgslid.es — all public pages are open to search engines and AI agents.", "User-agent: *", "Allow: /",
-              "Disallow: /cleanup", "Disallow: /insert-svg-clip", "Disallow: /insert-svg-clip-at", ""]
+    robots = ["# svgslid.es: all public pages are open to search engines and AI agents.", "User-agent: *", "Allow: /",
+              "Disallow: /cleanup", "Disallow: /insert-svg-clip", "Disallow: /insert-svg-clip-at", "Disallow: /static/_lobby/", ""]
     for b in bots:
         robots += [f"User-agent: {b}", "Allow: /", ""]
     robots += [f"Sitemap: {C.SITE}/sitemap.xml", ""]
     (STATIC / "robots.txt").write_text("\n".join(robots))
 
-    # 6. llms.txt / llms-full.txt
+    # 7. llms.txt / llms-full.txt
     llms = [
         "# SVG to Slides", "",
-        "> Free Chrome extension (plus online converter and Google Slides add-on) that inserts SVG files into Google Slides as native, editable shapes. " + C.FREE_LINE, "",
+        "> Free Chrome extension (plus web uploader and Google Slides add-on) that inserts SVG files into Google Slides as native, editable shapes. " + C.FREE_LINE, "",
         "Google Slides doesn't keep SVG files as editable vectors. SVG to Slides converts every SVG path into its own native Slides shape, so users can recolor individual elements, edit points, animate shapes, and resize without losing quality. The shapes also work in Google Drawings.", "",
         f"- Install (Chrome Web Store): {C.CWS}",
-        f"- Online converter, no install: {C.SITE}/convert", "",
+        f"- Web uploader, no install: {C.SITE}/convert", "",
         "## Docs",
         f"- [Overview]({C.SITE}/index.md): what it does, how it works, limits",
-        f"- [SVG vs PNG in Google Slides]({C.SITE}/guide.md): what flattening costs, three ways to convert, FAQ",
+        f"- [Guides index]({C.SITE}/guides.md)",
     ]
-    llms += [f"- [{plain(p['nav'])}]({C.SITE}/{p['slug']}.md): {plain(p['answer'])}" for p in C.PAGES]
-    llms += [f"- [Online converter]({C.SITE}/convert.md): upload SVGs, get a Slides-ready Drive file", "",
+    llms += [f"- [{plain(p['nav'])}]({C.SITE}/guides/{p['slug']}.md): {plain(p['answer'])}" for p in C.PAGES]
+    llms += [f"- [Web uploader]({C.SITE}/convert.md): upload SVGs, get a Slides-ready Drive file", "",
              "## Blog"] + [f"- [{p['h1']}]({C.SITE}/blog/{p['slug']}.md): {plain(p['dek'])}" for p in B.POSTS] + ["",
              "## Optional",
+             f"- [About]({C.SITE}/about.md)",
              f"- [Privacy policy]({C.SITE}/privacy): per-surface data handling",
              f"- [Support]({C.SITE}/support)",
              f"- [Full text of all docs]({C.SITE}/llms-full.txt)", ""]
     (STATIC / "llms.txt").write_text("\n".join(llms))
-    full = [(MD / "index.md").read_text(), (MD / "guide.md").read_text(), (MD / "convert.md").read_text()]
-    full += [(MD / f"{p['slug']}.md").read_text() for p in C.PAGES]
+    full = [(MD / "index.md").read_text(), (MD / "convert.md").read_text()]
+    full += [(MD / "guides" / f"{p['slug']}.md").read_text() for p in C.PAGES]
     full += [(MD / "blog" / f"{p['slug']}.md").read_text() for p in B.POSTS]
+    full += [(MD / "about.md").read_text()]
     (STATIC / "llms-full.txt").write_text("\n\n---\n\n".join(full))
 
-    # 7. 404
-    nf = f"""<!DOCTYPE html>
-<html lang="en"><head><meta charset="utf-8">
-{analytics_block()}<meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex">
-<title>Page not found — SVG to Slides</title>
-<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
-<link href="https://fonts.googleapis.com/css2?family=Overpass:wght@600&display=swap" rel="stylesheet">
-<style>{css}</style></head>
-<body><main class="wrap close"><h1>Page not found.</h1><p class="lede" style="margin:20px auto 30px">That page doesn&rsquo;t exist. Here&rsquo;s where to go instead.</p>
-<div class="ctas"><a class="btn btn-primary" href="{C.CWS}?utm_source=svgslid.es&amp;utm_medium=web&amp;utm_campaign=404&amp;utm_content=hero" data-cta="hero"><img src="/static/chrome-glyph.svg" alt="">Add to Chrome &mdash; free</a><a class="btn btn-ghost" href="/">Home</a></div></main>
-<script src="/static/site.js" defer></script></body></html>
-"""
+    # 8. 404
+    nf_body = f"""  <section class="wrap close" style="padding-top:80px"><h1>Page not found.</h1><p class="lede" style="margin:20px auto 30px">That page doesn&rsquo;t exist. Here&rsquo;s where to go instead.</p>
+  <div class="ctas"><a class="btn btn-primary" href="{P.cws('404', 'hero')}" data-cta="hero"><img src="/static/chrome-glyph.svg" alt="">Add to Chrome, free</a><a class="btn btn-ghost" href="/guides">Browse guides</a></div></section>"""
+    nf = P.shell(title="Page not found | SVG to Slides", desc="Page not found.", path="/404", body=nf_body, campaign="404",
+                 ld_block="", **ctx["common"]).replace('<meta name="viewport"', '<meta name="robots" content="noindex">\n  <meta name="viewport"', 1)
     (STATIC / "404.html").write_text(nf)
     polish_all()
-    print("built", len(C.PAGES), "landing pages; GA:", GA_ID or "(none)")
+    print("built", len(C.PAGES), "guides; featured:", P.featured_slug(), "; GA:", GA_ID or "(none)")
 
 if __name__ == "__main__":
     main()

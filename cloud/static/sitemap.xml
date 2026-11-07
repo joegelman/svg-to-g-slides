@@ -2,15 +2,16 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://svgslid.es/</loc><lastmod>2026-11-07</lastmod><priority>1.0</priority></url>
   <url><loc>https://svgslid.es/convert</loc><lastmod>2026-11-07</lastmod><priority>0.8</priority></url>
-  <url><loc>https://svgslid.es/guide</loc><lastmod>2026-11-07</lastmod><priority>0.8</priority></url>
-  <url><loc>https://svgslid.es/insert-svg-into-google-slides</loc><lastmod>2026-11-07</lastmod><priority>0.8</priority></url>
-  <url><loc>https://svgslid.es/does-google-slides-support-svg</loc><lastmod>2026-11-07</lastmod><priority>0.8</priority></url>
-  <url><loc>https://svgslid.es/svg-to-google-slides-converter</loc><lastmod>2026-11-07</lastmod><priority>0.8</priority></url>
-  <url><loc>https://svgslid.es/recolor-svg-in-google-slides</loc><lastmod>2026-11-07</lastmod><priority>0.8</priority></url>
-  <url><loc>https://svgslid.es/svg-logos-icons-google-slides</loc><lastmod>2026-11-07</lastmod><priority>0.8</priority></url>
+  <url><loc>https://svgslid.es/guides</loc><lastmod>2026-11-07</lastmod><priority>0.9</priority></url>
+  <url><loc>https://svgslid.es/guides/svg-vs-png-google-slides</loc><lastmod>2026-11-07</lastmod><priority>0.8</priority></url>
+  <url><loc>https://svgslid.es/guides/insert-svg-into-google-slides</loc><lastmod>2026-11-07</lastmod><priority>0.8</priority></url>
+  <url><loc>https://svgslid.es/guides/does-google-slides-support-svg</loc><lastmod>2026-11-07</lastmod><priority>0.8</priority></url>
+  <url><loc>https://svgslid.es/guides/svg-to-google-slides-converter</loc><lastmod>2026-11-07</lastmod><priority>0.8</priority></url>
+  <url><loc>https://svgslid.es/guides/recolor-svg-in-google-slides</loc><lastmod>2026-11-07</lastmod><priority>0.8</priority></url>
+  <url><loc>https://svgslid.es/guides/svg-logos-icons-google-slides</loc><lastmod>2026-11-07</lastmod><priority>0.8</priority></url>
   <url><loc>https://svgslid.es/blog</loc><lastmod>2026-11-07</lastmod><priority>0.7</priority></url>
   <url><loc>https://svgslid.es/blog/letter-spacing-google-slides</loc><lastmod>2026-11-07</lastmod><priority>0.7</priority></url>
-  <url><loc>https://svgslid.es/features</loc><lastmod>2026-11-07</lastmod><priority>0.5</priority></url>
+  <url><loc>https://svgslid.es/about</loc><lastmod>2026-11-07</lastmod><priority>0.5</priority></url>
   <url><loc>https://svgslid.es/support</loc><lastmod>2026-11-07</lastmod><priority>0.4</priority></url>
   <url><loc>https://svgslid.es/privacy</loc><lastmod>2026-11-07</lastmod><priority>0.2</priority></url>
   <url><loc>https://svgslid.es/terms</loc><lastmod>2026-11-07</lastmod><priority>0.2</priority></url>
