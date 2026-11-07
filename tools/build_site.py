@@ -563,7 +563,18 @@ def sitewide_polish(text):
         text = text.replace("</head>", SW_CSS + "\n</head>", 1)
     return text
 
+def latest_block():
+    p = B.POSTS[0]
+    return (f'<!-- latest:start --><a class="wrap latest" href="/blog/{p["slug"]}">'
+            f'<picture><source type="image/webp" srcset="/static/blog/img/{p["og"][:-4]}.webp">'
+            f'<img src="/static/blog/img/{p["og"]}" width="1200" height="630" alt="{esc(p["hero"][1])}" loading="lazy"></picture>'
+            f'<div><div class="k">From the blog &middot; {p["kicker"]}</div><h2>{p["h1"]}</h2><p>{p["dek"]}</p>'
+            f'<span class="go">Read the post &rarr;</span></div></a><!-- latest:end -->')
+
 def polish_all():
+    idx = STATIC / "index.html"
+    t = idx.read_text()
+    idx.write_text(re.sub(r"<!-- latest:start -->.*?<!-- latest:end -->", lambda m: latest_block(), t, flags=re.S))
     for f in list(STATIC.glob("*.html")) + list((STATIC / "blog").glob("*.html")):
         t = f.read_text()
         n = sitewide_polish(t)
