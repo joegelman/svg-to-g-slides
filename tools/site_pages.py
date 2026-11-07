@@ -151,12 +151,17 @@ LOBBY_CSS = """
 .ggrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px}
 .gcard{display:flex;flex-direction:column;gap:10px;padding:24px;border:1px solid var(--rule);border-radius:18px;text-decoration:none;color:inherit;background:#fff;transition:transform .15s,box-shadow .15s,border-color .15s}
 .gcard:hover{transform:translateY(-2px);box-shadow:0 10px 26px rgba(0,0,0,.07);border-color:#d8dade}
+.gcard .thumb{display:block;margin:-24px -24px 6px;border-bottom:1px solid var(--rule);overflow:hidden;border-radius:17px 17px 0 0;background:#fffbea}
+.gcard .thumb img{display:block;width:100%;height:auto;transition:transform .25s}
+.gcard:hover .thumb img{transform:scale(1.025)}
+.gcard .thumb + .e{display:none}
 .gcard .e{font-size:28px;line-height:1;height:32px}
 .gcard h3{margin:0;font-size:20px;line-height:1.2}
 .gcard p{margin:0;color:var(--mute);font-size:14.5px;line-height:1.55;flex:1}
 .gcard .meta{display:flex;justify-content:space-between;align-items:center;font-size:13px;color:var(--mute)}
 .gcard.blogc{background:var(--tint);border-color:transparent}
 @media (max-width:820px){.feat{grid-template-columns:1fr}.feat .in{padding:24px 22px 26px}}
+@media (max-width:560px){.gcard{padding:20px}.gcard .thumb{margin:-20px -20px 6px}}
 """
 
 
@@ -167,6 +172,16 @@ def _short(p, n=150):
         return html.escape(t)
     cut = t[:n].rsplit(" ", 1)[0].rstrip(",;:")
     return html.escape(cut) + "&hellip;"
+
+
+GIMG = ROOT / "cloud" / "static" / "guides" / "img"
+
+
+def thumb(slug):
+    if not (GIMG / f"{slug}.png").exists():
+        return ""
+    return (f'<picture class="thumb"><source type="image/webp" srcset="/static/guides/img/{slug}.webp">'
+            f'<img src="/static/guides/img/{slug}.png" width="1200" height="630" alt="" loading="lazy" decoding="async"></picture>')
 
 
 def guides_lobby(ctx, posts, feat=None, source="variant"):
@@ -186,7 +201,7 @@ def guides_lobby(ctx, posts, feat=None, source="variant"):
         if not items:
             continue
         cards = "".join(
-            f'<a class="gcard" href="/guides/{p["slug"]}"><span class="e" aria-hidden="true">{C.GUIDE_META.get(p["slug"], ("", "📘", 3))[1]}</span>'
+            f'<a class="gcard" href="/guides/{p["slug"]}">{thumb(p["slug"])}<span class="e" aria-hidden="true">{C.GUIDE_META.get(p["slug"], ("", "📘", 3))[1]}</span>'
             f'<h3>{p["h1"]}</h3><p>{_short(p)}</p><span class="meta"><span>{C.GUIDE_META.get(p["slug"], ("", "", 3))[2]} min read</span><span class="go">Read &rarr;</span></span></a>'
             for p in items)
         sub = f"<p>{gdesc}</p>" if gdesc else ""

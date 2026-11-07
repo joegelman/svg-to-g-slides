@@ -173,6 +173,11 @@ EXTRA_CSS = """
 @media (max-width:760px){ .cards3{grid-template-columns:1fr} }
 """
 
+def OG(slug):
+    if (STATIC / "guides" / "img" / f"{slug}.png").exists():
+        return f"{C.SITE}/static/guides/img/{slug}.png"
+    return f"{C.SITE}/static/og-image.png"
+
 VB = {"svgslides_recolor.json": ' data-viewbox="0 0 2080 1440" style="aspect-ratio:2080/1440"'}
 
 def landing_html(p, css, head_icons):
@@ -217,13 +222,13 @@ def landing_html(p, css, head_icons):
   <meta name="description" content="{esc(p["desc"])}">
 {head_icons}  <meta property="og:title" content="{esc(p["title"])}">
   <meta property="og:description" content="{esc(p["desc"])}">
-  <meta property="og:image" content="https://svgslid.es/static/og-image.png">
+  <meta property="og:image" content="{OG(slug)}">
   <meta property="og:url" content="{C.SITE}{path}">
   <meta property="og:type" content="article">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="{esc(p["title"])}">
   <meta name="twitter:description" content="{esc(p["desc"])}">
-  <meta name="twitter:image" content="https://svgslid.es/static/og-image.png">
+  <meta name="twitter:image" content="{OG(slug)}">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Overpass:wght@600;700;800&display=swap" rel="stylesheet">
@@ -544,7 +549,12 @@ def sw_css():
             '.nav .btn{padding:0 16px}.nav .brand span{display:none}}html{scroll-behavior:smooth}'
             '.bnav{display:flex;gap:22px;align-items:center}.bnav a.txt{color:#1c1e22;text-decoration:none;font-family:Overpass,Verdana,sans-serif;font-weight:700;font-size:16px}'
             '.bnav a.txt:hover{text-decoration:underline}@media (max-width:560px){.bnav{gap:14px}.bnav a.txt{font-size:15px}}'
-            + P.FOOTER_CSS.replace("\n", "") + '</style>')
+            + P.FOOTER_CSS.replace("\n", "")
+            + '@media (max-width:560px){.wrap{padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}'
+              '.sfoot{padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}'
+              '.post{padding-left:24px;padding-right:24px}.about{padding-left:24px;padding-right:24px}.bindex{padding-left:24px;padding-right:24px}'
+              '.post figcaption{padding:0 24px}.answer{margin-left:0;margin-right:0}}'
+            + '</style>')
 
 HAND_PAGES = {"index.html", "privacy.html", "terms.html", "support.html", "features.html"}
 
