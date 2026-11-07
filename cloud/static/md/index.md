@@ -14,7 +14,7 @@ Google Slides doesn't support SVG files. Your options are to flatten them into P
 ## What it does
 - **Edit individual elements.** Every SVG path becomes its own Slides shape. Recolour any element with the standard fill picker.
 - **Resize without losing quality.** From a small footer icon to a full-slide graphic, every edge stays sharp.
-- **Use SVGs in your themes.** Add converted graphics to theme layouts and reuse them across slides. The native shapes also work in Google Drawings.
+- **Use SVGs in your themes.** Add converted graphics to theme layouts and reuse them across slides.
 
 ## How it works
 1. Install the extension from the Chrome Web Store. No account required.

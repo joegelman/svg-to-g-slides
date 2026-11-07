@@ -95,8 +95,8 @@ a{color:inherit}
 .card p{color:var(--mute);font-size:15px;line-height:1.5;max-width:30em}
 .card .lot{margin:auto -30px 0;flex:none;aspect-ratio:16/9;border-radius:0 0 18px 18px;overflow:hidden;background:#F9FAFD}
 .card.wide{grid-column:1/-1;flex-direction:row;align-items:stretch;gap:30px;padding:0 0 0 30px;overflow:hidden}
-.card.wide .txt{flex:0 0 300px;display:flex;flex-direction:column;justify-content:center;gap:12px;padding-block:30px}
-.card.wide .lot{flex:1;margin:0;border-radius:0;min-width:0}
+.card.wide .txt{flex:0 0 300px;display:flex;flex-direction:column;justify-content:center;gap:12px;padding-block:48px}
+.card.wide .lot{flex:1;margin:0;border-radius:0;min-width:0;aspect-ratio:2080/1440}
 
 /* steps */
 .steps{padding-block:64px}
@@ -173,9 +173,9 @@ a{color:inherit}
   <section class="wrap features">
     <h2>Your SVGs, with all the flexibility of native Slides shapes.</h2>
     <div class="grid">
-      <article class="card wide"><div class="txt"><h3>Edit individual elements.</h3><p>Every SVG path becomes its own Slides shape. Select the palm without touching the wordmark, then recolour it with the standard fill picker.</p></div><div class="lot" data-lottie="/static/lottie/svgslides_recolor.json"></div></article>
+      <article class="card wide"><div class="txt"><h3>Edit individual elements.</h3><p>Every SVG path becomes its own Slides shape. Select the palm without touching the wordmark, then recolour it with the standard fill picker.</p></div><div class="lot" data-lottie="/static/lottie/svgslides_recolor.json" data-viewbox="0 0 2080 1440"></div></article>
       <article class="card"><h3>Resize without losing quality.</h3><p>From a small footer icon to a full-slide graphic, every edge stays sharp.</p><div class="lot" data-lottie="/static/lottie/svgslides_scale.json"></div></article>
-      <article class="card"><h3>Use SVGs in your themes.</h3><p>Add converted graphics to your theme layouts and reuse them across slides. The native shapes also work in Google Drawings.</p><div class="lot" data-lottie="/static/lottie/svgslides_reuse.json"></div></article>
+      <article class="card"><h3>Use SVGs in your themes.</h3><p>Add converted graphics to your theme layouts and reuse them across slides.</p><div class="lot" data-lottie="/static/lottie/svgslides_reuse.json"></div></article>
     </div>
   </section>
 
@@ -227,7 +227,8 @@ a{color:inherit}
   if(!window.lottie||matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   var anims=[];
   document.querySelectorAll('.lot[data-lottie]').forEach(function(el){
-    var a=lottie.loadAnimation({container:el,renderer:'svg',loop:true,autoplay:false,path:el.dataset.lottie,rendererSettings:{preserveAspectRatio:'xMidYMid meet'}});
+    var a=lottie.loadAnimation({container:el,renderer:'svg',loop:true,autoplay:false,path:el.dataset.lottie,rendererSettings:Object.assign({preserveAspectRatio:'xMidYMid meet'},el.dataset.viewbox?{viewBoxSize:el.dataset.viewbox}:{})});
+    if(el.dataset.viewbox){a.addEventListener('DOMLoaded',function(){var g=el.querySelector('svg > g[clip-path]'); if(g) g.removeAttribute('clip-path');});}
     var seg=el.dataset.segment; if(seg){var s=seg.split(',').map(Number); a.addEventListener('DOMLoaded',function(){a.playSegments([s[0],s[1]],true)});}
     anims.push({el:el,a:a});
   });
