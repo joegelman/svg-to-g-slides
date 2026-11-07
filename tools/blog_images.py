@@ -260,7 +260,6 @@ def main(src):
     R = lambda key: next(src.glob(f"*{key}*.png"))
     OUT.mkdir(parents=True, exist_ok=True)
     hero()
-    hero(dark=True)
     anatomy()
     annotated(R("1794061548627"), "toolbar-letter-spacing.png", k=2,
               rings=[(337, 10, 415, 86)])

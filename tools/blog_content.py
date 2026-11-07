@@ -16,6 +16,7 @@ POSTS = [
         "date": "2026-11-07",
         "date_h": "Nov 7, 2026",
         "read": "4 min read",
+        "jump": ("docs", "<b>Skip ahead:</b> the subtle Google slip-up that hints letter spacing is coming to Docs very soon"),
         "kicker": "New in Slides",
         "title": "Letter Spacing in Google Slides: How to Use the New Tracking Control",
         "h1": "Google Slides finally does letter spacing",
@@ -72,7 +73,7 @@ POSTS = [
 <li>To reset, select the text and choose <b>0</b>.</li>
 </ol>
 
-<h2 id="docs">Is Docs next? The clues</h2>
+<h2 id="docs">The slip-up that points to Docs</h2>
 <p><b>Clue 1: the Docs help center already explains it.</b> Google&rsquo;s Docs article <a href="{HELP}">Change how paragraphs &amp; fonts look</a> now has an &ldquo;Adjust letter spacing&rdquo; section. It covers text, text boxes and tables, with the same toolbar button and menu path as Slides.</p>
 {{fig:docs-help-letter-spacing|Docs Editors Help article section titled Adjust letter spacing with steps|The new section in the Docs help article.}}
 <p><b>Clue 2: it&rsquo;s new.</b> The Wayback Machine shows the section missing on <a href="{WB_BEFORE}">Oct 5, 2026</a> and present by <a href="{WB_AFTER}">Oct 12, 2026</a>. Earlier captures in July, August and September don&rsquo;t have it either. (<a href="{WB_INDEX}">All captures</a>.)</p>
@@ -120,7 +121,7 @@ Tracking has landed in Google Slides. Here's what it is, how to use it well, and
 3. Pick 6, 3, 0 or −1.5 — or Custom spacing, enter a value, Apply.
 4. Reset by choosing 0.
 
-## Is it coming to Google Docs?
+## The slip-up that points to Docs
 - Docs help article "Change how paragraphs & fonts look" ({HELP}) now has an "Adjust letter spacing" section (text, text boxes, tables; toolbar button and Format › Text › Letter spacing).
 - Wayback Machine: absent on Oct 5, 2026 ({WB_BEFORE}); present Oct 12, 2026 ({WB_AFTER}). Not in July–September captures.
 - Docs editor Format › Text menu has no Letter spacing yet (checked Nov 7, 2026).

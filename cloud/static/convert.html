@@ -12,6 +12,7 @@
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-0GDS2491DT"></script>
   <script>gtag('config', 'G-0GDS2491DT');</script>
   <!-- analytics:end -->
+  <meta name="color-scheme" content="light only">
   <link rel="canonical" href="https://svgslid.es/convert">
   <link rel="alternate" type="text/markdown" href="/convert.md">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -288,6 +289,7 @@
     }
     #result a:hover { background: #15803d; }
   </style>
+<style id="sw">.brand svg.logo{width:40px;height:40px;display:block;flex:none}.nav .sm{display:none}@media (max-width:560px){.nav .lg{display:none}.nav .sm{display:inline}.nav .btn{padding:0 16px}}html{scroll-behavior:smooth}</style>
   <!-- ld:start -->
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "SVG to Slides", "url": "https://svgslid.es/", "applicationCategory": "DesignApplication", "operatingSystem": "Chrome", "description": "Free Chrome extension that inserts SVG files into Google Slides as native, editable shapes.", "downloadUrl": "https://chromewebstore.google.com/detail/svg-to-slides/bdhhnakellmdnbgbdokiojipaebdeioi", "installUrl": "https://chromewebstore.google.com/detail/svg-to-slides/bdhhnakellmdnbgbdokiojipaebdeioi", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "image": "https://svgslid.es/static/og-image.png"}</script>
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Does Google Slides support SVG natively?", "acceptedAnswer": {"@type": "Answer", "text": "Not as an editable format. Slides will accept a pasted or inserted SVG, but it rasterizes it into a flattened image on the way in, so you lose the ability to edit individual paths or recolor parts of it. svgslid.es converts it into Slides' native shape format instead, so it stays fully editable."}}, {"@type": "Question", "name": "What happens to gradients and complex curves?", "acceptedAnswer": {"@type": "Answer", "text": "Solid fills and strokes convert cleanly. Gradients currently collapse to a solid approximate color, and arc commands (A/a) in paths are approximated as straight line segments. Re-exporting with more path segments avoids visibly angular curves."}}, {"@type": "Question", "name": "Is my file uploaded anywhere?", "acceptedAnswer": {"@type": "Answer", "text": "Depends on the surface. The Chrome extension converts entirely on your device using an embedded WebAssembly engine, so your file usually never leaves the browser. The web app and add-on send the file to our backend for conversion, which discards it immediately afterward."}}, {"@type": "Question", "name": "Is it free?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Free forever. Every feature, no daily cap, no account, no Pro tier."}}]}</script>

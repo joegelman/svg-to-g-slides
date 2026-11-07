@@ -380,6 +380,10 @@ BLOG_CSS = """
 .post ol.steps li::before{content:counter(s);position:absolute;left:0;top:10px;width:32px;height:32px;border-radius:50%;background:var(--yellow);color:#1c1e22;font-family:var(--display);font-weight:800;display:grid;place-items:center;font-size:16px}
 .post a.btn{color:#fff;text-decoration:none}
 .post figure.narrow{width:min(680px,calc(100vw - 24px))}
+.jump{display:flex;gap:12px;align-items:center;margin:0 0 26px;padding:13px 16px;border-radius:12px;background:#fff6d6;border:1px solid #f5d67a;color:var(--fg)!important;text-decoration:none!important;font-size:15px;line-height:1.45}
+.jump b{font-family:var(--display);font-weight:800}
+.jump .ar{flex:none;width:28px;height:28px;border-radius:50%;background:var(--yellow);display:grid;place-items:center;font-weight:800}
+.jump:hover{border-color:var(--yellow)}
 .endcta{margin:48px 0 0;padding:24px;border:1px solid var(--rule);border-radius:16px}
 .endcta p{margin:0 0 14px}
 .sources{font-size:14px;line-height:1.6;color:var(--mute);margin-top:40px}
@@ -404,9 +408,7 @@ def blog_webp():
 def fig(name, alt, cap, hero=False):
     w, h = Image.open(BLOG_IMG / f"{name}.png").size
     lazy = '' if hero else ' loading="lazy"'
-    dk = (BLOG_IMG / f"{name}-dark.png").exists()
-    dsrc = f'<source media="(prefers-color-scheme: dark)" type="image/webp" srcset="/static/blog/img/{name}-dark.webp">' if dk else ''
-    pic = (f'<picture>{dsrc}<source type="image/webp" srcset="/static/blog/img/{name}.webp">'
+    pic = (f'<picture><source type="image/webp" srcset="/static/blog/img/{name}.webp">'
            f'<img src="/static/blog/img/{name}.png" width="{w}" height="{h}" alt="{esc(alt)}"{lazy} decoding="async"></picture>')
     if hero:
         return f'<div class="herofig">{pic}</div>'
@@ -463,6 +465,12 @@ def blog_shell(title, desc, path, og, ld, body, css, head_icons, campaign, md, o
 </html>
 """
 
+def jump(p):
+    j = p.get("jump")
+    if not j:
+        return ""
+    return f'<a class="jump" href="#{j[0]}"><span class="ar" aria-hidden="true">&darr;</span><span>{j[1]}</span></a>'
+
 def post_html(p, css, head_icons):
     path = f"/blog/{p['slug']}"
     camp = f"blog-{p['slug']}"
@@ -475,6 +483,7 @@ def post_html(p, css, head_icons):
     <h1>{p["h1"]}</h1>
     <p class="dek">{p["dek"]}</p>
     <p class="meta"><time datetime="{p["date"]}">{p["date_h"]}</time> &middot; {p["read"]} &middot; Joe Gelman</p>
+    {jump(p)}
     {fig(p["hero"][0], p["hero"][1], "", hero=True)}
     <div class="tldr"><b class="h">TL;DR</b><ul>{tldr}</ul></div>
 {body_html}
@@ -498,7 +507,7 @@ def post_html(p, css, head_icons):
 
 def blog_index_html(css, head_icons):
     cards = "".join(
-        f'<a class="pcard" href="/blog/{p["slug"]}"><picture><source media="(prefers-color-scheme: dark)" type="image/webp" srcset="/static/blog/img/{p["og"][:-4]}-dark.webp"><source type="image/webp" srcset="/static/blog/img/{p["og"][:-4]}.webp">'
+        f'<a class="pcard" href="/blog/{p["slug"]}"><picture><source type="image/webp" srcset="/static/blog/img/{p["og"][:-4]}.webp">'
         f'<img src="/static/blog/img/{p["og"]}" width="1200" height="630" alt="{esc(p["hero"][1])}"></picture>'
         f'<div class="in"><div class="kick">{p["kicker"]} &middot; {p["date_h"]}</div><h2>{p["h1"]}</h2><p>{p["dek"]}</p></div></a>'
         for p in B.POSTS)
@@ -533,6 +542,33 @@ def build_blog(css, head_icons):
             f"<link>{C.SITE}/blog</link><description>Design notes for Google Slides and Docs.</description>"
             + "".join(items) + "</channel></rss>\n")
     (STATIC / "blog" / "feed.xml").write_text(feed)
+
+# --------------------------------------------------------- sitewide polish
+LOGO_SVG = re.sub(r'<svg[^>]*>', '<svg class="logo" viewBox="0 0 384 383" aria-hidden="true" focusable="false">',
+                  (STATIC / "logo.svg").read_text().strip(), count=1).replace("\n", "")
+DARK_RE = re.compile(r'@media \(prefers-color-scheme: dark\)\{ :root:not\(\[data-theme="light"\]\)\{[^}]*\} \}\s*')
+SW_CSS = ('<style id="sw">.brand svg.logo{width:40px;height:40px;display:block;flex:none}'
+          '.nav .sm{display:none}@media (max-width:560px){.nav .lg{display:none}.nav .sm{display:inline}'
+          '.nav .btn{padding:0 16px}}html{scroll-behavior:smooth}</style>')
+
+def sitewide_polish(text):
+    text = DARK_RE.sub("", text)
+    text = text.replace("color-scheme:dark", "color-scheme:light")
+    if 'name="color-scheme"' not in text:
+        text = text.replace('<meta name="viewport"', '<meta name="color-scheme" content="light only">\n  <meta name="viewport"', 1)
+    text = re.sub(r'<img src="/static/mark\.svg" alt="">', lambda m: LOGO_SVG, text)
+    text = re.sub(r'(data-cta="nav"><img src="/static/chrome-glyph\.svg" alt="">)Add to Chrome</a>',
+                  r'\1<span class="lg">Add to Chrome</span><span class="sm">Add</span></a>', text)
+    if 'id="sw"' not in text:
+        text = text.replace("</head>", SW_CSS + "\n</head>", 1)
+    return text
+
+def polish_all():
+    for f in list(STATIC.glob("*.html")) + list((STATIC / "blog").glob("*.html")):
+        t = f.read_text()
+        n = sitewide_polish(t)
+        if n != t:
+            f.write_text(n)
 
 def main():
     MD.mkdir(exist_ok=True)
@@ -646,6 +682,7 @@ def main():
 <script src="/static/site.js" defer></script></body></html>
 """
     (STATIC / "404.html").write_text(nf)
+    polish_all()
     print("built", len(C.PAGES), "landing pages; GA:", GA_ID or "(none)")
 
 if __name__ == "__main__":
