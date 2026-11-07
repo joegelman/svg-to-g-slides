@@ -6,9 +6,9 @@ import sys
 import tempfile
 from pathlib import Path
 
-from fastapi import FastAPI, File, Form, Header, HTTPException, UploadFile
+from fastapi import FastAPI, File, Form, Header, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -39,6 +39,37 @@ app.add_middleware(
 )
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+STATIC = Path("static")
+CANONICAL_HOST = "svgslid.es"
+
+
+def _md_for(path: str):
+    """Markdown twin of a page, for agents (llms.txt, Accept: text/markdown)."""
+    slug = path.strip("/") or "index"
+    for cand in (STATIC / "md" / f"{slug}.md", STATIC / "md" / slug / "index.md"):
+        if cand.is_file():
+            return cand
+    return None
+
+
+@app.middleware("http")
+async def seo_middleware(request: Request, call_next):
+    # Canonical origin: force https + apex. Only acts when the Google front end says
+    # the request was plain http (Cloud Run health probes carry no such header).
+    host = request.headers.get("host", "")
+    proto = request.headers.get("x-forwarded-proto", "")
+    if request.method in ("GET", "HEAD") and (proto == "http" or host.startswith("www.")):
+        target = f"https://{CANONICAL_HOST}{request.url.path}"
+        if request.url.query:
+            target += f"?{request.url.query}"
+        return RedirectResponse(target, status_code=301)
+    # Content negotiation: agents asking for markdown get the .md twin of the page.
+    if request.method == "GET" and "text/markdown" in request.headers.get("accept", ""):
+        md = _md_for(request.url.path)
+        if md:
+            return FileResponse(md, media_type="text/markdown; charset=utf-8")
+    return await call_next(request)
 
 
 @app.get("/")
@@ -250,3 +281,47 @@ async def insert_svg_clip_at_endpoint(req: _InsertAtRequest):
     bundle = build_clip_bundle_at(sources, req.x_pt, req.y_pt, req.box_w_pt, req.box_h_pt)
 
     return JSONResponse({"clip": bundle})
+
+
+# --- SEO / AEO files -------------------------------------------------------
+@app.get("/robots.txt", include_in_schema=False)
+def robots():
+    return FileResponse(STATIC / "robots.txt", media_type="text/plain; charset=utf-8")
+
+
+@app.get("/sitemap.xml", include_in_schema=False)
+def sitemap():
+    return FileResponse(STATIC / "sitemap.xml", media_type="application/xml")
+
+
+@app.get("/llms.txt", include_in_schema=False)
+def llms():
+    return FileResponse(STATIC / "llms.txt", media_type="text/plain; charset=utf-8")
+
+
+@app.get("/llms-full.txt", include_in_schema=False)
+def llms_full():
+    return FileResponse(STATIC / "llms-full.txt", media_type="text/plain; charset=utf-8")
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+def favicon():
+    return FileResponse(STATIC / "favicon-32.png", media_type="image/png")
+
+
+# --- Content pages (landing pages, blog) + their markdown twins ------------
+# Registered last so every explicit route above wins.
+@app.get("/{path:path}", include_in_schema=False)
+def content_page(path: str):
+    path = path.strip("/")
+    if ".." in path:
+        raise HTTPException(status_code=404)
+    if path.endswith(".md"):
+        md = _md_for(path[:-3])
+        if md:
+            return FileResponse(md, media_type="text/markdown; charset=utf-8")
+    elif path:
+        for cand in (STATIC / f"{path}.html", STATIC / path / "index.html"):
+            if cand.is_file() and cand.resolve().is_relative_to(STATIC.resolve()):
+                return FileResponse(cand)
+    return FileResponse(STATIC / "404.html", status_code=404)

@@ -2,25 +2,30 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <!-- Google tag -->
-  <script async src="https://www.googletagmanager.com/gtm.js?id=GTM-MTPNJHCL"></script>
+  <!-- analytics:start -->
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
   </script>
+  <script async src="https://www.googletagmanager.com/gtm.js?id=GTM-MTPNJHCL"></script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-0GDS2491DT"></script>
+  <script>gtag('config', 'G-0GDS2491DT');</script>
+  <!-- analytics:end -->
+  <link rel="canonical" href="https://svgslid.es/convert">
+  <link rel="alternate" type="text/markdown" href="/convert.md">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>svgslid.es</title>
-  <meta name="description" content="Drag and drop SVG files onto Google Slides to insert them as editable, native vector shapes — not flattened images.">
+  <title>SVG to Google Slides Converter (Online, Free) — SVG to Slides</title>
+  <meta name="description" content="Upload SVG files and get a Google Slides-ready file with real, editable vector shapes. One slide per SVG. Free online converter, no account required.">
   <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32.png">
-  <meta property="og:title" content="svgslid.es — SVG files → editable vector shapes in Google Slides">
-  <meta property="og:description" content="Drag and drop SVG files onto Google Slides to insert them as editable, native vector shapes — not flattened images.">
+  <meta property="og:title" content="SVG to Google Slides Converter (Online, Free) — SVG to Slides">
+  <meta property="og:description" content="Upload SVG files and get a Google Slides-ready file with real, editable vector shapes. One slide per SVG. Free online converter, no account required.">
   <meta property="og:image" content="https://svgslid.es/static/og-image.png">
   <meta property="og:url" content="https://svgslid.es/">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="svgslid.es — SVG files → editable vector shapes in Google Slides">
-  <meta name="twitter:description" content="Drag and drop SVG files onto Google Slides to insert them as editable, native vector shapes — not flattened images.">
+  <meta name="twitter:title" content="SVG to Google Slides Converter (Online, Free) — SVG to Slides">
+  <meta name="twitter:description" content="Upload SVG files and get a Google Slides-ready file with real, editable vector shapes. One slide per SVG. Free online converter, no account required.">
   <meta name="twitter:image" content="https://svgslid.es/static/og-image.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -283,14 +288,20 @@
     }
     #result a:hover { background: #15803d; }
   </style>
+  <!-- ld:start -->
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "SVG to Slides", "url": "https://svgslid.es/", "applicationCategory": "DesignApplication", "operatingSystem": "Chrome", "description": "Free Chrome extension that inserts SVG files into Google Slides as native, editable shapes.", "downloadUrl": "https://chromewebstore.google.com/detail/svg-to-slides/bdhhnakellmdnbgbdokiojipaebdeioi", "installUrl": "https://chromewebstore.google.com/detail/svg-to-slides/bdhhnakellmdnbgbdokiojipaebdeioi", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "image": "https://svgslid.es/static/og-image.png"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Does Google Slides support SVG natively?", "acceptedAnswer": {"@type": "Answer", "text": "Not as an editable format. Slides will accept a pasted or inserted SVG, but it rasterizes it into a flattened image on the way in, so you lose the ability to edit individual paths or recolor parts of it. svgslid.es converts it into Slides' native shape format instead, so it stays fully editable."}}, {"@type": "Question", "name": "What happens to gradients and complex curves?", "acceptedAnswer": {"@type": "Answer", "text": "Solid fills and strokes convert cleanly. Gradients currently collapse to a solid approximate color, and arc commands (A/a) in paths are approximated as straight line segments. Re-exporting with more path segments avoids visibly angular curves."}}, {"@type": "Question", "name": "Is my file uploaded anywhere?", "acceptedAnswer": {"@type": "Answer", "text": "Depends on the surface. The Chrome extension converts entirely on your device using an embedded WebAssembly engine, so your file usually never leaves the browser. The web app and add-on send the file to our backend for conversion, which discards it immediately afterward."}}, {"@type": "Question", "name": "Is it free?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Free forever. Every feature, no daily cap, no account, no Pro tier."}}]}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "SVG to Slides", "item": "https://svgslid.es/"}, {"@type": "ListItem", "position": 2, "name": "SVG vs PNG in Google Slides", "item": "https://svgslid.es/guide"}]}</script>
+  <!-- ld:end -->
 </head>
 <body>
 
   <div style="display:flex; align-items:baseline; gap:8px; margin-bottom:4px;">
-    <h1 style="margin:0">svgslid.es</h1>
+    <h1 style="margin:0">SVG to Google Slides converter</h1>
     <button class="help-btn" id="help-btn" title="How it works">?</button>
   </div>
   <p class="tagline">SVG files &rarr; editable vector shapes in Google Slides</p>
+  <p class="tagline cta-ext">Rather drop files straight onto a slide? <a href="https://chromewebstore.google.com/detail/svg-to-slides/bdhhnakellmdnbgbdokiojipaebdeioi?utm_source=svgslid.es&amp;utm_medium=web&amp;utm_campaign=convert&amp;utm_content=hero" data-cta="hero">Get the free Chrome extension &rarr;</a></p>
 
   <ol class="steps">
     <li>Upload your <strong>.svg</strong> file(s)</li>
@@ -418,5 +429,6 @@
       }
     });
   </script>
+<script src="/static/site.js" defer></script>
 </body>
 </html>

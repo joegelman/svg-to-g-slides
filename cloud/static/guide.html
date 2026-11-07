@@ -2,25 +2,30 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <!-- Google tag -->
-  <script async src="https://www.googletagmanager.com/gtm.js?id=GTM-MTPNJHCL"></script>
+  <!-- analytics:start -->
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
   </script>
+  <script async src="https://www.googletagmanager.com/gtm.js?id=GTM-MTPNJHCL"></script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-0GDS2491DT"></script>
+  <script>gtag('config', 'G-0GDS2491DT');</script>
+  <!-- analytics:end -->
+  <link rel="canonical" href="https://svgslid.es/guide">
+  <link rel="alternate" type="text/markdown" href="/guide.md">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>SVG vs PNG in Google Slides — svgslid.es</title>
-  <meta name="description" content="Pasting an SVG into Google Slides normally flattens it to an image. Here's how to keep it a real, editable vector shape instead.">
+  <title>SVG in Google Slides: Keep It an Editable Vector, Not a PNG</title>
+  <meta name="description" content="Google Slides flattens SVGs into images. See what you lose, and how to keep every path as a native, editable, recolourable Slides shape instead. Free.">
   <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32.png">
-  <meta property="og:title" content="SVG vs PNG in Google Slides">
-  <meta property="og:description" content="Pasting an SVG into Google Slides normally flattens it to an image. Here's how to keep it a real, editable vector shape instead.">
+  <meta property="og:title" content="SVG in Google Slides: Keep It an Editable Vector, Not a PNG">
+  <meta property="og:description" content="Google Slides flattens SVGs into images. See what you lose, and how to keep every path as a native, editable, recolourable Slides shape instead. Free.">
   <meta property="og:image" content="https://svgslid.es/static/og-image.png">
   <meta property="og:url" content="https://svgslid.es/guide">
   <meta property="og:type" content="website">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="SVG vs PNG in Google Slides">
-  <meta name="twitter:description" content="Pasting an SVG into Google Slides normally flattens it to an image. Here's how to keep it a real, editable vector shape instead.">
+  <meta name="twitter:title" content="SVG in Google Slides: Keep It an Editable Vector, Not a PNG">
+  <meta name="twitter:description" content="Google Slides flattens SVGs into images. See what you lose, and how to keep every path as a native, editable, recolourable Slides shape instead. Free.">
   <meta name="twitter:image" content="https://svgslid.es/static/og-image.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -81,10 +86,15 @@
       font-size: 0.95rem;
     }
   </style>
+  <!-- ld:start -->
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "SoftwareApplication", "name": "SVG to Slides", "url": "https://svgslid.es/", "applicationCategory": "DesignApplication", "operatingSystem": "Chrome", "description": "Free Chrome extension that inserts SVG files into Google Slides as native, editable shapes.", "downloadUrl": "https://chromewebstore.google.com/detail/svg-to-slides/bdhhnakellmdnbgbdokiojipaebdeioi", "installUrl": "https://chromewebstore.google.com/detail/svg-to-slides/bdhhnakellmdnbgbdokiojipaebdeioi", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}, "image": "https://svgslid.es/static/og-image.png"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "FAQPage", "mainEntity": [{"@type": "Question", "name": "Does Google Slides support SVG natively?", "acceptedAnswer": {"@type": "Answer", "text": "Not as an editable format. Slides will accept a pasted or inserted SVG, but it rasterizes it into a flattened image on the way in, so you lose the ability to edit individual paths or recolor parts of it. svgslid.es converts it into Slides' native shape format instead, so it stays fully editable."}}, {"@type": "Question", "name": "What happens to gradients and complex curves?", "acceptedAnswer": {"@type": "Answer", "text": "Solid fills and strokes convert cleanly. Gradients currently collapse to a solid approximate color, and arc commands (A/a) in paths are approximated as straight line segments. Re-exporting with more path segments avoids visibly angular curves."}}, {"@type": "Question", "name": "Is my file uploaded anywhere?", "acceptedAnswer": {"@type": "Answer", "text": "Depends on the surface. The Chrome extension converts entirely on your device using an embedded WebAssembly engine, so your file usually never leaves the browser. The web app and add-on send the file to our backend for conversion, which discards it immediately afterward."}}, {"@type": "Question", "name": "Is it free?", "acceptedAnswer": {"@type": "Answer", "text": "Yes. Free forever. Every feature, no daily cap, no account, no Pro tier."}}]}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "SVG to Slides", "item": "https://svgslid.es/"}, {"@type": "ListItem", "position": 2, "name": "SVG vs PNG in Google Slides", "item": "https://svgslid.es/guide"}]}</script>
+  <!-- ld:end -->
 </head>
 <body>
   <a class="back" href="/">← svgslid.es</a>
-  <h1>SVG vs PNG in Google Slides</h1>
+  <h1>SVG in Google Slides: vector vs. flattened PNG</h1>
   <p class="lede">Drop an SVG onto a Slides canvas the normal way and Google flattens it into a raster image on paste. Here's what that costs you, and how to avoid it.</p>
 
   <h2>What you lose when Slides flattens your SVG</h2>
@@ -134,12 +144,13 @@
 
   <details>
     <summary>Is it free?</summary>
-    <p>Yes, all three surfaces are free.</p>
+    <p>Yes. Free forever. Every feature, no daily cap, no account, no Pro tier.</p>
   </details>
 
   <div class="cta">
-    <p><strong>Try it on your own SVG</strong> — no account needed for the web app.</p>
-    <a href="/">Open svgslid.es →</a>
+    <p><strong>Try it on your own SVG.</strong> Free forever. Every feature, no daily cap, no account, no Pro tier.</p>
+    <a href="https://chromewebstore.google.com/detail/svg-to-slides/bdhhnakellmdnbgbdokiojipaebdeioi?utm_source=svgslid.es&amp;utm_medium=web&amp;utm_campaign=guide&amp;utm_content=hero" data-cta="hero">Add to Chrome — free →</a> &nbsp; <a href="/convert">Or convert online →</a>
   </div>
+<script src="/static/site.js" defer></script>
 </body>
 </html>
