@@ -41,11 +41,11 @@ def shadow_card(img, pad=48, radius=22, bg=BG):
     """Place img on a soft-shadow rounded card over a light canvas."""
     w, h = img.size
     W, H = w + pad * 2, h + pad * 2
-    canvas = Image.new("RGB", (W, H), bg)
     sh = Image.new("L", (W, H), 0)
     ImageDraw.Draw(sh).rounded_rectangle([pad, pad + 10, pad + w, pad + h + 10], radius, fill=70)
     sh = sh.filter(ImageFilter.GaussianBlur(18))
-    canvas.paste(Image.new("RGB", (W, H), (20, 24, 40)), (0, 0), sh)
+    canvas = Image.new("RGBA", (W, H), (20, 24, 40, 0))
+    canvas.putalpha(sh)
     mask = Image.new("L", (w, h), 0)
     ImageDraw.Draw(mask).rounded_rectangle([0, 0, w - 1, h - 1], radius, fill=255)
     canvas.paste(img, (pad, pad), mask)
@@ -86,11 +86,12 @@ def scale(img, k):
 
 
 # ------------------------------------------------------------------ graphics
-def hero():
+def hero(dark=False):
     """Crisp vector close-up of the new toolbar button + cursor + tooltip."""
     W, H = 2400, 1260
     S = 2
-    im = Image.new("RGB", (W, H), (250, 250, 247))
+    BGC = (20, 21, 24) if dark else (250, 250, 247)
+    im = Image.new("RGB", (W, H), BGC)
     d = ImageDraw.Draw(im)
     # faint giant tracked word
     big = font(300, "Black")
@@ -100,12 +101,12 @@ def hero():
     total = sum(widths) + track * (len(word) - 1)
     x = (W - total) / 2
     for c, cw in zip(word, widths):
-        d.text((x, H - 140), c, font=big, fill=(238, 238, 232), anchor="ls")
+        d.text((x, H - 140), c, font=big, fill=(36, 38, 43) if dark else (238, 238, 232), anchor="ls")
         x += cw + track
     # toolbar strip
     tb = [260, 300, 2140, 560]
-    d.rounded_rectangle(tb, 60, fill=(237, 242, 250))
-    ic = (68, 71, 70)
+    d.rounded_rectangle(tb, 60, fill=(40, 43, 50) if dark else (237, 242, 250))
+    ic = (220, 222, 226) if dark else (68, 71, 70)
     cy = 430
     # line-spacing icon (left neighbor)
     lx = 760
@@ -121,7 +122,7 @@ def hero():
         d.line([(rx + 36, cy + yy), (rx + 140, cy + yy)], fill=ic, width=12)
     # the button (hover state)
     bx0, by0, bx1, by1 = 1060, 330, 1340, 530
-    d.rounded_rectangle([bx0, by0, bx1, by1], 40, fill=(218, 224, 233))
+    d.rounded_rectangle([bx0, by0, bx1, by1], 40, fill=(66, 71, 82) if dark else (218, 224, 233))
     bcx = (bx0 + bx1) // 2
     d.line([(bcx - 78, cy - 62), (bcx - 78, cy + 62)], fill=ic, width=13)
     d.line([(bcx + 78, cy - 62), (bcx + 78, cy + 62)], fill=ic, width=13)
@@ -132,12 +133,17 @@ def hero():
     tf = font(64, "SemiBold")
     tw = d.textlength("Letter spacing", font=tf)
     tx0 = bcx - tw / 2 - 52
-    d.rounded_rectangle([tx0, 640, tx0 + tw + 104, 780], 28, fill=(32, 33, 36))
-    d.polygon([(bcx - 26, 642), (bcx + 26, 642), (bcx, 614)], fill=(32, 33, 36))
-    d.text((bcx, 712), "Letter spacing", font=tf, fill=WHITE, anchor="mm")
+    TT = (232, 234, 237) if dark else (32, 33, 36)
+    d.rounded_rectangle([tx0, 640, tx0 + tw + 104, 780], 28, fill=TT)
+    d.polygon([(bcx - 26, 642), (bcx + 26, 642), (bcx, 614)], fill=TT)
+    d.text((bcx, 712), "Letter spacing", font=tf, fill=(32, 33, 36) if dark else WHITE, anchor="mm")
     cursor(d, bx1 - 70, by1 - 46, 4.2)
     # kicker
-    d.text((260, 150), "NEW IN GOOGLE SLIDES", font=font(54, "ExtraBold"), fill=BLUE)
+    d.text((260, 150), "NEW IN GOOGLE SLIDES", font=font(54, "ExtraBold"), fill=(77, 141, 255) if dark else BLUE)
+    if dark:
+        im.save(OUT / "hero-letter-spacing-dark.png", optimize=True)
+        im.resize((1200, 630), Image.LANCZOS).save(OUT / "og-letter-spacing-dark.png", optimize=True)
+        return
     im.save(OUT / "hero-letter-spacing.png", optimize=True)
     og = im.resize((1200, 630), Image.LANCZOS)
     og.save(OUT / "og-letter-spacing.png", optimize=True)
@@ -254,6 +260,7 @@ def main(src):
     R = lambda key: next(src.glob(f"*{key}*.png"))
     OUT.mkdir(parents=True, exist_ok=True)
     hero()
+    hero(dark=True)
     anatomy()
     annotated(R("1794061548627"), "toolbar-letter-spacing.png", k=2,
               rings=[(337, 10, 415, 86)])

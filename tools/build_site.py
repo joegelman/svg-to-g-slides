@@ -373,6 +373,7 @@ BLOG_CSS = """
 .post figure,.post .herofig{width:min(940px,calc(100vw - 24px));position:relative;left:50%;transform:translateX(-50%);margin:30px 0 34px}
 .post figure img,.post .herofig img{width:100%;height:auto;display:block;border-radius:14px}
 .post .herofig img{border:1px solid var(--rule)}
+.post figure img{border-radius:0}
 .post figcaption{max-width:62ch;margin:10px auto 0;padding:0 20px;font-size:14px;line-height:1.5;color:var(--mute);text-align:center}
 .post ol.steps{counter-reset:s;list-style:none;padding:0}
 .post ol.steps li{counter-increment:s;position:relative;padding:12px 0 12px 48px;border-bottom:1px solid var(--rule);margin:0}
@@ -403,7 +404,9 @@ def blog_webp():
 def fig(name, alt, cap, hero=False):
     w, h = Image.open(BLOG_IMG / f"{name}.png").size
     lazy = '' if hero else ' loading="lazy"'
-    pic = (f'<picture><source type="image/webp" srcset="/static/blog/img/{name}.webp">'
+    dk = (BLOG_IMG / f"{name}-dark.png").exists()
+    dsrc = f'<source media="(prefers-color-scheme: dark)" type="image/webp" srcset="/static/blog/img/{name}-dark.webp">' if dk else ''
+    pic = (f'<picture>{dsrc}<source type="image/webp" srcset="/static/blog/img/{name}.webp">'
            f'<img src="/static/blog/img/{name}.png" width="{w}" height="{h}" alt="{esc(alt)}"{lazy} decoding="async"></picture>')
     if hero:
         return f'<div class="herofig">{pic}</div>'
@@ -495,7 +498,7 @@ def post_html(p, css, head_icons):
 
 def blog_index_html(css, head_icons):
     cards = "".join(
-        f'<a class="pcard" href="/blog/{p["slug"]}"><picture><source type="image/webp" srcset="/static/blog/img/{p["og"][:-4]}.webp">'
+        f'<a class="pcard" href="/blog/{p["slug"]}"><picture><source media="(prefers-color-scheme: dark)" type="image/webp" srcset="/static/blog/img/{p["og"][:-4]}-dark.webp"><source type="image/webp" srcset="/static/blog/img/{p["og"][:-4]}.webp">'
         f'<img src="/static/blog/img/{p["og"]}" width="1200" height="630" alt="{esc(p["hero"][1])}"></picture>'
         f'<div class="in"><div class="kick">{p["kicker"]} &middot; {p["date_h"]}</div><h2>{p["h1"]}</h2><p>{p["dek"]}</p></div></a>'
         for p in B.POSTS)
