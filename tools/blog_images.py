@@ -207,11 +207,33 @@ def anatomy():
     im.save(OUT / "tracking-kerning-leading.png", optimize=True)
 
 
-def annotated(raw, name, k=1.0, rings=(), pills=(), dashed=()):
+def foreground_mask(orig, keep=()):
+    """Pixels that should stay ON TOP of annotation rings: the cursor (dark pixels,
+    dilated to include its white outline) and any ink inside `keep` boxes (scaled coords)."""
+    from PIL import ImageChops
+    lum = orig.convert("L")
+    dark = lum.point(lambda v: 255 if v < 60 else 0).filter(ImageFilter.MaxFilter(9))
+    mask = dark
+    if keep:
+        diff = ImageChops.difference(orig, Image.new("RGB", orig.size, WHITE)).convert("L")
+        ink = diff.point(lambda v: 255 if v > 40 else 0).filter(ImageFilter.MaxFilter(3))
+        box_m = Image.new("L", orig.size, 0)
+        bd = ImageDraw.Draw(box_m)
+        for b in keep:
+            bd.rectangle(b, fill=255)
+        mask = ImageChops.lighter(mask, ImageChops.multiply(ink, box_m))
+    return mask
+
+
+def annotated(raw, name, k=1.0, rings=(), pills=(), dashed=(), keep=()):
     img = scale(Image.open(raw).convert("RGB"), k)
+    orig = img.copy()
     d = ImageDraw.Draw(img)
     for b in rings:
         ring(d, [v * k for v in b])
+    if rings:
+        img.paste(orig, (0, 0), foreground_mask(orig, [[v * k for v in b] for b in keep]))
+        d = ImageDraw.Draw(img)
     for b in dashed:
         ring(d, [v * k for v in b], color=RED, width=6, dashed=True)
     for xy, text, *rest in pills:
@@ -269,7 +291,7 @@ def main(src):
                      ((470, 237), "default — body text", {"size": 24, "bg": (232, 234, 238), "fg": INK}),
                      ((470, 302), "big display headlines", {"size": 24, "bg": YELLOW, "fg": INK})])
     annotated(R("1794061567949"), "custom-letter-spacing.png", k=1.4,
-              rings=[(58, 162, 610, 282)])
+              rings=[(58, 162, 610, 282)], keep=[(90, 152, 258, 190)])
     pair(R("1794061595890"), R("1794061608038"), "0", "+3", "caps-0-vs-3.png")
     pair(R("1794061623125"), R("1794061633883"), "0", "−1.5", "headline-0-vs-neg.png")
     annotated(R("1794061662318"), "format-text-letter-spacing.png",
