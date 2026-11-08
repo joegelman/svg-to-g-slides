@@ -322,6 +322,63 @@ def blog_feed():
 
 
 
+# ---------------------------------------------------------------- /supplies-roadmap
+# Private roadmap page behind a shared password. The page lives in private/,
+# outside the public static/ mount, so it is only reachable through this gate.
+import hashlib  # noqa: E402
+
+ROADMAP_PASSWORD = os.environ.get("ROADMAP_PASSWORD", "password")
+_ROADMAP_COOKIE = "sr_roadmap"
+_ROADMAP_TOKEN = hashlib.sha256(f"supplies-roadmap:{ROADMAP_PASSWORD}".encode()).hexdigest()
+_ROADMAP_PAGE = Path("private") / "supplies-roadmap.html"
+_PRIVATE_HEADERS = {"X-Robots-Tag": "noindex, nofollow", "Cache-Control": "private, no-store"}
+
+_ROADMAP_FORM = """<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow"><title>Private roadmap</title>
+<link rel="icon" href="/favicon.ico">
+<link href="https://fonts.googleapis.com/css2?family=Overpass:wght@600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#fff;color:#1C1E22;font-family:Verdana,"DejaVu Sans",Geneva,sans-serif;padding:24px}
+form{width:100%;max-width:380px;border:1px solid #E3E5E8;border-radius:20px;padding:32px;box-shadow:0 24px 60px rgba(28,30,34,.10);display:flex;flex-direction:column;gap:16px}
+.eb{font-family:Overpass,Arial,sans-serif;font-weight:700;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:#6B6F76}
+h1{margin:0;font-family:Overpass,Arial,sans-serif;font-weight:600;font-size:28px;letter-spacing:-.01em}
+label{font-size:13px;color:#3C4043;display:flex;flex-direction:column;gap:6px}
+input{font:inherit;font-size:16px;border:1px solid #C3C7CF;border-radius:10px;padding:12px 14px}
+input:focus{outline:2px solid #0066FF;outline-offset:1px;border-color:#0066FF}
+button{font-family:Overpass,Arial,sans-serif;font-weight:600;font-size:16px;height:48px;border:0;border-radius:24px;background:#0066FF;color:#fff;cursor:pointer}
+button:hover{background:#0052CC}.err{margin:0;font-size:13px;color:#B3261E}
+</style></head><body>
+<form method="post" action="/supplies-roadmap">
+<span class="eb">Private</span><h1>Slide Supply roadmap</h1>
+__ERROR__<label>Password<input type="password" name="password" autocomplete="current-password" required autofocus></label>
+<button type="submit">View roadmap</button>
+</form></body></html>"""
+
+
+def _roadmap_form(error: bool = False):
+    msg = '<p class="err" role="alert">That password didn&rsquo;t work. Try again.</p>' if error else ""
+    return Response(_ROADMAP_FORM.replace("__ERROR__", msg), status_code=401 if error else 200,
+                    media_type="text/html; charset=utf-8", headers=_PRIVATE_HEADERS)
+
+
+@app.get("/supplies-roadmap", include_in_schema=False)
+def supplies_roadmap(request: Request):
+    if secrets.compare_digest(request.cookies.get(_ROADMAP_COOKIE, ""), _ROADMAP_TOKEN):
+        return FileResponse(_ROADMAP_PAGE, media_type="text/html; charset=utf-8", headers=_PRIVATE_HEADERS)
+    return _roadmap_form()
+
+
+@app.post("/supplies-roadmap", include_in_schema=False)
+def supplies_roadmap_login(password: str = Form(default="")):
+    if not secrets.compare_digest(password.encode(), ROADMAP_PASSWORD.encode()):
+        return _roadmap_form(error=True)
+    resp = RedirectResponse("/supplies-roadmap", status_code=303)
+    resp.set_cookie(_ROADMAP_COOKIE, _ROADMAP_TOKEN, max_age=30 * 24 * 3600, path="/supplies-roadmap",
+                    secure=True, httponly=True, samesite="lax")
+    return resp
+
+
 # ---------------------------------------------------------------- /guides
 # The lobby features one guide. Manual override (tools/featured.json, baked into
 # static/_lobby/featured.json at build) wins; otherwise the guide with the most

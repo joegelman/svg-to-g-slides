@@ -16,6 +16,7 @@ COPY cloud/main.py       ./main.py
 COPY cloud/drive.py      ./drive.py
 COPY cloud/slides_clip.py ./slides_clip.py
 COPY cloud/static/       ./static/
+COPY cloud/private/      ./private/
 
 ENV PORT=8080
 EXPOSE 8080
