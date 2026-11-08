@@ -180,8 +180,9 @@ GIMG = ROOT / "cloud" / "static" / "guides" / "img"
 def thumb(slug):
     if not (GIMG / f"{slug}.png").exists():
         return ""
+    alt = next((html.escape(p.get("img_alt", ""), quote=True) for p in C.PAGES if p["slug"] == slug), "")
     return (f'<picture class="thumb"><source type="image/webp" srcset="/static/guides/img/{slug}.webp">'
-            f'<img src="/static/guides/img/{slug}.png" width="1200" height="630" alt="" loading="lazy" decoding="async"></picture>')
+            f'<img src="/static/guides/img/{slug}.png" width="1200" height="630" alt="{alt}" loading="lazy" decoding="async"></picture>')
 
 
 def guides_lobby(ctx, posts, feat=None, source="variant"):

@@ -118,6 +118,26 @@ def set_meta(doc, path, title=None, desc=None, noindex=False, md=None):
         extra += f'  <link rel="alternate" type="text/markdown" href="{md}">\n'
     return doc.replace("  <meta name=\"viewport\"", extra + "  <meta name=\"viewport\"", 1)
 
+# ------------------------------------------------------------- homepage FAQ
+HOME_FAQ_CSS = ("  <style>/* homefaq */.hfaq{padding-block:72px}.hfaq h2{text-align:center;margin-bottom:28px}"
+                ".hfaq .faq{max-width:46em;margin:0 auto}.hfaq details{border-bottom:1px solid var(--rule);padding:16px 0}"
+                ".hfaq summary{cursor:pointer;font:600 18px var(--display)}.hfaq details p{color:var(--mute);margin-top:10px;font-size:15px}"
+                ".hfaq .gl{max-width:46em;margin:36px auto 0;display:flex;flex-wrap:wrap;gap:10px;justify-content:center;list-style:none;padding:0}"
+                ".hfaq .gl a{display:block;border:1.5px solid var(--rule);border-radius:999px;padding:8px 16px;text-decoration:none;font-size:14px}"
+                ".hfaq .gl a:hover{border-color:var(--mute)}</style>\n")
+
+def set_home_faq(doc):
+    doc = re.sub(r"  <!-- homefaq:start -->.*?<!-- homefaq:end -->\n\n?", "", doc, flags=re.S)
+    doc = re.sub(r"  <style>/\* homefaq \*/.*?</style>\n", "", doc, flags=re.S)
+    qa = "".join(f"<details><summary>{q}</summary><p>{a}</p></details>" for q, a in C.HOME_FAQ)
+    links = "".join(f'<li><a href="/guides/{s}">{t}</a></li>' for s, t in C.HOME_GUIDE_LINKS)
+    block = (f'  <!-- homefaq:start -->\n  <section class="wrap hfaq" id="faq"><h2>{C.HOME_FAQ_H2}</h2>'
+             f'<div class="faq">{qa}</div><ul class="gl" aria-label="Guides">{links}</ul></section>\n'
+             f'  <div class="wrap"><hr class="rule"></div>\n  <!-- homefaq:end -->\n')
+    anchor = '  <ul class="wrap trust"'
+    doc = doc.replace(anchor, block + "\n" + anchor, 1)
+    return doc.replace("</head>", HOME_FAQ_CSS + "</head>", 1)
+
 # ------------------------------------------------------------- CTA tagging
 CWS_HREF = re.compile(r'href="' + re.escape(C.CWS) + r'(?:\?[^"]*)?"(?: data-cta="[^"]*")?')
 
@@ -170,6 +190,9 @@ EXTRA_CSS = """
 .faq details p{color:var(--mute);margin-top:10px;font-size:15px}
 .related{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
 .related a{border:1.5px solid var(--rule);border-radius:999px;padding:8px 16px;text-decoration:none;font-size:14px} .related a:hover{border-color:var(--mute)}
+.gfig{max-width:46em;margin:32px auto 0} .gfig img{width:100%;height:auto;border-radius:14px;border:1px solid var(--rule);display:block}
+.olist{list-style:decimal;padding-left:1.4em} .olist li::marker{font-family:var(--display);font-weight:700;color:var(--fg)}
+.secnote{max-width:46em;margin:18px auto 0;color:var(--mute);font-size:15px}
 @media (max-width:760px){ .cards3{grid-template-columns:1fr} }
 """
 
@@ -177,6 +200,13 @@ def OG(slug):
     if (STATIC / "guides" / "img" / f"{slug}.png").exists():
         return f"{C.SITE}/static/guides/img/{slug}.png"
     return f"{C.SITE}/static/og-image.png"
+
+def figure(p):
+    slug = p["slug"]
+    if not p.get("img_alt") or not (STATIC / "guides" / "img" / f"{slug}.png").exists():
+        return ""
+    return (f'    <figure class="gfig"><picture><source type="image/webp" srcset="/static/guides/img/{slug}.webp">'
+            f'<img src="/static/guides/img/{slug}.png" width="1200" height="630" alt="{esc(p["img_alt"])}" loading="lazy" decoding="async"></picture></figure>\n')
 
 VB = {"svgslides_recolor.json": ' data-viewbox="0 0 2080 1440" style="aspect-ratio:2080/1440"'}
 
@@ -188,6 +218,11 @@ def landing_html(p, css, head_icons):
     if p.get("howto"):
         steps = "".join(f'<div class="step"><div class="n">Step {i+1}</div><h3>{t}</h3><p>{d}</p></div>' for i, (t, d) in enumerate(p["howto"]))
         body.append(f'<section class="wrap steps" id="how"><h2>How to do it</h2><div class="steprow">{steps}</div></section>')
+    if p.get("table"):
+        th, heads, trs = p["table"]
+        hrow = "".join(f"<th>{h}</th>" for h in heads)
+        rows = "".join("<tr>" + "".join(f"<td>{c}</td>" for c in r) + "</tr>" for r in trs)
+        body.append(f'<section class="wrap sec"><h2>{th}</h2><table class="cmp"><thead><tr>{hrow}</tr></thead><tbody>{rows}</tbody></table></section>')
     if p.get("compare"):
         rows = "".join(f"<tr><td>{a}</td><td>{b}</td></tr>" for a, b in p["compare"])
         body.append(f'<section class="wrap sec"><h2>Flattened vs. converted</h2><table class="cmp"><thead><tr><th>Pasted as PNG (default)</th><th>Inserted with SVG to Slides</th></tr></thead><tbody>{rows}</tbody></table></section>')
@@ -201,9 +236,12 @@ def landing_html(p, css, head_icons):
     if p.get("points"):
         items = "".join(f"<li><b>{t}</b> {d}</li>" for t, d in p["points"])
         body.append(f'<section class="wrap sec"><h2>What you can do</h2><ul class="list">{items}</ul></section>')
-    for h, items in p.get("sections", []):
+    for sec in p.get("sections", []):
+        h, items = sec[0], sec[1]
         lis = "".join(f"<li>{x}</li>" for x in items)
-        body.append(f'<section class="wrap sec"><h2>{h}</h2><ul class="list">{lis}</ul></section>')
+        tag = "ol" if len(sec) > 2 and sec[2] == "ol" else "ul"
+        note = f'<p class="secnote">{sec[3]}</p>' if len(sec) > 3 else ""
+        body.append(f'<section class="wrap sec"><h2>{h}</h2><{tag} class="list{" olist" if tag == "ol" else ""}">{lis}</{tag}>{note}</section>')
     faq = "".join(f"<details><summary>{q}</summary><p>{a}</p></details>" for q, a in p["faq"])
     body.append(f'<section class="wrap sec"><h2>Questions</h2><div class="faq">{faq}</div></section>')
     rel = {x["slug"]: x for x in C.PAGES}
@@ -233,7 +271,7 @@ def landing_html(p, css, head_icons):
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Overpass:wght@600;700;800&display=swap" rel="stylesheet">
 <style>{css}{EXTRA_CSS}{P.SHELL_CSS}</style>
-</head>
+{ld_block(lds)}</head>
 <body>
 {P.nav_html(slug, LOGO_SVG)}
 <div class="wrap"><p class="crumb"><a href="/">SVG to Slides</a> &rsaquo; <a href="/guides">Guides</a> &rsaquo; {p["nav"]}</p></div>
@@ -248,7 +286,7 @@ def landing_html(p, css, head_icons):
     <p class="free">{C.FREE_LINE}</p>
     <div class="shot"><div class="lot" data-lottie="/static/lottie/{p["lottie"]}"{VB.get(p["lottie"], "")}></div></div>
     <p class="answer"><b>Short answer:</b> {p["answer"]}</p>
-  </section>
+{figure(p)}  </section>
   <div class="wrap"><hr class="rule" style="margin-top:56px"></div>
   {rule.join(body)}
   <div class="wrap"><hr class="rule"></div>
@@ -276,8 +314,15 @@ def landing_md(p):
         out += ["## Pick your route"] + [f"- **{t}** — {plain(d)} ({h if h.startswith('http') else C.SITE + h})" for t, d, h, _ in p["cards"]] + [""]
     if p.get("points"):
         out += ["## What you can do"] + [f"- **{plain(t)}** {plain(d)}" for t, d in p["points"]] + [""]
-    for h, items in p.get("sections", []):
-        out += [f"## {h}"] + [f"- {plain(x)}" for x in items] + [""]
+    if p.get("table"):
+        th, heads, trs = p["table"]
+        out += [f"## {plain(th)}", "", "| " + " | ".join(plain(h) for h in heads) + " |", "|" + "---|" * len(heads)]
+        out += ["| " + " | ".join(plain(c) for c in r) + " |" for r in trs] + [""]
+    for sec in p.get("sections", []):
+        h, items = sec[0], sec[1]
+        ol = len(sec) > 2 and sec[2] == "ol"
+        out += [f"## {plain(h)}"] + [(f"{i+1}. " if ol else "- ") + plain(x) for i, x in enumerate(items)]
+        out += ([plain(sec[3])] if len(sec) > 3 else []) + [""]
     out += ["## Questions", ""]
     for q, a in p["faq"]:
         out += [f"### {plain(q)}", plain(a), ""]
@@ -663,13 +708,16 @@ def main():
         doc = set_meta(doc, meta["path"], meta.get("title"), meta.get("desc"), meta.get("noindex", False),
                        "/index.md" if fname == "index.html" else None)
         if fname == "index.html":
-            doc = set_ld(doc, [software_ld(), {"@context": "https://schema.org", "@type": "WebSite", "name": "SVG to Slides", "url": C.SITE + "/"}])
+            doc = set_home_faq(doc)
+            doc = set_ld(doc, [software_ld(), {"@context": "https://schema.org", "@type": "WebSite", "name": "SVG to Slides", "url": C.SITE + "/"},
+                               faq_ld(C.HOME_FAQ)])
             doc = re.sub(r"  <!-- guides:start -->.*?<!-- guides:end -->\n", "", doc, flags=re.S)
         if fname != "chrome.html":  # chrome.html's CWS link is a JS redirect, leave its target bare
             doc = tag_ctas(doc, camp[fname])
         doc = add_sitejs(doc)
         f.write_text(doc)
-    (MD / "index.md").write_text(C.HOME_MD.format(cws=C.CWS, site=C.SITE))
+    home_faq_md = "\n\n".join(f"### {plain(q)}\n{plain(a)}" for q, a in C.HOME_FAQ)
+    (MD / "index.md").write_text(C.HOME_MD.format(cws=C.CWS, site=C.SITE, faq=home_faq_md))
 
     # 4. redirects (old flat URLs -> /guides/...), served as 301 by main.py
     redirects = dict(C.LEGACY)

@@ -4,7 +4,7 @@ Featured: [Does Google Slides&trade; support SVG?](https://svgslid.es/guides/doe
 
 ## Start here
 - [SVG vs PNG in Google Slides&trade;](https://svgslid.es/guides/svg-vs-png-google-slides.md): When Google Slides flattens an SVG it becomes a single image that blurs when resized and can't be recoloured or edited. SVG to Slides converts every path into Slides' own native shape format instead, so the result behaves like a shape you drew yourself.
-- [Insert an SVG into Google Slides&trade;](https://svgslid.es/guides/insert-svg-into-google-slides.md): Google Slides doesn't accept SVG files as editable graphics. To insert one, install the free SVG to Slides Chrome extension, open your presentation, and drag the .svg file onto a slide. Each path becomes its own native Slides shape.
+- [How to insert an SVG into Google Slides&trade;](https://svgslid.es/guides/insert-svg-into-google-slides.md): Google Slides doesn't support SVG files, so you can't upload one as an editable graphic. To insert an SVG into Google Slides, install the free SVG to Slides Chrome extension, open your presentation, and drag the .svg file onto a slide. Each path becomes its own native Slides shape.
 - [Does Google Slides&trade; support SVG?](https://svgslid.es/guides/does-google-slides-support-svg.md): No. Google Slides doesn't keep SVG files as editable vectors. Your options are to flatten the SVG into a PNG, or convert it through EMF and Google Drawings. SVG to Slides converts the file into Slides' native shape format, so it stays editable.
 
 ## Design workflows

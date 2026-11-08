@@ -1,8 +1,8 @@
 {
  "/does-google-slides-support-svg": "/guides/does-google-slides-support-svg",
  "/does-google-slides-support-svg.md": "/guides/does-google-slides-support-svg.md",
- "/guide": "/guides/svg-vs-png-google-slides",
- "/guide.md": "/guides/svg-vs-png-google-slides.md",
+ "/guide": "/guides/insert-svg-into-google-slides",
+ "/guide.md": "/guides/insert-svg-into-google-slides.md",
  "/insert-svg-into-google-slides": "/guides/insert-svg-into-google-slides",
  "/insert-svg-into-google-slides.md": "/guides/insert-svg-into-google-slides.md",
  "/recolor-svg-in-google-slides": "/guides/recolor-svg-in-google-slides",
@@ -10,5 +10,7 @@
  "/svg-logos-icons-google-slides": "/guides/svg-logos-icons-google-slides",
  "/svg-logos-icons-google-slides.md": "/guides/svg-logos-icons-google-slides.md",
  "/svg-to-google-slides-converter": "/guides/svg-to-google-slides-converter",
- "/svg-to-google-slides-converter.md": "/guides/svg-to-google-slides-converter.md"
+ "/svg-to-google-slides-converter.md": "/guides/svg-to-google-slides-converter.md",
+ "/svg-vs-png-google-slides": "/guides/svg-vs-png-google-slides",
+ "/svg-vs-png-google-slides.md": "/guides/svg-vs-png-google-slides.md"
 }

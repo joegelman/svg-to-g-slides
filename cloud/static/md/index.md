@@ -26,5 +26,24 @@ Google Slides doesn't support SVG files. Your options are to flatten them into P
 - Arc commands (A/a) are converted into smooth curves.
 - Up to 25 files per drop in the extension; use the online converter for larger batches.
 
+## Questions
+### Can you upload or import an SVG file into Google Slides?
+Not as an editable graphic. Google Slides doesn't support SVG files. Install SVG to Slides and drag the file onto a slide, or convert it online at svgslid.es/convert. Every path arrives as a native Slides shape.
+
+### How is this different from Microsoft PowerPoint?
+PowerPoint can insert an SVG file and convert it to shapes. Google Slides can't. SVG to Slides gives Slides the same result: vector graphics you can select, recolour, and resize.
+
+### Can I add SVG icons to Google Slides?
+Yes. Drag up to 25 SVG icons onto a slide at once. Each one becomes editable shapes with no background box, so you can recolour it to match your theme.
+
+### Do the shapes stay sharp when I resize them?
+Yes. They're vector graphics, so a small footer icon and a full-slide graphic both keep crisp edges.
+
+### Can I use SVG logos in my Google Slides theme?
+Yes. Add converted logos and icons to your theme layouts and reuse them across slides. The shapes also work in Google Drawings.
+
+### Is it free?
+Yes. Free forever. Every feature, no daily cap, no account, no Pro tier.
+
 ## Privacy
 The Chrome extension converts on your device with an embedded WebAssembly engine; your file usually never leaves the browser. Details: https://svgslid.es/privacy
