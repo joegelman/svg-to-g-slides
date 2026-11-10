@@ -9,7 +9,7 @@ from pptx import Presentation
 from pptx.util import Inches, Pt, Emu
 from pptx.dml.color import RGBColor
 from pptx.enum.shapes import MSO_SHAPE
-from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
+from pptx.enum.text import PP_ALIGN, MSO_ANCHOR, MSO_AUTO_SIZE
 from pptx.oxml.ns import qn
 
 sys.path.insert(0, str(Path(__file__).parent))
@@ -64,6 +64,7 @@ class Page:
         tf = tb.text_frame
         tf.word_wrap = True
         tf.vertical_anchor = anchor
+        tf.auto_size = MSO_AUTO_SIZE.NONE  # fixed box: no shrink or grow on import
         for m in ("margin_left", "margin_right", "margin_top", "margin_bottom"):
             setattr(tf, m, 0)
         p = tf.paragraphs[0]

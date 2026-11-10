@@ -5,7 +5,7 @@ from pathlib import Path
 from lxml import etree
 from pptx.util import Inches, Pt, Emu
 from pptx.dml.color import RGBColor
-from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
+from pptx.enum.text import PP_ALIGN, MSO_ANCHOR, MSO_AUTO_SIZE
 sys.path.insert(0, "/home/claude/svg-to-g-slides")
 import svg_to_slides as s2s
 
@@ -74,6 +74,7 @@ def place_svg(slide, svg, x, y, w, fill=None, tag=None, text_font="Verdana", tex
         t += 1
         tb.name = f"{text_tag or 'ui_text'} {t}"
         tf = tb.text_frame; tf.word_wrap = False
+        tf.auto_size = MSO_AUTO_SIZE.NONE  # fixed box: no shrink or grow on import
         for m in ("margin_left", "margin_right", "margin_top", "margin_bottom"):
             setattr(tf, m, 0)
         p = tf.paragraphs[0]
