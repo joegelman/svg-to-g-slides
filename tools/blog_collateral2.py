@@ -135,7 +135,9 @@ BODY = """
 <li><b>There is a monthly limit.</b> Our test account generated five cells and then Sheets reported that the monthly limit for the AI function was reached. Limits depend on your plan.</li>
 <li><b>The Slides side panel was not available on that account.</b> It still showed the Try Gemini prompt, so the whole-deck edit from <a href="%PART1%">part 1</a> remains untested by us.</li>
 <li><b>The sheet formulas hold.</b> Latest response, Final, Source notes, Source line, Length, Fits and the export block all compute as Google Sheets files.</li>
-<li><b>Not yet run:</b> <code>workshop_form.gs</code>, <code>apply_style.gs</code> and <code>sync_copy.gs</code>. Test them on copies.</li>
+<li><b>The form builder works.</b> <code>workshop_form.gs</code> built the 38-question form for the example on its first run and added the Responses tab.</li>
+<li><b>Scripts need an account that allows them.</b> On one of our Google accounts the permission request was refused with &ldquo;This app is blocked&rdquo;. The same script ran on a Workspace account.</li>
+<li><b>Not yet run:</b> <code>apply_style.gs</code> and <code>sync_copy.gs</code>. Test them on copies.</li>
 </ul>
 
 <h2 id="pack">What is new in the starter pack</h2>
@@ -188,7 +190,7 @@ Message drafter, copy editor, image maker, image prep, asset checker. Paste the 
 - AI formulas written by import or API show as text until you click Generate and fill. One click covers a selected range.
 - Our test account hit the monthly AI function limit after five cells.
 - The Slides Gemini side panel was not available on that account, so the whole-deck edit is still untested by us.
-- Sheet formulas and the export block compute. The three scripts have not been run yet.
+- Sheet formulas and the export block compute. workshop_form.gs built the example form on its first run, on a Workspace account; another account refused the permission request ("This app is blocked"). apply_style.gs and sync_copy.gs have not been run yet.
 
 The screens in the post are mockups. Google Slides, Google Sheets, Google Forms, Google Drive and Gemini are trademarks of Google LLC.
 """
