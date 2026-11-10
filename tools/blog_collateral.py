@@ -134,7 +134,7 @@ Do not add or delete pages.</pre>
 <li>Put <code>slot:headline</code> in the Title. The key matches the Key column in the sheet.</li>
 <li>Repeat for every box that takes copy. The starter templates are already tagged.</li>
 </ol>
-<p>A script can now find each box by name and set its text to the approved line. The starter pack includes one, written in Apps Script and attached to the messaging sheet. It adds a menu:</p>
+<p>A script can now find each box by name and set its text to the approved line. The starter pack includes one, written in Apps Script and attached to the messaging sheet. It adds a Collateral menu to the sheet&rsquo;s menu bar, next to Help. Nothing is added to Slides:</p>
 {fig:sync-menu-assets|Mockup of the Assets tab with a Collateral menu offering Dry run and Sync copy to assets, and a Flags column reporting one line skipped for being over budget|The Assets tab after a sync. One line was skipped for being over budget. Mockup.}
 <ul>
 <li><b>Dry run</b> reports what would change and writes nothing.</li>
@@ -183,7 +183,7 @@ Do not add or delete pages.</pre>
 <li>Added with <a href="/blog/messaging-workshop-brand-style-sheet-google-sheets">part 2</a>: a messaging architecture sheet, a brand style sheet, two more scripts, and a filled-in example for SVG to Slides.</li>
 </ul>
 <p>The sample copy is for a fictional product called Relay. Replace it with yours.</p>
-<p>To install the script: open your copy of the sheet, go to <b>Extensions &rsaquo; Apps Script</b>, paste <code>sync_copy.gs</code>, save, and reload the sheet. Put the URLs of your own template copies on the Assets tab.</p>
+<p>To install the script: open your copy of the sheet, go to <b>Extensions &rsaquo; Apps Script</b>, paste <code>sync_copy.gs</code>, save, and reload the sheet. The Collateral menu appears in the sheet, not in Slides. The first run asks for permission; if Google answers &ldquo;This app is blocked&rdquo;, use an account that allows Apps Script. Put the URLs of your own template copies on the Assets tab.</p>
 
 <h2 id="status">What we have and have not tested</h2>
 <p><i>Updated Nov 9, 2026, after a first round of tests.</i></p>

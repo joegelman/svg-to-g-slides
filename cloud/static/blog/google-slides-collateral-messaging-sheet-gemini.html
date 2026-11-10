@@ -34,7 +34,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Overpass:wght@600;700;800&display=swap" rel="stylesheet">
   <!-- ld:start -->
-  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Update Google Slides collateral from one messaging sheet with Gemini", "description": "Gemini in Google Slides can now edit a whole deck from one prompt. How to pair it with a messaging sheet, real page sizes, slot tags, approvals and a free starter pack.", "datePublished": "2026-11-09", "dateModified": "2026-11-09", "image": "https://svgslid.es/static/blog/img/og-collateral-gemini.png", "author": {"@type": "Person", "name": "Joe Gelman"}, "publisher": {"@type": "Organization", "name": "SVG to Slides", "url": "https://svgslid.es/", "logo": {"@type": "ImageObject", "url": "https://svgslid.es/static/favicon.png"}}, "mainEntityOfPage": "https://svgslid.es/blog/google-slides-collateral-messaging-sheet-gemini"}</script>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BlogPosting", "headline": "Update Google Slides collateral from one messaging sheet with Gemini", "description": "Gemini in Google Slides can now edit a whole deck from one prompt. How to pair it with a messaging sheet, real page sizes, slot tags, approvals and a free starter pack.", "datePublished": "2026-11-09", "dateModified": "2026-11-10", "image": "https://svgslid.es/static/blog/img/og-collateral-gemini.png", "author": {"@type": "Person", "name": "Joe Gelman"}, "publisher": {"@type": "Organization", "name": "SVG to Slides", "url": "https://svgslid.es/", "logo": {"@type": "ImageObject", "url": "https://svgslid.es/static/favicon.png"}}, "mainEntityOfPage": "https://svgslid.es/blog/google-slides-collateral-messaging-sheet-gemini"}</script>
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "SVG to Slides", "item": "https://svgslid.es/"}, {"@type": "ListItem", "position": 2, "name": "Blog", "item": "https://svgslid.es/blog"}, {"@type": "ListItem", "position": 3, "name": "Update Google Slides collateral from one messaging sheet with Gemini", "item": "https://svgslid.es/blog/google-slides-collateral-messaging-sheet-gemini"}]}</script>
   <!-- ld:end -->
 <style>
@@ -339,7 +339,7 @@ Do not add or delete pages.</pre>
 <li>Put <code>slot:headline</code> in the Title. The key matches the Key column in the sheet.</li>
 <li>Repeat for every box that takes copy. The starter templates are already tagged.</li>
 </ol>
-<p>A script can now find each box by name and set its text to the approved line. The starter pack includes one, written in Apps Script and attached to the messaging sheet. It adds a menu:</p>
+<p>A script can now find each box by name and set its text to the approved line. The starter pack includes one, written in Apps Script and attached to the messaging sheet. It adds a Collateral menu to the sheet&rsquo;s menu bar, next to Help. Nothing is added to Slides:</p>
 <figure><a href="/static/blog/img/sync-menu-assets.png"><picture><source type="image/webp" srcset="/static/blog/img/sync-menu-assets.webp"><img src="/static/blog/img/sync-menu-assets.png" width="2400" height="826" alt="Mockup of the Assets tab with a Collateral menu offering Dry run and Sync copy to assets, and a Flags column reporting one line skipped for being over budget" loading="lazy" decoding="async"></picture></a><figcaption>The Assets tab after a sync. One line was skipped for being over budget. Mockup.</figcaption></figure>
 <ul>
 <li><b>Dry run</b> reports what would change and writes nothing.</li>
@@ -388,7 +388,7 @@ Do not add or delete pages.</pre>
 <li>Added with <a href="/blog/messaging-workshop-brand-style-sheet-google-sheets">part 2</a>: a messaging architecture sheet, a brand style sheet, two more scripts, and a filled-in example for SVG to Slides.</li>
 </ul>
 <p>The sample copy is for a fictional product called Relay. Replace it with yours.</p>
-<p>To install the script: open your copy of the sheet, go to <b>Extensions &rsaquo; Apps Script</b>, paste <code>sync_copy.gs</code>, save, and reload the sheet. Put the URLs of your own template copies on the Assets tab.</p>
+<p>To install the script: open your copy of the sheet, go to <b>Extensions &rsaquo; Apps Script</b>, paste <code>sync_copy.gs</code>, save, and reload the sheet. The Collateral menu appears in the sheet, not in Slides. The first run asks for permission; if Google answers &ldquo;This app is blocked&rdquo;, use an account that allows Apps Script. Put the URLs of your own template copies on the Assets tab.</p>
 
 <h2 id="status">What we have and have not tested</h2>
 <p><i>Updated Nov 9, 2026, after a first round of tests.</i></p>
