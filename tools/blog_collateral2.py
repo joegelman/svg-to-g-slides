@@ -11,8 +11,8 @@ STYLE_SHEET = S % "18awgdkUBwAs01BCdg0cLWyVBx-jPJVPfEUZvfaNExDo"
 EXAMPLE = "https://drive.google.com/drive/folders/1EOSAfzAkwnhXBWwTkqBSMdMxF-BH9t50"
 EX_ARCH = "https://docs.google.com/spreadsheets/d/1pqFKmoUejTFxgOmW-TVWAq3HIIl7B6DhzRY1a3qdTYo/edit"
 EX_STYLE = "https://docs.google.com/spreadsheets/d/1cFcoXDtE0lmqUklkeU7Zj9uiDA4k4zQE-loNoooriuQ/edit"
-EX_ONE = "https://docs.google.com/presentation/d/1xOtwK481gb6sqjOiuqm8Tjg41qPYQ0rYQjYnUCLxgN8/edit"
-EX_DECK = "https://docs.google.com/presentation/d/1-_8xMfLHxBo2bo3829dkkL3RmWX_lkwh0OkMlPok_PM/edit"
+EX_ONE = "https://docs.google.com/presentation/d/1QTHRDkswETR8h4Bg4v1VbhZdk6-UUg8lbwojTUuo8aw/edit"
+EX_DECK = "https://docs.google.com/presentation/d/1v-oovKABw9tOm4Kdp7A7uU1Ae9je-rt2rEEpcNK53pY/edit"
 PART1 = "/blog/google-slides-collateral-messaging-sheet-gemini"
 
 BODY = """
@@ -120,8 +120,15 @@ BODY = """
 <ul>
 <li><a href="%EX_ARCH%">Messaging architecture</a>: workshop answers, 17 architecture lines, 25 slots, proof log.</li>
 <li><a href="%EX_STYLE%">Brand style sheet</a>: nine colour tokens, nine type roles, seven voice rules, the export block.</li>
-<li><a href="%EX_ONE%">One-pager</a>, US Letter, and a <a href="%EX_DECK%">two-slide deck</a>, 16:9. Every text box is tagged.</li>
+<li><a href="%EX_ONE%">One-pager</a>, US Letter, and a <a href="%EX_DECK%">three-slide deck</a>, 16:9. Every text box and icon is tagged.</li>
 </ul>
+<p>The graphics follow the same rule as the copy: native objects, tagged by name.</p>
+<ul>
+<li><b>Icons.</b> Seven icons from Phosphor Icons, an MIT-licensed set, placed as native shapes by the SVG to Slides converter. Each carries <code>icon:step_1</code> or similar in its alt text and has a row on an Icons tab: key, icon, licence, colour token. Recolour one with the fill picker.</li>
+<li><b>A UI mockup, drawn by Gemini as code.</b> We asked Gemini in the Slides side panel for SVG code of an editor mockup, limited to the brand palette and to rectangles, circles and text. It returned 16 elements. The converter turned the shapes into native shapes, and the two text elements became ordinary Slides text boxes, so the labels stay editable.</li>
+</ul>
+{fig:vector-ui-mock|Deck slide titled In your deck showing a simple editor mockup made of native shapes, with notes that the shapes came from Gemini's SVG and the labels are text boxes|Slide 3 of the deck. Gemini wrote the SVG. The shapes are native and the labels are text boxes. Rendered from the template file.}
+<p>The example sheet also has a <b>Home</b> tab: one row per tab with what it holds, who edits it, and a live count, such as &ldquo;17 of 17 approved, 0 over budget&rdquo;. Tabs are coloured by stage: inputs, working copy, output, logs.</p>
 <p>Three things the exercise showed:</p>
 <ul>
 <li><b>Most of it already existed.</b> The lead message, the problem statement and the four benefits were on the homepage. The scaffold gave them one address each.</li>
@@ -134,6 +141,7 @@ BODY = """
 <li><b>The AI function works, with a click.</b> Formulas that arrive by import or through the API show as text until you select them and click <b>Generate and fill</b>. Select a range and one click covers every AI cell in it.</li>
 <li><b>There is a monthly limit.</b> Our test account generated five cells and then Sheets reported that the monthly limit for the AI function was reached. Limits depend on your plan.</li>
 <li><b>Gemini in Slides edits one slide for us today.</b> On a Workspace account with Gemini, a prompt with three approved lines changed the one-pager word for word and kept fonts, sizes and slot tags. The whole-deck prompt from <a href="/blog/google-slides-collateral-messaging-sheet-gemini">part 1</a> was refused: the rollout had not reached the account.</li>
+<li><b>Gemini writes usable SVG.</b> With the palette and the allowed elements spelled out in the prompt, the code converted without edits. It shortened the label we asked for.</li>
 <li><b>The sheet formulas hold.</b> Latest response, Final, Source notes, Source line, Length, Fits and the export block all compute as Google Sheets files.</li>
 <li><b>The form builder works.</b> <code>workshop_form.gs</code> built the 38-question form for the example on its first run and added the Responses tab.</li>
 <li><b>Scripts need an account that allows them.</b> On one of our Google accounts the permission request was refused with &ldquo;This app is blocked&rdquo;. The same script ran on a Workspace account.</li>
@@ -190,6 +198,7 @@ Message drafter, copy editor, image maker, image prep, asset checker. Paste the 
 - AI formulas written by import or API show as text until you click Generate and fill. One click covers a selected range.
 - Our test account hit the monthly AI function limit after five cells.
 - Gemini in Slides, on a Workspace account: a single-slide prompt applied three approved lines word for word and kept fonts, sizes and slot tags. The whole-deck prompt was refused; the rollout had not reached the account.
+- Gemini in the Slides side panel wrote a 16-element SVG UI mockup to a palette-and-elements brief; it converted to native shapes plus two text boxes without edits. Icons are Phosphor (MIT), placed as native shapes and tagged icon:<key>.
 - Sheet formulas and the export block compute. workshop_form.gs built the example form on its first run, on a Workspace account; another account refused the permission request ("This app is blocked"). apply_style.gs and sync_copy.gs have not been run yet.
 
 The screens in the post are mockups. Google Slides, Google Sheets, Google Forms, Google Drive and Gemini are trademarks of Google LLC.

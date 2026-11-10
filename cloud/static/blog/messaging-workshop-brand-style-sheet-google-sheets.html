@@ -331,8 +331,15 @@ a{color:inherit}
 <ul>
 <li><a href="https://docs.google.com/spreadsheets/d/1pqFKmoUejTFxgOmW-TVWAq3HIIl7B6DhzRY1a3qdTYo/edit">Messaging architecture</a>: workshop answers, 17 architecture lines, 25 slots, proof log.</li>
 <li><a href="https://docs.google.com/spreadsheets/d/1cFcoXDtE0lmqUklkeU7Zj9uiDA4k4zQE-loNoooriuQ/edit">Brand style sheet</a>: nine colour tokens, nine type roles, seven voice rules, the export block.</li>
-<li><a href="https://docs.google.com/presentation/d/1xOtwK481gb6sqjOiuqm8Tjg41qPYQ0rYQjYnUCLxgN8/edit">One-pager</a>, US Letter, and a <a href="https://docs.google.com/presentation/d/1-_8xMfLHxBo2bo3829dkkL3RmWX_lkwh0OkMlPok_PM/edit">two-slide deck</a>, 16:9. Every text box is tagged.</li>
+<li><a href="https://docs.google.com/presentation/d/1QTHRDkswETR8h4Bg4v1VbhZdk6-UUg8lbwojTUuo8aw/edit">One-pager</a>, US Letter, and a <a href="https://docs.google.com/presentation/d/1v-oovKABw9tOm4Kdp7A7uU1Ae9je-rt2rEEpcNK53pY/edit">three-slide deck</a>, 16:9. Every text box and icon is tagged.</li>
 </ul>
+<p>The graphics follow the same rule as the copy: native objects, tagged by name.</p>
+<ul>
+<li><b>Icons.</b> Seven icons from Phosphor Icons, an MIT-licensed set, placed as native shapes by the SVG to Slides converter. Each carries <code>icon:step_1</code> or similar in its alt text and has a row on an Icons tab: key, icon, licence, colour token. Recolour one with the fill picker.</li>
+<li><b>A UI mockup, drawn by Gemini as code.</b> We asked Gemini in the Slides side panel for SVG code of an editor mockup, limited to the brand palette and to rectangles, circles and text. It returned 16 elements. The converter turned the shapes into native shapes, and the two text elements became ordinary Slides text boxes, so the labels stay editable.</li>
+</ul>
+<figure><a href="/static/blog/img/vector-ui-mock.png"><picture><source type="image/webp" srcset="/static/blog/img/vector-ui-mock.webp"><img src="/static/blog/img/vector-ui-mock.png" width="2200" height="962" alt="Deck slide titled In your deck showing a simple editor mockup made of native shapes, with notes that the shapes came from Gemini&#x27;s SVG and the labels are text boxes" loading="lazy" decoding="async"></picture></a><figcaption>Slide 3 of the deck. Gemini wrote the SVG. The shapes are native and the labels are text boxes. Rendered from the template file.</figcaption></figure>
+<p>The example sheet also has a <b>Home</b> tab: one row per tab with what it holds, who edits it, and a live count, such as &ldquo;17 of 17 approved, 0 over budget&rdquo;. Tabs are coloured by stage: inputs, working copy, output, logs.</p>
 <p>Three things the exercise showed:</p>
 <ul>
 <li><b>Most of it already existed.</b> The lead message, the problem statement and the four benefits were on the homepage. The scaffold gave them one address each.</li>
@@ -345,6 +352,7 @@ a{color:inherit}
 <li><b>The AI function works, with a click.</b> Formulas that arrive by import or through the API show as text until you select them and click <b>Generate and fill</b>. Select a range and one click covers every AI cell in it.</li>
 <li><b>There is a monthly limit.</b> Our test account generated five cells and then Sheets reported that the monthly limit for the AI function was reached. Limits depend on your plan.</li>
 <li><b>Gemini in Slides edits one slide for us today.</b> On a Workspace account with Gemini, a prompt with three approved lines changed the one-pager word for word and kept fonts, sizes and slot tags. The whole-deck prompt from <a href="/blog/google-slides-collateral-messaging-sheet-gemini">part 1</a> was refused: the rollout had not reached the account.</li>
+<li><b>Gemini writes usable SVG.</b> With the palette and the allowed elements spelled out in the prompt, the code converted without edits. It shortened the label we asked for.</li>
 <li><b>The sheet formulas hold.</b> Latest response, Final, Source notes, Source line, Length, Fits and the export block all compute as Google Sheets files.</li>
 <li><b>The form builder works.</b> <code>workshop_form.gs</code> built the 38-question form for the example on its first run and added the Responses tab.</li>
 <li><b>Scripts need an account that allows them.</b> On one of our Google accounts the permission request was refused with &ldquo;This app is blocked&rdquo;. The same script ran on a Workspace account.</li>

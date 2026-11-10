@@ -185,11 +185,23 @@ def onepager():
     img = base64.b64encode((SRC / "svgs-one-pager.png").read_bytes()).decode()
     notes = "".join(f'<div style="display:flex;gap:10px;margin-bottom:12px"><span class="tag" style="position:static;align-self:flex-start">{t}</span><span class="b" style="font-size:12px;line-height:1.5">{d}</span></div>' for t, d in [
         ("slot:headline", "Architecture &rsaquo; tagline. Overpass SemiBold 34 pt, ink."), ("slot:subhead", "Architecture &rsaquo; positioning. Verdana 12 pt, grey."),
-        ("slot:step_1_body", "Architecture &rsaquo; how_1. Verdana 10 pt, grey."), ("slot:stat_1_value", "Proof tab. Overpass SemiBold 30 pt, blue."),
+        ("slot:step_1_body", "Architecture &rsaquo; how_1. Verdana 10 pt, grey."), ("icon:step_1", "Phosphor icon as a native shape, ink on amber."), ("slot:stat_1_value", "Proof tab. Overpass SemiBold 30 pt, blue."),
         ("slot:cta", "Overpass SemiBold 12 pt, white on a blue pill."), ("slot:legal", "Carries the Google trademark line.")])
     return f"""<div class="dia" style="display:flex;gap:36px;align-items:center"><img src="data:image/png;base64,{img}" style="width:470px;border:1px solid #dee1e6;box-shadow:0 8px 26px rgba(20,24,40,.12)">
 <div style="flex:1"><div class="cap">Built from the two sheets</div><div class="h" style="font-size:24px;margin:8px 0 18px">SVG to Slides one-pager</div>{notes}
-<div class="b" style="font-size:12px;color:#6b6f76;margin-top:8px">25 tagged text boxes. Copy from the Messages tab, type and colour from the style sheet.</div></div></div>"""
+<div class="b" style="font-size:12px;color:#6b6f76;margin-top:8px">25 tagged text boxes and 7 tagged icons. Copy from the Messages tab, type and colour from the style sheet.</div></div></div>"""
+
+
+@fig("vector-ui-mock", 1100)
+def uimock():
+    img = base64.b64encode((SRC / "svgs-deck-ui.png").read_bytes()).decode()
+    notes = "".join(f'<div style="display:flex;gap:10px;margin-bottom:12px"><span class="tag" style="position:static;align-self:flex-start">{t}</span><span class="b" style="font-size:12px;line-height:1.5">{d}</span></div>' for t, d in [
+        ("prompt", "Gemini, in the Slides side panel: one SVG, brand palette only, rect, circle and text only."),
+        ("ui:editor_mock", "12 native shapes from the converter. Select one and change its fill."),
+        ("text boxes", "&ldquo;Cmd + V&rdquo; and &ldquo;Presentation Editor&rdquo; are Slides text boxes."),
+        ("icon:step_1", "Icons on the other slides are tagged the same way.")])
+    return f"""<div class="dia" style="display:flex;gap:36px;align-items:center"><img src="data:image/png;base64,{img}" style="width:600px;border:1px solid #dee1e6;box-shadow:0 8px 26px rgba(20,24,40,.12)">
+<div style="flex:1"><div class="cap">Vector UI from generated code</div><div class="h" style="font-size:22px;margin:8px 0 18px">UI mockup from Gemini&rsquo;s SVG</div>{notes}</div></div>"""
 
 
 def main():
