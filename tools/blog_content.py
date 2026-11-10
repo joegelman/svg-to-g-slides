@@ -132,4 +132,6 @@ Tracking has landed in Google Slides. Here's what it is, how to use it well, and
 ]
 
 from blog_collateral import POST as _COLLATERAL
+from blog_collateral2 import POST as _COLLATERAL2
 POSTS.insert(0, _COLLATERAL)
+POSTS.insert(0, _COLLATERAL2)

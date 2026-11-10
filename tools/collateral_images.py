@@ -184,7 +184,7 @@ def grid(cols, widths, rows, cur=None, hl=None):
         tds = []
         for j, c in enumerate(r):
             cls = []
-            if isinstance(c, str) and c.startswith("Over"): cls.append("over")
+            if isinstance(c, str) and c.startswith("Over by"): cls.append("over")
             if c == "OK": cls.append("ok")
             if cur == (i, j): cls.append("cur")
             tds.append(f'<td class="{" ".join(cls)}">{c}</td>')

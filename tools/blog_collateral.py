@@ -27,6 +27,7 @@ BODY = """
 <p>The fix is to write the message in one place and have every asset take its copy from there. Google Slides&trade; was missing a piece for this. It can link a chart or a table to Google Sheets&trade;, but a headline in a text box is linked to nothing, so a copy change meant opening every file.</p>
 <p>On October 30, 2026, Google announced that <a href="%GEM_EDIT%">Gemini in Google Slides can edit an entire presentation from one prompt</a>. You type one instruction. Gemini decides which slides it applies to and edits them in place, as ordinary text and shapes. The instruction can point at a file in Drive. Google&rsquo;s own example prompt is &ldquo;Update this presentation to include more details based on [reference file].&rdquo;</p>
 <p>Make the reference file your messaging sheet, and updating an asset is one prompt. The rest of this post is the setup that makes that prompt worth running, and what to use when you need more control than a prompt gives you.</p>
+<p>This is part 1 of a series. <a href="/blog/messaging-workshop-brand-style-sheet-google-sheets">Part 2</a> covers where the messaging comes from, with a workshop form, a messaging architecture and a brand style sheet.</p>
 
 <h2 id="setup">The setup in one picture</h2>
 {fig:flow-sheet-to-assets|Flow diagram: plain fact, draft, approved line, then update by Gemini prompt or script into one-pager, solution brief, whitepaper, battlecard and sales deck|Copy flows left to right. The approved line is the only thing that reaches an asset.}
@@ -93,7 +94,7 @@ BODY = """
 </ul>
 <p>The Draft column can be a formula. <a href="%AI_FN%">Sheets has an AI function</a> that takes a prompt and a cell:</p>
 %PRE%=AI("Write one line of product marketing copy from this fact. Plain, specific, active voice. No superlatives.", B2)</pre>
-<p>It needs a Google plan that includes Gemini. Keep the formula simple: Google&rsquo;s help page says nested AI functions are not supported. Without Gemini, write the draft by hand. The rest of the sheet works the same.</p>
+<p>It needs a Google plan that includes Gemini. Keep the formula simple: Google&rsquo;s help page says nested AI functions are not supported. A formula that arrives by import or through the API shows as text until you select it and click <b>Generate and fill</b>. Select a range and one click covers every AI cell in it. Without Gemini, write the draft by hand. The rest of the sheet works the same.</p>
 <p>Keep Draft and Approved line separate. A formula can change. An approved line must not.</p>
 
 <h2 id="data">Tables and charts: link them</h2>
@@ -179,17 +180,20 @@ Do not add or delete pages.</pre>
 <li><a href="%T_BATTLE%">Battlecard</a>, Letter landscape.</li>
 <li><a href="%SKILLS%">Skills and script</a>: the agent contract, Gemini prompts, a Claude skill, a Codex AGENTS.md and <code>sync_copy.gs</code>.</li>
 <li>An approvals checklist and a start-here page.</li>
+<li>Added with <a href="/blog/messaging-workshop-brand-style-sheet-google-sheets">part 2</a>: a messaging architecture sheet, a brand style sheet, two more scripts, and a filled-in example for SVG to Slides.</li>
 </ul>
 <p>The sample copy is for a fictional product called Relay. Replace it with yours.</p>
 <p>To install the script: open your copy of the sheet, go to <b>Extensions &rsaquo; Apps Script</b>, paste <code>sync_copy.gs</code>, save, and reload the sheet. Put the URLs of your own template copies on the Assets tab.</p>
 
 <h2 id="status">What we have and have not tested</h2>
+<p><i>Updated Nov 9, 2026, after a first round of tests.</i></p>
 <ul>
 <li><b>Checked:</b> the templates keep their page sizes and slot tags as Google Slides files. The sheet&rsquo;s budget formulas work.</li>
-<li><b>Not yet run by us:</b> the whole-deck Gemini prompt, which is still rolling out. The description above comes from Google&rsquo;s announcement.</li>
-<li><b>Not yet run end to end:</b> the sync script and the AI formula in this workbook. Run the dry run first, on copies.</li>
+<li><b>Checked:</b> the AI function returns a draft from a fact once you click Generate and fill. Our test account then hit the monthly limit for the AI function after five cells. Limits depend on your plan.</li>
+<li><b>Still untested by us:</b> the whole-deck Gemini prompt. The Slides side panel on our test account still showed the Try Gemini prompt. The description above comes from Google&rsquo;s announcement.</li>
+<li><b>Not yet run end to end:</b> the sync script. Run the dry run first, on copies.</li>
 </ul>
-<p>We will update this post as we test each part. Later posts in this series go deeper on sizes, patterns, the sheet and agents.</p>
+<p>We will keep updating this post as we test each part. <a href="/blog/messaging-workshop-brand-style-sheet-google-sheets">Part 2</a> adds the workshop form, the messaging architecture, the brand style sheet and a worked example.</p>
 <p style="font-size:14px;color:var(--mute)">The screens in this post are mockups, not captures of Google&rsquo;s products. Google Slides, Google Sheets, Google Drive and Gemini are trademarks of Google LLC.</p>
 """
 
@@ -255,7 +259,7 @@ File › Approvals on the sheet ({APPROVALS}). Lock for review. Unlocking during
 Slides does not shrink text to fit. Budget every slot, fix length in the sheet, skip over-budget lines, look at every changed page, update linked objects last.
 
 ## Tested / not tested
-Checked: templates keep page sizes and slot tags as Slides files; budget formulas work. Not yet run by us: the whole-deck Gemini prompt (rolling out), the sync script end to end, the AI formula in this workbook. Run the dry run first, on copies.
+Checked: templates keep page sizes and slot tags as Slides files; budget formulas work. The AI function works after a Generate and fill click; our test account hit its monthly limit after five cells. Still untested by us: the whole-deck Gemini prompt (side panel not available on our test account) and the sync script end to end. Part 2: https://svgslid.es/blog/messaging-workshop-brand-style-sheet-google-sheets
 
 The screens in the post are mockups. Google Slides, Google Sheets, Google Drive and Gemini are trademarks of Google LLC.
 """

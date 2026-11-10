@@ -56,6 +56,6 @@ File › Approvals on the sheet (https://support.google.com/drive/answer/9387535
 Slides does not shrink text to fit. Budget every slot, fix length in the sheet, skip over-budget lines, look at every changed page, update linked objects last.
 
 ## Tested / not tested
-Checked: templates keep page sizes and slot tags as Slides files; budget formulas work. Not yet run by us: the whole-deck Gemini prompt (rolling out), the sync script end to end, the AI formula in this workbook. Run the dry run first, on copies.
+Checked: templates keep page sizes and slot tags as Slides files; budget formulas work. The AI function works after a Generate and fill click; our test account hit its monthly limit after five cells. Still untested by us: the whole-deck Gemini prompt (side panel not available on our test account) and the sync script end to end. Part 2: https://svgslid.es/blog/messaging-workshop-brand-style-sheet-google-sheets
 
 The screens in the post are mockups. Google Slides, Google Sheets, Google Drive and Gemini are trademarks of Google LLC.
