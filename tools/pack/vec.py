@@ -68,7 +68,7 @@ def place_svg(slide, svg, x, y, w, fill=None, tag=None, text_font="Verdana", tex
         fs = float(re.sub(r"[a-z]+", "", el.get("font-size", "12")))
         tx, ty = float(el.get("x", "0")), float(el.get("y", "0"))
         anchor = el.get("text-anchor", "start")
-        bw = max(len(txt) * fs * 0.62, fs * 2) * k
+        bw = max(len(txt) * fs * 0.95, fs * 3) * k  # Slides wraps at the box edge and renders Verdana wide; leave slack
         bx = x + (tx - vx) * k - (bw / 2 if anchor == "middle" else bw if anchor == "end" else 0)
         tb = slide.shapes.add_textbox(Inches(bx), Inches(y + (ty - vy - fs * 0.95) * k), Inches(bw), Inches(fs * 1.3 * k))
         t += 1
