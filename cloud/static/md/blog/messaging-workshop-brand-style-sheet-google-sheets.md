@@ -31,7 +31,7 @@ Message drafter, copy editor, image maker, image prep, asset checker. Paste the 
 ## Test results
 - AI formulas written by import or API show as text until you click Generate and fill. One click covers a selected range.
 - Our test account hit the monthly AI function limit after five cells.
-- The Slides Gemini side panel was not available on that account, so the whole-deck edit is still untested by us.
+- Gemini in Slides, on a Workspace account: a single-slide prompt applied three approved lines word for word and kept fonts, sizes and slot tags. The whole-deck prompt was refused; the rollout had not reached the account.
 - Sheet formulas and the export block compute. workshop_form.gs built the example form on its first run, on a Workspace account; another account refused the permission request ("This app is blocked"). apply_style.gs and sync_copy.gs have not been run yet.
 
 The screens in the post are mockups. Google Slides, Google Sheets, Google Forms, Google Drive and Gemini are trademarks of Google LLC.

@@ -343,7 +343,7 @@ Message drafter, copy editor, image maker, image prep, asset checker. Paste the 
 ## Test results
 - AI formulas written by import or API show as text until you click Generate and fill. One click covers a selected range.
 - Our test account hit the monthly AI function limit after five cells.
-- The Slides Gemini side panel was not available on that account, so the whole-deck edit is still untested by us.
+- Gemini in Slides, on a Workspace account: a single-slide prompt applied three approved lines word for word and kept fonts, sizes and slot tags. The whole-deck prompt was refused; the rollout had not reached the account.
 - Sheet formulas and the export block compute. workshop_form.gs built the example form on its first run, on a Workspace account; another account refused the permission request ("This app is blocked"). apply_style.gs and sync_copy.gs have not been run yet.
 
 The screens in the post are mockups. Google Slides, Google Sheets, Google Forms, Google Drive and Gemini are trademarks of Google LLC.
@@ -409,7 +409,7 @@ File › Approvals on the sheet (https://support.google.com/drive/answer/9387535
 Slides does not shrink text to fit. Budget every slot, fix length in the sheet, skip over-budget lines, look at every changed page, update linked objects last.
 
 ## Tested / not tested
-Checked: templates keep page sizes and slot tags as Slides files; budget formulas work. The AI function works after a Generate and fill click; our test account hit its monthly limit after five cells. Still untested by us: the whole-deck Gemini prompt (side panel not available on our test account) and the sync script end to end. Part 2: https://svgslid.es/blog/messaging-workshop-brand-style-sheet-google-sheets
+Checked: templates keep page sizes and slot tags as Slides files; budget formulas work. The AI function works after a Generate and fill click; our test account hit its monthly limit after five cells. On a Workspace account with Gemini, a single-slide prompt with three approved lines applied them word for word and kept fonts, sizes and slot tags. The whole-deck prompt that references the sheet was refused there ("only able to edit the single currently active slide"); the rollout had not reached the account on Nov 9. The sync script has not been run end to end. Part 2: https://svgslid.es/blog/messaging-workshop-brand-style-sheet-google-sheets
 
 The screens in the post are mockups. Google Slides, Google Sheets, Google Drive and Gemini are trademarks of Google LLC.
 

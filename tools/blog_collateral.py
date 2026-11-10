@@ -122,7 +122,7 @@ Do not add or delete pages.</pre>
 <ul>
 <li><b>Gemini chooses.</b> It decides which slides change. Compare every changed line with the sheet.</li>
 <li><b>One file per prompt.</b> Ten assets means ten prompts.</li>
-<li><b>Rollout.</b> Google began rolling the feature out on October 29 and said it could take longer than 15 days to appear.</li>
+<li><b>Rollout.</b> Google began rolling the feature out on October 29 and said it could take longer than 15 days to appear. On November 9 our Workspace account did not have it yet: Gemini edited the active slide only.</li>
 <li><b>Plan.</b> Gemini features depend on your Google plan. Check Google&rsquo;s help pages for current availability.</li>
 </ul>
 
@@ -190,7 +190,8 @@ Do not add or delete pages.</pre>
 <ul>
 <li><b>Checked:</b> the templates keep their page sizes and slot tags as Google Slides files. The sheet&rsquo;s budget formulas work.</li>
 <li><b>Checked:</b> the AI function returns a draft from a fact once you click Generate and fill. Our test account then hit the monthly limit for the AI function after five cells. Limits depend on your plan.</li>
-<li><b>Still untested by us:</b> the whole-deck Gemini prompt. The Slides side panel on our test account still showed the Try Gemini prompt. The description above comes from Google&rsquo;s announcement.</li>
+<li><b>Checked, one slide at a time:</b> on a Workspace account with Gemini, we gave the side panel three approved lines for the one-pager and told it to use the words exactly. It showed a preview, we clicked Replace, and all three lines landed word for word. Fonts, sizes, page size and slot tags were unchanged.</li>
+<li><b>Whole-deck edit not available to us yet:</b> the same account refused the prompt that pointed at the messaging sheet. Gemini answered that it could only edit the currently active slide. Google said the rollout could take longer than 15 days. Until it reaches you, paste the approved lines into the prompt, one slide at a time.</li>
 <li><b>Not yet run end to end:</b> the sync script. Run the dry run first, on copies.</li>
 </ul>
 <p>We will keep updating this post as we test each part. <a href="/blog/messaging-workshop-brand-style-sheet-google-sheets">Part 2</a> adds the workshop form, the messaging architecture, the brand style sheet and a worked example.</p>
@@ -259,7 +260,7 @@ File › Approvals on the sheet ({APPROVALS}). Lock for review. Unlocking during
 Slides does not shrink text to fit. Budget every slot, fix length in the sheet, skip over-budget lines, look at every changed page, update linked objects last.
 
 ## Tested / not tested
-Checked: templates keep page sizes and slot tags as Slides files; budget formulas work. The AI function works after a Generate and fill click; our test account hit its monthly limit after five cells. Still untested by us: the whole-deck Gemini prompt (side panel not available on our test account) and the sync script end to end. Part 2: https://svgslid.es/blog/messaging-workshop-brand-style-sheet-google-sheets
+Checked: templates keep page sizes and slot tags as Slides files; budget formulas work. The AI function works after a Generate and fill click; our test account hit its monthly limit after five cells. On a Workspace account with Gemini, a single-slide prompt with three approved lines applied them word for word and kept fonts, sizes and slot tags. The whole-deck prompt that references the sheet was refused there ("only able to edit the single currently active slide"); the rollout had not reached the account on Nov 9. The sync script has not been run end to end. Part 2: https://svgslid.es/blog/messaging-workshop-brand-style-sheet-google-sheets
 
 The screens in the post are mockups. Google Slides, Google Sheets, Google Drive and Gemini are trademarks of Google LLC.
 """
