@@ -460,6 +460,9 @@ PRODUCTS = {  # key: (label, chip bg, chip text, text colour on white)
 BLOG_CSS += """
 .pchip{display:inline-block;font-family:var(--display);font-weight:800;font-size:12px;letter-spacing:.08em;text-transform:uppercase;border-radius:999px;padding:3px 10px 2px;margin-right:10px;vertical-align:1px;background:var(--pc,#f9c80e);color:var(--pci,#1c1e22)}
 .post .kick,.pcard .kick{color:var(--pct,var(--blue))}
+.post .kick .pchip{display:table;margin:0 0 10px}
+.pcard .crow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;margin:0 0 8px}.pcard .crow .pchip{margin:0}.pcard .crow .dt{font-size:13px;color:var(--mute)}
+.post .crumb{margin-bottom:12px!important}
 .post .tldr{border-left-color:var(--pc,var(--yellow))}
 .post ol.steps li::before{background:var(--pc,var(--yellow));color:var(--pci,#1c1e22)}
 .pcard{border-top:5px solid var(--pc,var(--rule))}
@@ -604,7 +607,7 @@ def blog_index_html(css, head_icons):
     cards = "".join(
         f'<a class="pcard" href="/blog/{p["slug"]}"{pvars(p)}><picture><source type="image/webp" srcset="/static/blog/img/{p["og"][:-4]}.webp">'
         f'<img src="/static/blog/img/{p["og"]}" width="1200" height="630" alt="{esc(p["hero"][1])}"></picture>'
-        f'<div class="in"><div class="kick">{pchip(p)}{p["kicker"]} &middot; {p["date_h"]}</div><h2>{p["h1"]}</h2><p>{p["dek"]}</p></div></a>'
+        f'<div class="in"><div class="crow">{pchip(p)}<span class="dt">{p["date_h"]}</span></div><div class="kick">{p["kicker"]}</div><h2>{p["h1"]}</h2><p>{p["dek"]}</p></div></a>'
         for p in B.POSTS)
     used = []
     for p in B.POSTS:
