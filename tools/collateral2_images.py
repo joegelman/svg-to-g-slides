@@ -85,8 +85,8 @@ def flow():
 <div style="display:flex;align-items:center;gap:12px;margin-top:22px">
 {b("1. Workshop form", "38 questions in 11 sections. Google Forms.", "background:#f4f5f7")}{arr}
 {b("2. Workshop tab", "Latest response per question, with an override column.")}{arr}
-{b("3. Architecture", "17 elements on 5 levels. =AI() drafts, approved lines.")}{arr}
-{b("4. Messages", "One row per slot. Role, budget, approved line.", "border-color:#0066ff;border-width:2.5px")}{arr}
+{b("3. Architecture", "17 elements on 5 levels. =AI() drafts, a person sets the line.")}{arr}
+{b("4. Messages", "One row per slot. Role, brief, budget, generated line.", "border-color:#0066ff;border-width:2.5px")}{arr}
 {b("Assets", "One-pager, deck, brief. Tagged text boxes.", "background:#1c1e22;color:#fff")}</div>
 <div style="display:flex;align-items:center;gap:12px;margin-top:16px;justify-content:flex-end">
 {b("Brand style sheet", "Colors, Type, Layout, Logo, Imagery, Voice, Personality.", "background:#fff6d6;border-color:#f9c80e;width:260px")}{arr}
@@ -117,7 +117,7 @@ def archtab():
              "Product marketing teams rely heavily on presentations and documents to pitch their offerings. However, they frequently settle for low-resolution, pixelated images&hellip;", "Product marketing runs on decks and documents. Where there should be crisp icons and logos there are crunchy PNGs.", 200, 114, "OK"],
             ["Level 2", "problem", "Google Slides doesn&rsquo;t support SVG files. Your options are to flatten them into PNGs&hellip; | Flatten the SVG into a PNG&hellip;",
              "Google Slides does not natively support SVG files, forcing users to rely on tedious workarounds or lose quality by flattening them into PNGs.", "Google Slides doesn&rsquo;t support SVG files. Your options are to flatten them into PNGs or take the long way through EMF conversion&hellip;", 200, 157, "OK"]]
-    g = ci.grid(["Level", "Key", "Source notes", "Draft", "Approved line", "Budget", "Length", "Fits"], [70, 90, 260, 260, 270, 56, 56, 56], rows, cur=(2, 3), hl=4)
+    g = ci.grid(["Level", "Key", "Source notes", "Draft", "Line", "Budget", "Length", "Fits"], [70, 90, 260, 260, 270, 56, 56, 56], rows, cur=(2, 3), hl=4)
     return ci.sheet_win(g, ["Workshop", "Architecture", "Messages", "Refinements", "Audiences", "Proof", "Assets", "Approvals"], "Architecture", "D2",
                         '=AI("Lead message / tagline. Write this element of a B2B messaging hierarchy from the workshop notes. One line. Plain, specific, active voice. No superlatives.", C2)',
                         title="SVG to Slides - Messaging architecture", )

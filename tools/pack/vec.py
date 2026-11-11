@@ -80,7 +80,7 @@ def place_svg(slide, svg, x, y, w, fill=None, tag=None, text_font="Verdana", tex
         p = tf.paragraphs[0]
         p.alignment = {"middle": PP_ALIGN.CENTER, "end": PP_ALIGN.RIGHT}.get(anchor, PP_ALIGN.LEFT)
         r = p.add_run(); r.text = txt
-        r.font.name = text_font; r.font.size = Pt(max(fs * k * 72, 4)); r.font.bold = el.get("font-weight") in ("bold", "600", "700", "800")
+        r.font.name = text_font; r.font.size = Pt(max(round(fs * k * 72, 1), 1)); r.font.bold = el.get("font-weight") in ("bold", "600", "700", "800")
         col = s2s.parse_color(el.get("fill", "#1C1E22")) or "1C1E22"
         r.font.color.rgb = RGBColor.from_string(col.upper().lstrip("#"))
     return w * vh / vw, n, t

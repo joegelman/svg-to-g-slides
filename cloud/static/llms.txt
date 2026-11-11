@@ -20,7 +20,7 @@ Google Slides doesn't keep SVG files as editable vectors. SVG to Slides converts
 
 ## Blog
 - [Run a messaging workshop in Google Forms and build a brand style sheet in Google Sheets](https://svgslid.es/blog/messaging-workshop-brand-style-sheet-google-sheets.md): A form collects the answers. One sheet turns them into messaging. A second sheet holds the brand's colours, type and voice in a form scripts and Gems can read.
-- [Update Google Slides collateral from one messaging sheet with Gemini](https://svgslid.es/blog/google-slides-collateral-messaging-sheet-gemini.md): Write the message once in a sheet. Update every one-pager, brief, whitepaper and battlecard from it. Templates, prompts and a script included.
+- [Update Google Slides collateral from one messaging sheet with Gemini](https://svgslid.es/blog/google-slides-collateral-messaging-sheet-gemini.md): Write the brief once in a sheet. Gemini writes each line to a recipe and a character limit, and a script puts it in every one-pager, brief, whitepaper and battlecard.
 - [Google Slides finally does letter spacing](https://svgslid.es/blog/letter-spacing-google-slides.md): Tracking has landed in Slides. Here's what it is, how to use it well, and why Docs looks next.
 
 ## Optional

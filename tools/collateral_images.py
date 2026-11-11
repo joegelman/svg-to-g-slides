@@ -160,7 +160,7 @@ def gemini_panel(done=True):
 <div class="ch"><em>Label</em><span><s>plans include SSO*</s> &rarr; <b>plans include SSO</b></span></div>
 <div class="btnrow" style="margin-top:12px"><span class="gbtn">Undo</span><span class="gbtn">Version history</span></div></div>""" if done else ""
     return f"""<div class="side"><div class="sh"><span class="star"></span>Gemini<span class="x">&times;</span></div><div class="bd">
-<div class="bub">Update this presentation from the Approved line column of <span class="chip">@01 Messaging sheet</span>. Use the approved wording exactly. Keep every layout, font, colour and image as it is. Do not add or delete pages.</div>
+<div class="bub">Update this presentation from the Line column of <span class="chip">@01 Messaging sheet</span>. Use the wording exactly. Keep every layout, font, colour and image as it is. Do not add or delete pages.</div>
 {summary}</div><div class="ask">Ask Gemini<span class="sp"></span>&#x27A4;</div></div>"""
 
 
@@ -192,17 +192,18 @@ def grid(cols, widths, rows, cur=None, hl=None):
     return f'<table class="g"><colgroup>{cg}</colgroup>{hd}{"".join(out)}</table>'
 
 
-TABS = ["Messages", "Voice", "Assets", "Data", "Sizes", "Approvals"]
-MSG_COLS = ["Key", "Fact", "Draft", "Approved line", "Budget", "Length", "Fits", "Used in"]
-MSG_W = [118, 210, 210, 230, 58, 58, 78, 150]
+TABS = ["Home", "Messages", "Rules", "Icons", "Library", "Assets"]
+MSG_COLS = ["Key", "Role", "Source", "Brief", "Prompt", "Line", "Budget", "Length", "Fits", "Used in"]
+MSG_W = [112, 68, 78, 196, 92, 196, 54, 54, 74, 126]
+_P = "Write the %s line&hellip;"
 MSG_ROWS = [
-    ["eyebrow", "Category we sell in: secure file transfer.", "Secure file transfer", "Secure file transfer", 28, 20, "OK", "One-pager, Solution brief"],
-    ["headline", "People can send large files without asking IT for help.", "Send large files without opening a ticket", "Send large files without opening a ticket", 48, 41, "OK", "One-pager, Solution brief"],
-    ["subhead", "Relay moves files between teams and partners. Security controls are admin-managed.", "Relay moves files of any size between teams and partners, with access controls your security team sets once.", "Relay moves files of any size between teams and partners, with access controls your security team sets once.", 120, 108, "OK", "One-pager, Solution brief"],
-    ["benefit_1_title", "SSO is included on every plan.", "Single sign-on, included on every plan", "SSO on every plan", 24, 17, "OK", "One-pager, Battlecard"],
-    ["benefit_1_body", "Customers sign in with their existing identity provider. No extra fee for SSO.", "Sign in with the identity provider you already use. No add-on fee.", "Sign in with the identity provider you already use. No add-on fee.", 80, 66, "OK", "One-pager"],
-    ["benefit_2_title", "Transfer links can expire.", "Links that expire when you say so", "Links that expire when you say so", 24, 33, "Over by 9", "One-pager, Battlecard"],
-    ["stat_3_value", "Plans that include SSO.", "All", "All", 8, 3, "OK", "One-pager"],
+    ["eyebrow", "eyebrow", "", "Category we sell in: secure file transfer.", _P % "eyebrow", "Secure file transfer", 28, 20, "OK", "One-pager, Solution brief"],
+    ["headline", "headline", "tagline", "People can send large files without asking IT for help.", _P % "headline", "Send large files without opening a ticket", 48, 41, "OK", "One-pager, Solution brief"],
+    ["subhead", "subhead", "positioning", "Relay moves files between teams and partners. Security controls are admin-managed.", _P % "subhead", "Relay moves files of any size between teams and partners, with access controls your security team sets once.", 120, 108, "OK", "One-pager, Solution brief"],
+    ["benefit_1_title", "title", "benefit_1", "SSO is included on every plan.", _P % "title", "SSO on every plan", 24, 17, "OK", "One-pager, Battlecard"],
+    ["benefit_1_body", "body", "benefit_1", "Customers sign in with their existing identity provider. No extra fee for SSO.", _P % "body", "Sign in with the identity provider you already use. No add-on fee.", 80, 66, "OK", "One-pager"],
+    ["benefit_2_title", "title", "benefit_2", "Transfer links can expire.", _P % "title", "Links that expire when you say so", 24, 33, "Over by 9", "One-pager, Battlecard"],
+    ["stat_3_value", "stat", "proof", "Plans that include SSO.", _P % "stat", "All", 8, 3, "OK", "One-pager"],
 ]
 
 FIGS = {}
@@ -237,8 +238,8 @@ def flow():
     return f"""<div class="dia"><div class="cap">One source, many assets</div>
 <div style="display:flex;align-items:center;gap:18px;margin-top:22px">
 <div class="box" style="width:215px;background:#f4f5f7"><h6>1. Plain fact</h6><p>&ldquo;SSO is included on every plan.&rdquo; One row per message.</p></div><div class="arr"></div>
-<div class="box" style="width:215px"><h6>2. Draft</h6><p>=AI() in the sheet, or written by hand. Checked against a character budget.</p></div><div class="arr"></div>
-<div class="box" style="width:215px;border-color:#0066ff;border-width:2.5px"><h6 style="color:#0066ff">3. Approved line</h6><p>Signed off once, in the sheet. The only column that reaches an asset.</p></div><div class="arr"></div>
+<div class="box" style="width:215px"><h6>2. Rules</h6><p>A recipe per role, the voice, and a hard character limit. One tab.</p></div><div class="arr"></div>
+<div class="box" style="width:215px;border-color:#0066ff;border-width:2.5px"><h6 style="color:#0066ff">3. Line</h6><p>Written by =AI() from the fact and the rules. The only column that reaches an asset.</p></div><div class="arr"></div>
 <div style="display:flex;flex-direction:column;gap:8px"><div class="cap" style="color:#1c1e22">4. Update</div>
 <div class="box" style="width:230px;background:#fff6d6;border-color:#f9c80e"><h6>Gemini prompt</h6><p>One asset at a time, no code.</p></div>
 <div class="box" style="width:230px;background:#fff6d6;border-color:#f9c80e"><h6>Script or agent</h6><p>Every asset, exact wording, by slot.</p></div></div><div class="arr"></div>
@@ -309,10 +310,9 @@ def patterns():
 
 @fig("messaging-sheet")
 def msheet():
-    g = grid(MSG_COLS, MSG_W, MSG_ROWS, cur=(5, 2), hl=3)
+    g = grid(MSG_COLS, MSG_W, MSG_ROWS, cur=(5, 5), hl=5)
     extra = ''
-    return sheet_win(g, TABS, "Messages", "C5",
-                     '=AI("Write one line of product marketing copy from this fact. Plain, specific, active voice. No superlatives.", B5)', extra=extra)
+    return sheet_win(g, TABS, "Messages", "F5", '=AI(E5, D5)', extra=extra)
 
 
 @fig("linked-objects-update")
@@ -354,14 +354,14 @@ def sync():
 
 @fig("approvals-sidebar")
 def approvals():
-    g = grid(MSG_COLS[:5], [118, 200, 200, 230, 58], [r[:5] for r in MSG_ROWS[:6]])
+    g = grid(MSG_COLS[:6], [112, 68, 78, 196, 92, 196], [r[:6] for r in MSG_ROWS[:6]])
     side = """<div class="side"><div class="sh">Approvals<span class="x">&times;</span></div><div class="bd">
 <div style="background:#fff6d6;border-radius:8px;padding:10px 12px"><b style="font-weight:500">Pending approval</b><div style="font-size:12px;color:#6b6f76;margin-top:2px">Due Nov 12, 2026 &middot; File locked</div></div>
 <div style="display:flex;gap:10px;align-items:center"><div class="av" style="background:#0066ff">PM</div><div><b style="font-weight:500">Product marketing lead</b><div style="font-size:12px;color:#188038">Approved</div></div></div>
 <div style="display:flex;gap:10px;align-items:center"><div class="av" style="background:#6b6f76">LG</div><div><b style="font-weight:500">Legal</b><div style="font-size:12px;color:#6b6f76">Awaiting review</div></div></div>
 <div style="font-size:12px;color:#6b6f76;line-height:1.5;border-top:1px solid #eef0f2;padding-top:10px">&ldquo;SSO moved to every plan. Rows changed: benefit_1_title, benefit_1_body, stat_3_value, win_1.&rdquo;</div>
 <div class="sp" style="flex:1"></div><div class="btnrow"><span class="gbtn p">Approve</span><span class="gbtn">Reject</span></div></div></div>"""
-    return sheet_win(g, TABS, "Messages", "D5", "SSO on every plan", side=side, menu_on="File")
+    return sheet_win(g, TABS, "Messages", "F5", "=AI(E5, D5)", side=side, menu_on="File")
 
 
 @fig("layout-shift-before-after")

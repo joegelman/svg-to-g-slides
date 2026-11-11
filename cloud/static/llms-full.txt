@@ -316,8 +316,10 @@ Yes. Converted shapes are vectors, so they resize at any size and stay crisp.
 
 ## TL;DR
 - A messaging workshop runs as a Google Form: 38 questions in 11 sections, built by script from a Workshop tab.
-- Answers feed a five-level messaging architecture (primary; context, problem, promise; how; benefits and proof; secondary). Drafts come from =AI(); a person types the approved line.
-- The Messages tab gains Role, Source and Source line. Adjunct tabs: Refinements, Audiences, Proof.
+- Answers feed a five-level messaging architecture (primary; context, problem, promise; how; benefits and proof; secondary). Drafts come from =AI(); a person sets each of the 17 lines.
+- The Messages tab takes each brief from the architecture and has Gemini write the line under a recipe per role and a character limit. No approval column. Adjunct tabs: Refinements, Audiences, Proof.
+- Icons and UI mockups live in two master library decks of native shapes; asset decks pull from them by tag.
+- Page recipes: twelve block formulas from seven live solution and product pages, filled in as two decks.
 - A brand style sheet holds Colors, Type, Layout, Logo, Imagery, Voice, Personality and Gems, and exports itself as one text cell for scripts, agents and Gems.
 - Worked example for SVG to Slides: https://drive.google.com/drive/folders/1EOSAfzAkwnhXBWwTkqBSMdMxF-BH9t50
 - Starter pack: https://drive.google.com/drive/folders/12DEX6TnEHQ8goCO29j9ubwYfHP5K72-q
@@ -332,20 +334,27 @@ Workshop tab columns: Latest response (newest form row, matched by question text
 
     =AI("Promise. Write this element of a B2B messaging hierarchy from the workshop notes. One or two sentences. Plain, specific, active voice.", E6)
 
-Example from our test: Gemini drafted "Convert SVG files into editable vector shapes directly inside Google Slides." The approved lead message is "Editable SVGs in Google Slides."
+Example from our test: Gemini drafted "Convert SVG files into editable vector shapes directly inside Google Slides." The line we kept is "Editable SVGs in Google Slides."
 
 ## Style sheet
-Type is set by role (eyebrow, headline, subhead, title, body, stat, label, cta, legal). The Messages tab gives each slot a role; `apply_style.gs` sets font, size and colour on tagged text boxes. The Export tab joins all tabs into one cell of text.
+Type is set by role (eyebrow, headline, subhead, title, body, stat, label, cta, legal). The Messages tab gives each slot a role; the Apply style menu item sets font, size and colour on tagged text boxes. The Export tab joins all tabs into one cell of text.
 
 ## Gems
 Message drafter, copy editor, image maker, image prep, asset checker. Paste the instructions into a Gem, then the export block. Availability depends on your Google plan.
 
-## Test results
-- AI formulas written by import or API show as text until you click Generate and fill. One click covers a selected range.
-- Our test account hit the monthly AI function limit after five cells.
-- Gemini in Slides, on a Workspace account: a single-slide prompt applied three approved lines word for word and kept fonts, sizes and slot tags. The whole-deck prompt was refused; the rollout had not reached the account.
-- Gemini in the Slides side panel wrote a 16-element SVG UI mockup to a palette-and-elements brief; it converted to native shapes plus two text boxes without edits. Icons are Phosphor (MIT), placed as native shapes and tagged icon:<key>.
-- Sheet formulas and the export block compute. workshop_form.gs built the example form on its first run, on a Workspace account; another account refused the permission request ("This app is blocked"). apply_style.gs and sync_copy.gs have not been run yet.
+## Libraries and page recipes
+- Icon library (https://docs.google.com/presentation/d/1aiPHjI3cdyQO8QnRu5GYpR2mLv0aFSCbSKramv4vOc0/edit): 85 Phosphor icons (MIT), one per slide, native shapes tagged lib:<name>, with a small white keyword label for Ctrl+F. UI library (https://docs.google.com/presentation/d/1YiYVc8NgGR9VfWS5ySz5-0LwCbhVUtaRYRRBHdKrTpE/edit): 13 mockups.
+- Asset slots are tagged icon:<key> and ui:<name>. Place icons and UIs swaps them for library shapes and keeps the deck's file ID. Add to library appends converted slides from svgslid.es/convert. The Icons tab has a searchable dropdown of library names.
+- Page recipes (https://docs.google.com/spreadsheets/d/1ehY-jZ3Tq1q7070H8WEEniZr_yqYNPwik_4nHf-OCQE/edit): hero, proof bar, problem, pillar trio, feature row, benefit list, feature grid, how it works, FAQ, closing CTA, fact columns, testimonial. Solution pages keep feature names out of headlines until a grid; product pages name the feature first and explain the mechanism. Filled in as a solution page deck (https://docs.google.com/presentation/d/11x2sGv4ZbPbD1BBlyp9bVaXt2fYli2Ki6l2XpgXgY08/edit) and a product page deck (https://docs.google.com/presentation/d/1cG0kRn9CByAw4vw6dv9H9lJBDx8SfAqwn8-bsuzlybA/edit).
+
+## Test results (Nov 10, 2026)
+- AI formulas written by script, import or API show as text until you click Generate and fill. One click covers a selected range. The 82 Line formulas had not been generated when this was written.
+- Our first test account hit the monthly AI function limit after five cells.
+- Gemini in Slides, on a Workspace account: a single-slide prompt applied three lines word for word and kept fonts, sizes and slot tags. The whole-deck prompt was refused; the rollout had not reached the account.
+- Gemini in the Slides side panel wrote a 16-element SVG UI mockup to a palette-and-elements brief; it converted to native shapes plus two text boxes without edits.
+- Dry run opened four decks and reported zero to three slots to change in each. Place icons and UIs worked after two fixes to mockup text (box width, type scaled from box height).
+- Scripts ran on a sheet owned by the Workspace account that runs them. A personal account refused ("This app is blocked"); a sheet owned by another account showed an unverified-app warning. Link chips on the Assets tab break the script.
+- Not yet run end to end: Sync all with generated lines, Add to library.
 
 The screens in the post are mockups. Google Slides, Google Sheets, Google Forms, Google Drive and Gemini are trademarks of Google LLC.
 
@@ -356,13 +365,13 @@ The screens in the post are mockups. Google Slides, Google Sheets, Google Forms,
 
 *Nov 9, 2026 · svgslid.es blog*
 
-Write the message once in a sheet. Update every one-pager, brief, whitepaper and battlecard from it.
+Write the brief once in a sheet. Gemini writes each line to a recipe and a character limit, and a script puts it in every asset. Updated Nov 10, 2026.
 
 ## TL;DR
 - Since Oct 30, 2026, Gemini in Google Slides can edit a whole presentation from one prompt, grounded in a Drive file (https://workspaceupdates.googleblog.com/2026/10/edit-entire-presentations-with-gemini-in-Google-Slides.html).
 - Point that prompt at a messaging sheet and one asset updates in one step.
 - For exact wording across many assets, tag text boxes with `slot:<key>` in alt text and use a script or an agent.
-- Approve the sheet once. Give every slot a character budget. Look at every changed page.
+- Gemini writes each line under a recipe, voice rules and a hard character limit. No approval column. Look at every changed page.
 - Starter pack (templates, sheet, prompts, script): https://drive.google.com/drive/folders/12DEX6TnEHQ8goCO29j9ubwYfHP5K72-q
 
 ## What changed
@@ -380,11 +389,11 @@ Slides has no bleed setting. Add the bleed to every side of the canvas (Letter +
 Six blocks: hero block, three up, proof strip, problem/answer, two columns with pull line, closing strip. Text boxes: fixed size with room to spare, one job per box, one style per role. Logos and icons as vectors (SVG to Slides).
 
 ## Messaging sheet
-Columns: Key, Fact, Draft, Approved line, Budget, Length, Fits, Used in. Draft can use the Sheets AI function (https://support.google.com/docs/answer/15877199):
+Columns: Key, Role, Source, Brief, Prompt, Line, Budget, Length, Fits, Used in. A person writes the Brief. The Prompt column joins the role's recipe, the voice and the row's budget from a Rules tab. The Line column is the Sheets AI function (https://support.google.com/docs/answer/15877199):
 
-    =AI("Write one line of product marketing copy from this fact. Plain, specific, active voice. No superlatives.", B2)
+    =AI(E2, D2)
 
-Needs a Google plan with Gemini. Nested AI functions are not supported. Only Approved line reaches an asset.
+Rules tab: one recipe per role (eyebrow, headline, subhead, title, body, stat, label, cta, legal), the voice, "use only facts in the brief", "return the line only", and the budget as a hard character limit. There is no Draft or Approved line column (removed Nov 10, 2026). Needs a Google plan with Gemini. Nested AI functions are not supported. AI formulas written by script, import or API wait for a Generate and fill click. Only the Line column reaches an asset.
 
 ## Linked tables and charts
 Copy in Sheets, paste in Slides, choose Link to spreadsheet. Tools › Linked objects › Update all. Updates are manual. Tables over 400 cells paste unlinked (https://support.google.com/docs/answer/7009814). Updates override edits made in Slides.
@@ -392,25 +401,25 @@ Copy in Sheets, paste in Slides, choose Link to spreadsheet. Tools › Linked ob
 ## Update one asset with Gemini
 Prompt in the Slides side panel, with the sheet referenced:
 
-    Update this presentation from the Approved line column of @Messaging sheet.
+    Update this presentation from the Line column of @Messaging sheet.
     Each row's Used in column says which asset it belongs to.
-    Use the approved wording exactly. Do not rephrase, add or remove sentences.
+    Use the wording exactly. Do not rephrase, add or remove sentences.
     Keep every layout, font, colour and image as it is.
     Do not add or delete pages.
 
 Limits: Gemini chooses which slides change; one file per prompt; availability depends on rollout and plan.
 
 ## Named slots and a script
-Right-click a text box › Alt text › Title: `slot:headline`. The key matches the sheet. The pack's Apps Script (`sync_copy.gs`) adds Dry run and Sync copy to assets. Over-budget lines are skipped and flagged. Untagged boxes are never touched. Instruction files for Gemini, Claude and Codex follow one agent contract.
+Right-click a text box › Alt text › Title: `slot:headline`. The key matches the sheet. The script attached to the starter sheet adds a Collateral menu: Sync all (copy, style, icons and UIs), Sync copy to assets, Apply style, Place icons and UIs, Dry run. Over-budget lines and lines not yet generated are skipped and flagged. Untagged boxes are never touched. Deck URLs on the Assets tab must be plain text, not link chips. Instruction files for Gemini, Claude and Codex follow one agent contract.
 
-## Approvals
-File › Approvals on the sheet (https://support.google.com/drive/answer/9387535). Lock for review. Unlocking during an approval resets approvals; edits after approval leave it attached to the previous version. So: finish words, approve, update assets, lock released assets. Approvals need an eligible work or school account.
+## Rules, with approvals optional
+There is no per-line approval step. Review the Rules tab and the briefs, read the Line column, run Dry run, sync, look at every changed page. Trade-off: nobody signs each sentence. For sign-off, File › Approvals on the sheet (https://support.google.com/drive/answer/9387535): lock for review; unlocking during an approval resets approvals; edits after approval leave it attached to the previous version. Approvals need an eligible work or school account.
 
 ## Layout shift
 Slides does not shrink text to fit. Budget every slot, fix length in the sheet, skip over-budget lines, look at every changed page, update linked objects last.
 
-## Tested / not tested
-Checked: templates keep page sizes and slot tags as Slides files; budget formulas work. The AI function works after a Generate and fill click; our test account hit its monthly limit after five cells. On a Workspace account with Gemini, a single-slide prompt with three approved lines applied them word for word and kept fonts, sizes and slot tags. The whole-deck prompt that references the sheet was refused there ("only able to edit the single currently active slide"); the rollout had not reached the account on Nov 9. The sync script has not been run end to end. Part 2: https://svgslid.es/blog/messaging-workshop-brand-style-sheet-google-sheets
+## Tested / not tested (Nov 10, 2026)
+Checked: templates keep page sizes and slot tags; budget formulas work; Dry run opened four decks and reported zero to three slots to change in each, no flags; Place icons and UIs swapped tagged icons and a mockup for library shapes and kept file IDs (mockup text sizing was fixed afterwards). Earlier: the AI function works after a Generate and fill click; a test account hit its monthly limit after five cells. On a Workspace account with Gemini, a single-slide prompt with three lines applied them word for word and kept fonts, sizes and slot tags; the whole-deck prompt was refused ("only able to edit the single currently active slide"). Not yet checked: the 82 new Line formulas (waiting for Generate and fill), and Sync all end to end. Part 2: https://svgslid.es/blog/messaging-workshop-brand-style-sheet-google-sheets
 
 The screens in the post are mockups. Google Slides, Google Sheets, Google Drive and Gemini are trademarks of Google LLC.
 
