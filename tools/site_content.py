@@ -7,6 +7,8 @@ aren't backed by one of those.
 
 CWS = "https://chromewebstore.google.com/detail/svg-to-slides/bdhhnakellmdnbgbdokiojipaebdeioi"
 SITE = "https://svgslid.es"
+MARKETPLACE = "https://workspace.google.com/marketplace/app/svg_%E2%9E%94_slides/477942279738"
+GITHUB = "https://github.com/joegelman/svg-to-g-slides"
 
 FREE_LINE = "Free forever. Every feature, no daily cap, no account, no Pro tier."
 
@@ -42,7 +44,7 @@ PAGES = [
         ],
         "faq": [
             ("Does Google Slides support SVG natively?", "Not as an editable format. Slides rasterizes an inserted SVG into a flattened image, so you lose the ability to edit individual paths or recolour parts of it. SVG to Slides converts it into Slides' native shape format instead, so it stays fully editable."),
-            ("What happens to gradients and complex curves?", "Solid fills and strokes convert cleanly. Arc commands are converted into smooth curves. Gradients come through in the online converter; in the Chrome extension and add-on they currently collapse to a single solid colour."),
+            ("What happens to gradients and complex curves?", "Solid fills and strokes convert cleanly. Arc commands are converted into smooth curves. Gradients come through in the online converter; in the Chrome extension and add-on they currently collapse to a single solid colour. Tested results are on the <a href=\"/specs#compatibility\">specs page</a>."),
             ("Is my file uploaded anywhere?", "Depends on the surface. The Chrome extension converts entirely on your device using an embedded WebAssembly engine, so your file usually never leaves the browser. The online converter and add-on send the file to our backend for conversion. See the <a href=\"/privacy\">privacy policy</a> for specifics."),
             ("Is it free?", "Yes. " + FREE_LINE),
         ],
@@ -51,7 +53,7 @@ PAGES = [
     {
         "slug": "insert-svg-into-google-slides",
         "nav": "Insert an SVG into Google Slides",
-        "title": "How to Insert an SVG into Google Slides (Editable, Free)",
+        "title": "How to Insert an SVG into Google Slides, Step by Step",
         "desc": "Insert or import an SVG into Google Slides as editable vector shapes. Drag it in with a free Chrome extension, or use the PowerPoint or Google Drawings route.",
         "h1": "How to insert an SVG into Google Slides&trade;",
         "lede": "Drag the SVG file onto your slide. SVG to Slides converts every path into a native Google Slides shape you can select, recolour, and resize. Below: the extension, the online uploader, and the two manual workarounds.",
@@ -63,14 +65,6 @@ PAGES = [
             ("Open your presentation in Google Slides.", "Any existing or new deck."),
             ("Drag the SVG file onto a slide.", "Click to place it, then press &#8984;/Ctrl + V. Its paths become editable shapes. Up to 25 SVG files per drop."),
         ],
-        "table": ("Every way to get an SVG into Google Slides", ["Method", "Result in Slides", "What it takes"], [
-            ("SVG to Slides Chrome extension", "Editable shapes, one per path", "Drag and drop onto the slide"),
-            ("SVG to Slides web uploader", "Editable shapes, one slide per SVG", "Upload in the browser, open the Google Drive link"),
-            ("SVG to Slides add-on", "Editable shapes", "Extensions menu inside Google Slides"),
-            ("Convert to PNG, then Insert &rarr; Image", "One flattened image that blurs when resized", "Any image converter"),
-            ("EMF or WMF via Google Drawings", "Shapes, after several manual steps", "A converter, Google Drive, Google Drawings"),
-            ("Microsoft PowerPoint, then import", "Shapes, after a round trip through Drive", "A PowerPoint licence"),
-        ]),
         "sections": [
             ("Import an SVG without installing anything", [
                 "<b>Web uploader.</b> Upload one or more SVG files at <a href=\"/convert\">svgslid.es/convert</a> and get a Google Drive link to a Slides-ready file, one slide per SVG. Good for bulk conversion.",
@@ -107,10 +101,10 @@ PAGES = [
     {
         "slug": "does-google-slides-support-svg",
         "nav": "Does Google Slides support SVG?",
-        "title": "Does Google Slides Support SVG? How to Use SVGs Anyway",
+        "title": "Does Google Slides Support SVG? What Happens to Your File",
         "desc": "Google Slides doesn't keep SVGs as editable vectors. Here's what happens to your file, and how to insert SVGs as native, recolorable shapes instead.",
         "h1": "Does Google Slides&trade; support SVG?",
-        "lede": "Not as an editable format. Here's what that costs you, and how to keep your SVGs as real vector shapes.",
+        "lede": "Not as an editable format. Here's why, what happens to your file, and which SVG features survive conversion.",
         "answer": "No. Google Slides doesn't keep SVG files as editable vectors. Your options are to flatten the SVG into a PNG, or convert it through EMF and Google Drawings. SVG to Slides converts the file into Slides' native shape format, so it stays editable.",
         "img_alt": "Does Google Slides support SVG? An SVG file shown as editable vector shapes in a Google Slides presentation",
         "lottie": "svgslides_scale.json",
@@ -121,10 +115,23 @@ PAGES = [
             ("Can't animate individual elements", "Animate each shape independently"),
             ("Can't edit points or paths", "Right-click &rarr; Edit points, like any native shape"),
         ],
+        "sections": [
+            ("Why Google Slides can't keep an SVG", [
+                "Slides builds everything from its own shapes, text boxes and images. It has no SVG import, so an SVG can only arrive as an image.",
+                "An image is one object. You can't select its parts, recolour them, or edit their points.",
+                "Resizing an image resizes its pixels, so edges blur.",
+                "To stay editable, the SVG's paths have to become Slides' own shape format. That's the conversion SVG to Slides does.",
+            ]),
+            ("Which SVG features survive conversion", [
+                "Paths, basic shapes, arcs, transforms and even-odd cut-outs convert everywhere.",
+                "Gradients and text convert on the web uploader, not in the extension or add-on.",
+                "Clip paths, masks, patterns, filters and transparency are dropped. <a href=\"/specs#compatibility\">Full results for 20 tested SVG features</a>.",
+            ]),
+        ],
         "faq": [
             ("Can you import an SVG into Google Slides?", "Not as editable vector shapes. Install the SVG to Slides Chrome extension and drag the file onto a slide, or upload it at svgslid.es/convert. Both turn every path into a native Slides shape."),
             ("Why does my SVG look blurry in Google Slides?", "It's been flattened into a raster image, so it pixelates when you resize it. Converted with SVG to Slides, it stays a vector and every edge stays sharp."),
-            ("What happens to gradients and complex curves?", "Solid fills and strokes convert cleanly. Arc commands are converted into smooth curves. Gradients come through in the online converter; in the Chrome extension and add-on they currently collapse to a single solid colour."),
+            ("What happens to gradients and complex curves?", "Solid fills and strokes convert cleanly. Arc commands are converted into smooth curves. Gradients come through in the online converter; in the Chrome extension and add-on they currently collapse to a single solid colour. Tested results are on the <a href=\"/specs#compatibility\">specs page</a>."),
             ("Do the converted shapes work in Google Drawings?", "Yes. The native shapes also work in Google Drawings."),
         ],
         "related": ["insert-svg-into-google-slides", "svg-to-google-slides-converter", "svg-logos-icons-google-slides"],
@@ -135,7 +142,7 @@ PAGES = [
         "title": "SVG to Google Slides Converter: Free Online Tool and Extension",
         "desc": "Convert SVG files into native, editable Google Slides shapes. Free Chrome extension, online converter, and Slides add-on. No account, no daily cap, no Pro tier.",
         "h1": "SVG to Google Slides&trade; converter",
-        "lede": "Three ways to turn SVG files into native, editable Slides shapes. All free.",
+        "lede": "Three ways to turn SVG files into native, editable Slides shapes, and how to pick the right one. All free.",
         "answer": "SVG to Slides converts SVG files into native, editable Google Slides shapes. Use the Chrome extension to drop files straight onto a slide, or the web converter to turn a batch of SVGs into a Slides-ready file in Google Drive. Every surface is free.",
         "img_alt": "SVG to Google Slides converter: SVG files converted into native, editable Google Slides shapes",
         "lottie": "svgslides_install.json",
@@ -143,6 +150,29 @@ PAGES = [
             ("Chrome extension", "Drag an SVG straight onto an open Slides tab and drop it in place. No dialog, no upload step. Converts in your browser.", CWS, "Add to Chrome &mdash; free"),
             ("Web Uploader", "Upload one or more SVGs and get back a Google Drive link to a Slides-ready file, one slide per SVG. Best for bulk conversion or building an icon library.", "/convert", "Open the converter"),
             ("Google Slides add-on", "Insert SVGs into a presentation you're already editing, from a dialog inside Slides itself.", "/addon", "Get the add-on"),
+        ],
+        "tables": [
+            ("Which converter to use", ["You want to", "Use", "Why"], [
+                ("Drop an SVG into the deck you're editing", "Chrome extension", "Converts in your browser and pastes in place. No Google permissions."),
+                ("Keep gradients, or turn text into shapes", "Web uploader", "Only the web uploader keeps gradients and outlines text."),
+                ("Convert a whole icon set at once", "Web uploader", "One slide per SVG, in one Google Drive file."),
+                ("Stay inside Slides without the Chrome extension", "Google Slides add-on", "Runs from a dialog in the Slides Extensions menu."),
+            ]),
+            ("Every way to get an SVG into Google Slides", ["Method", "Result in Slides", "What it takes"], [
+            ("SVG to Slides Chrome extension", "Editable shapes, one per path", "Drag and drop onto the slide"),
+            ("SVG to Slides web uploader", "Editable shapes, one slide per SVG", "Upload in the browser, open the Google Drive link"),
+            ("SVG to Slides add-on", "Editable shapes", "Extensions menu inside Google Slides"),
+            ("Convert to PNG, then Insert &rarr; Image", "One flattened image that blurs when resized", "Any image converter"),
+            ("EMF or WMF via Google Drawings", "Shapes, after several manual steps", "A converter, Google Drive, Google Drawings"),
+            ("Microsoft PowerPoint, then import", "Shapes, after a round trip through Drive", "A PowerPoint licence"),
+            ]),
+        ],
+        "sections": [
+            ("What each converter keeps", [
+                "Every surface converts paths, basic shapes, arcs, transforms and even-odd cut-outs into native shapes.",
+                "Gradients and text come through on the web uploader only.",
+                "Clip paths, masks, patterns, filters and transparency don't come through on any surface. <a href=\"/specs#compatibility\">See the tested results for 20 SVG features</a>.",
+            ]),
         ],
         "faq": [
             ("Is there an online SVG to Google Slides converter?", "Yes. Upload SVGs at svgslid.es/convert. No install needed. You get a Google Drive link to a file with one slide per SVG."),
@@ -204,7 +234,7 @@ PAGES = [
 EXISTING = {
     "index.html": {
         "path": "/",
-        "title": "SVG to Slides: Free Chrome Extension for SVG in Google Slides",
+        "title": "Editable SVGs in Google Slides: Free Chrome Extension | SVG to Slides",
         "desc": "Insert SVG files into Google Slides as native, editable shapes. Drag them in with a free Chrome extension, recolor any element, resize without losing quality.",
     },
     "convert.html": {

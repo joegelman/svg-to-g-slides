@@ -9,6 +9,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, File, Form, Header, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -39,6 +40,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.add_middleware(GZipMiddleware, minimum_size=1024)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
 STATIC = Path("static")
@@ -71,6 +73,11 @@ async def seo_middleware(request: Request, call_next):
         if request.url.query:
             target += f"?{request.url.query}"
         return RedirectResponse(target, status_code=301)
+    path = request.url.path
+    # One URL per page: /guides/ -> /guides (static assets keep their paths).
+    if request.method in ("GET", "HEAD") and len(path) > 1 and path.endswith("/") and not path.startswith("/static/"):
+        target = path.rstrip("/") or "/"
+        return RedirectResponse(target + (f"?{request.url.query}" if request.url.query else ""), status_code=301)
     moved = REDIRECTS.get(request.url.path.rstrip("/") or "/")
     if request.method in ("GET", "HEAD") and moved:
         return RedirectResponse(moved + (f"?{request.url.query}" if request.url.query else ""), status_code=301)
@@ -78,8 +85,22 @@ async def seo_middleware(request: Request, call_next):
     if request.method == "GET" and "text/markdown" in request.headers.get("accept", ""):
         md = _md_for(request.url.path)
         if md:
-            return FileResponse(md, media_type="text/markdown; charset=utf-8")
-    return await call_next(request)
+            return FileResponse(md, media_type="text/markdown; charset=utf-8", headers=_md_headers(path))
+    response = await call_next(request)
+    if path.startswith("/static/"):
+        if path.endswith(".html"):
+            # Raw copies of pages; the clean URL is the one to index.
+            response.headers["X-Robots-Tag"] = "noindex"
+        elif response.status_code == 200:
+            response.headers.setdefault("Cache-Control", "public, max-age=86400")
+    return response
+
+
+def _md_headers(path: str):
+    """Markdown twins point search engines at the HTML page they mirror."""
+    page = "/" + path.strip("/").removesuffix(".md")
+    page = "/" if page in ("/", "/index") else page
+    return {"Link": f'<https://{CANONICAL_HOST}{page}>; rel="canonical"', "X-Robots-Tag": "noindex"}
 
 
 @app.get("/")
@@ -443,7 +464,7 @@ def content_page(path: str):
     if path.endswith(".md"):
         md = _md_for(path[:-3])
         if md:
-            return FileResponse(md, media_type="text/markdown; charset=utf-8")
+            return FileResponse(md, media_type="text/markdown; charset=utf-8", headers=_md_headers(path))
     elif path:
         for cand in (STATIC / f"{path}.html", STATIC / path / "index.html"):
             if cand.is_file() and cand.resolve().is_relative_to(STATIC.resolve()):

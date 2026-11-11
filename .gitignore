@@ -8,6 +8,7 @@
 !cloud/static/*.png
 !cloud/static/blog/img/*.png
 !cloud/static/guides/img/*.png
+!cloud/static/specs/*.png
 !cloud/static/*.svg
 !extension/icons/*.png
 

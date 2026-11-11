@@ -36,6 +36,7 @@ Google Slides doesn't keep SVG files as editable vectors. SVG to Slides converts
 - [Localize a one-pager without breaking the layout](https://svgslid.es/blog/localize-one-pager-google-slides.md): Translations run long. Give every slot a budget per language, draft in Sheets, and catch the overflow before it reaches the page.
 
 ## Optional
+- [Specs: product facts and tested SVG compatibility](https://svgslid.es/specs.md)
 - [About](https://svgslid.es/about.md)
 - [Privacy policy](https://svgslid.es/privacy): per-surface data handling
 - [Support](https://svgslid.es/support)

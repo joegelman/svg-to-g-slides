@@ -12,17 +12,6 @@ _Free forever. Every feature, no daily cap, no account, no Pro tier._
 2. **Open your presentation in Google Slides.** Any existing or new deck.
 3. **Drag the SVG file onto a slide.** Click to place it, then press ⌘/Ctrl + V. Its paths become editable shapes. Up to 25 SVG files per drop.
 
-## Every way to get an SVG into Google Slides
-
-| Method | Result in Slides | What it takes |
-|---|---|---|
-| SVG to Slides Chrome extension | Editable shapes, one per path | Drag and drop onto the slide |
-| SVG to Slides web uploader | Editable shapes, one slide per SVG | Upload in the browser, open the Google Drive link |
-| SVG to Slides add-on | Editable shapes | Extensions menu inside Google Slides |
-| Convert to PNG, then Insert → Image | One flattened image that blurs when resized | Any image converter |
-| EMF or WMF via Google Drawings | Shapes, after several manual steps | A converter, Google Drive, Google Drawings |
-| Microsoft PowerPoint, then import | Shapes, after a round trip through Drive | A PowerPoint licence |
-
 ## Import an SVG without installing anything
 - Web uploader. Upload one or more SVG files at svgslid.es/convert and get a Google Drive link to a Slides-ready file, one slide per SVG. Good for bulk conversion.
 - Google Slides add-on. Insert SVGs from a dialog inside Slides, without leaving the tab. Get the add-on.

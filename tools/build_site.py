@@ -24,6 +24,44 @@ ROOT = Path(__file__).resolve().parent.parent
 STATIC = ROOT / "cloud" / "static"
 MD = STATIC / "md"
 TODAY = dt.date.today().isoformat()
+
+# ------------------------------------------------------------- lastmod
+# Sitemap lastmod and BlogPosting dateModified move only when content changes.
+# tools/lastmod.json maps a key to [content hash, date]; first sighting uses `seed`.
+import hashlib, subprocess
+LASTMOD_FILE = Path(__file__).parent / "lastmod.json"
+try:
+    _LM = json.loads(LASTMOD_FILE.read_text())
+except (OSError, ValueError):
+    _LM = {}
+
+def git_date(path):
+    """Last commit date of a file; today if it has uncommitted changes."""
+    try:
+        root = Path(__file__).parent.parent
+        if subprocess.run(["git", "diff", "--quiet", "HEAD", "--", str(path)], cwd=root).returncode != 0:
+            return TODAY
+        out = subprocess.run(["git", "log", "-1", "--format=%cs", "--", str(path)], capture_output=True, text=True,
+                             cwd=Path(__file__).parent.parent).stdout.strip()
+        return out or TODAY
+    except OSError:
+        return TODAY
+
+def lastmod(key, content, seed=None):
+    h = hashlib.sha256(content.replace(TODAY, "").encode()).hexdigest()[:16]
+    prev = _LM.get(key)
+    if prev and prev[0] == h:
+        return prev[1]
+    date = TODAY if prev else (seed or TODAY)
+    _LM[key] = [h, date]
+    return date
+
+def save_lastmod():
+    LASTMOD_FILE.write_text(json.dumps(_LM, indent=1, sort_keys=True) + "\n")
+
+def post_modified(p):
+    src = json.dumps({k: v for k, v in p.items()}, sort_keys=True, default=str)
+    return max(p["date"], lastmod("post:" + p["slug"], src, seed=p.get("updated") or p["date"]))
 GA_FILE = ROOT / "tools" / "ga_id.txt"
 GA_ID = GA_FILE.read_text().strip() if GA_FILE.exists() else ""
 GTM_ID = "GTM-MTPNJHCL"
@@ -57,15 +95,27 @@ def set_analytics(doc):
         return ANALYTICS_RE.sub(lambda m: analytics_block(), doc, count=1)
     return doc.replace('<meta charset="utf-8">\n', '<meta charset="utf-8">\n' + analytics_block(), 1)
 
+def org_ld(full=False):
+    org = {"@type": "Organization", "@id": C.SITE + "/#org", "name": "SVG to Slides", "url": C.SITE + "/",
+           "logo": {"@type": "ImageObject", "url": C.SITE + "/static/favicon.png"}}
+    if full:
+        org = {"@context": "https://schema.org", **org,
+               "alternateName": "svgslid.es", "email": "shares@svgslid.es",
+               "founder": {"@type": "Person", "name": "Joe Gelman"},
+               "sameAs": [C.CWS, C.MARKETPLACE, C.GITHUB]}
+    return org
+
 def software_ld():
     return {
-        "@context": "https://schema.org", "@type": "SoftwareApplication",
+        "@context": "https://schema.org", "@type": "SoftwareApplication", "@id": C.SITE + "/#app",
         "name": "SVG to Slides", "url": C.SITE + "/",
         "applicationCategory": "DesignApplication", "operatingSystem": "Chrome",
         "description": "Free Chrome extension that inserts SVG files into Google Slides as native, editable shapes.",
-        "downloadUrl": C.CWS, "installUrl": C.CWS,
+        "downloadUrl": C.CWS, "installUrl": C.CWS, "sameAs": [C.CWS, C.MARKETPLACE],
         "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
         "image": C.SITE + "/static/og-image.png",
+        "author": {"@type": "Person", "name": "Joe Gelman"},
+        "publisher": org_ld(),
     }
 
 def faq_ld(faq):
@@ -218,8 +268,7 @@ def landing_html(p, css, head_icons):
     if p.get("howto"):
         steps = "".join(f'<div class="step"><div class="n">Step {i+1}</div><h3>{t}</h3><p>{d}</p></div>' for i, (t, d) in enumerate(p["howto"]))
         body.append(f'<section class="wrap steps" id="how"><h2>How to do it</h2><div class="steprow">{steps}</div></section>')
-    if p.get("table"):
-        th, heads, trs = p["table"]
+    for th, heads, trs in ([p["table"]] if p.get("table") else []) + p.get("tables", []):
         hrow = "".join(f"<th>{h}</th>" for h in heads)
         rows = "".join("<tr>" + "".join(f"<td>{c}</td>" for c in r) + "</tr>" for r in trs)
         body.append(f'<section class="wrap sec"><h2>{th}</h2><table class="cmp"><thead><tr>{hrow}</tr></thead><tbody>{rows}</tbody></table></section>')
@@ -314,8 +363,7 @@ def landing_md(p):
         out += ["## Pick your route"] + [f"- **{t}** — {plain(d)} ({h if h.startswith('http') else C.SITE + h})" for t, d, h, _ in p["cards"]] + [""]
     if p.get("points"):
         out += ["## What you can do"] + [f"- **{plain(t)}** {plain(d)}" for t, d in p["points"]] + [""]
-    if p.get("table"):
-        th, heads, trs = p["table"]
+    for th, heads, trs in ([p["table"]] if p.get("table") else []) + p.get("tables", []):
         out += [f"## {plain(th)}", "", "| " + " | ".join(plain(h) for h in heads) + " |", "|" + "---|" * len(heads)]
         out += ["| " + " | ".join(plain(c) for c in r) + " |" for r in trs] + [""]
     for sec in p.get("sections", []):
@@ -331,18 +379,25 @@ def landing_md(p):
 def p_answer(p):
     return plain(p["answer"])
 
-LOTTIE_JS = """<script src="https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js"></script>
-<script>
+LOTTIE_JS = """<script>
 (function(){
-  if(!window.lottie||matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  var anims=[];
-  document.querySelectorAll('.lot[data-lottie]').forEach(function(el){
+  // Lazy Lottie: the library and each animation load only when the element nears the viewport.
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches||!('IntersectionObserver' in window)) return;
+  var els=[].slice.call(document.querySelectorAll('.lot[data-lottie]')); if(!els.length) return;
+  var q=null;
+  function lib(cb){ if(window.lottie) return cb(); if(q){q.push(cb);return;} q=[cb];
+    var s=document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/bodymovin/5.12.2/lottie.min.js'; s.async=true;
+    s.onload=function(){q.forEach(function(f){f();});}; document.head.appendChild(s); }
+  function start(el){ lib(function(){
     var a=lottie.loadAnimation({container:el,renderer:'svg',loop:true,autoplay:false,path:el.dataset.lottie,rendererSettings:Object.assign({preserveAspectRatio:'xMidYMid meet'},el.dataset.viewbox?{viewBoxSize:el.dataset.viewbox}:{})});
     if(el.dataset.viewbox){a.addEventListener('DOMLoaded',function(){var g=el.querySelector('svg > g[clip-path]'); if(g) g.removeAttribute('clip-path');});}
-    anims.push({el:el,a:a});
-  });
-  var io=new IntersectionObserver(function(es){es.forEach(function(e){var x=anims.find(function(z){return z.el===e.target}); if(!x)return; e.isIntersecting?x.a.play():x.a.pause();})},{threshold:.25});
-  anims.forEach(function(x){io.observe(x.el)});
+    var seg=el.dataset.segment; if(seg){var s=seg.split(',').map(Number); a.addEventListener('DOMLoaded',function(){a.playSegments([s[0],s[1]],true);});}
+    el._a=a; if(el._vis) a.play();
+  }); }
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){var el=e.target; el._vis=e.isIntersecting;
+    if(e.isIntersecting&&!el._go){el._go=1; start(el);}
+    if(el._a){ e.isIntersecting?el._a.play():el._a.pause(); }});},{rootMargin:'200px 0px'});
+  els.forEach(function(el){io.observe(el);});
 })();
 </script>"""
 
@@ -408,7 +463,7 @@ BLOG_CSS = """
 .bnav{display:flex;gap:22px;align-items:center}
 .bnav a.txt{color:var(--fg);text-decoration:none;font-family:var(--display);font-weight:700;font-size:16px}
 .post{max-width:62ch;margin:0 auto;padding:8px 20px 0;font-family:var(--body);font-size:17px;line-height:1.7}
-.post h1,.post h2,.post h3,.bindex h1,.pcard h2{font-family:var(--display);font-weight:800;letter-spacing:-.02em;text-align:left}
+.post h1,.post h2,.post h3,.bindex h1,.pcard h2,.pcard h3,.lane-h{font-family:var(--display);font-weight:800;letter-spacing:-.02em;text-align:left}
 .post h1{font-size:clamp(34px,5.4vw,52px);line-height:1.06;margin:14px 0 16px;max-width:none}
 .post h2{font-size:clamp(24px,3.2vw,30px);line-height:1.15;margin:2.2em 0 .5em;scroll-margin-top:24px}
 .post p,.post ul,.post ol{margin:0 0 1.05em}
@@ -445,7 +500,9 @@ BLOG_CSS = """
 .pcard:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(0,0,0,.08)}
 .pcard img{width:100%;height:auto;display:block;border-bottom:1px solid var(--rule)}
 .pcard .in{padding:20px 24px 24px;font-size:16px;line-height:1.6}
-.pcard h2{font-size:28px;line-height:1.12;margin:6px 0 8px}
+.pcard h2,.pcard h3{font-size:28px;line-height:1.12;margin:6px 0 8px}
+.lane{margin-top:40px}.lane-h{font-size:clamp(24px,3.4vw,32px);margin:0 0 6px}.lane-d{color:var(--mute);margin:0 0 18px}
+.byline-end{margin:40px 0 0;padding-top:18px;border-top:1px solid var(--rule);color:var(--mute);font-size:15px}
 .pcard p{margin:0;color:var(--mute)}
 """
 
@@ -591,6 +648,13 @@ def post_html(p, css, head_icons):
     tldr = "".join(f"<li>{x}</li>" for x in p["tldr"])
     src = "".join(f'<li><a href="{u}">{html.escape(t)}</a></li>' for t, u in p["sources"])
     upd = f'<span class="upd">Updated {p["updated_h"]}</span>' if p.get("updated_h") else ""
+    if B.uses_product(p):
+        endcta = f"""<div class="endcta">
+      <p><b>Building decks with real design assets?</b> SVG to Slides drops SVG logos and icons into Google Slides as native, editable shapes &mdash; recolor any part, no PNG blur. {C.FREE_LINE}</p>
+      <a class="btn btn-primary" href="{cws(camp, 'post-end')}" data-cta="post-end"><img src="/static/chrome-glyph.svg" alt="">Add to Chrome &mdash; free</a>
+    </div>"""
+    else:
+        endcta = '<p class="byline-end">Joe Gelman is a copywriter and competitive strategist. He also builds <a href="/">SVG to Slides</a>. <a href="/about">About</a></p>'
     body = f"""  <article class="post"{pvars(p)}>
     <p class="crumb" style="margin:0"><a href="/blog">Blog</a></p>
     <div class="kick">{pchip(p)}{p["kicker"]}</div>
@@ -602,31 +666,31 @@ def post_html(p, css, head_icons):
     {fig(p["hero"][0], p["hero"][1], "", hero=True)}
     <div class="tldr"><b class="h">TL;DR</b><ul>{tldr}</ul></div>
 {body_html}
-    <div class="endcta">
-      <p><b>Building decks with real design assets?</b> SVG to Slides drops SVG logos and icons into Google Slides as native, editable shapes &mdash; recolor any part, no PNG blur. {C.FREE_LINE}</p>
-      <a class="btn btn-primary" href="{cws(camp, 'post-end')}" data-cta="post-end"><img src="/static/chrome-glyph.svg" alt="">Add to Chrome &mdash; free</a>
-    </div>
+    {endcta}
     {related_html(p)}
     <section class="sources"><h2>Sources</h2><ul>{src}</ul></section>
   </article>"""
     ld = [{"@context": "https://schema.org", "@type": "BlogPosting", "headline": p["h1"], "description": plain(p["desc"]),
-           "datePublished": p["date"], "dateModified": TODAY, "image": f"{C.SITE}/static/blog/img/{p['og']}",
+           "datePublished": p["date"], "dateModified": post_modified(p), "image": f"{C.SITE}/static/blog/img/{p['og']}",
            "author": {"@type": "Person", "name": "Joe Gelman"},
-           "publisher": {"@type": "Organization", "name": "SVG to Slides", "url": C.SITE + "/",
-                         "logo": {"@type": "ImageObject", "url": C.SITE + "/static/favicon.png"}},
+           "publisher": org_ld(),
            "mainEntityOfPage": C.SITE + path},
           {"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [
               {"@type": "ListItem", "position": 1, "name": "SVG to Slides", "item": C.SITE + "/"},
               {"@type": "ListItem", "position": 2, "name": "Blog", "item": C.SITE + "/blog"},
               {"@type": "ListItem", "position": 3, "name": p["h1"], "item": C.SITE + path}]}]
-    return blog_shell(p["title"], p["desc"], path, f"blog/img/{p['og']}", ld, body, css, head_icons, camp, f"{path}.md")
+    meta_title, meta_desc = B.META.get(p["slug"], (p["title"], p["desc"]))
+    return blog_shell(meta_title, meta_desc, path, f"blog/img/{p['og']}", ld, body, css, head_icons, camp, f"{path}.md")
 
 def blog_index_html(css, head_icons):
+    def card(p):
+        return (f'<a class="pcard" href="/blog/{p["slug"]}"{pvars(p)}><picture><source type="image/webp" srcset="/static/blog/img/{p["og"][:-4]}.webp">'
+                f'<img src="/static/blog/img/{p["og"]}" width="1200" height="630" alt="{esc(p["hero"][1])}"></picture>'
+                f'<div class="in"><div class="crow">{pchip(p)}<span class="dt">{p["date_h"]}</span></div><div class="kick">{p["kicker"]}</div><h3>{p["h1"]}</h3><p>{p["dek"]}</p></div></a>')
     cards = "".join(
-        f'<a class="pcard" href="/blog/{p["slug"]}"{pvars(p)}><picture><source type="image/webp" srcset="/static/blog/img/{p["og"][:-4]}.webp">'
-        f'<img src="/static/blog/img/{p["og"]}" width="1200" height="630" alt="{esc(p["hero"][1])}"></picture>'
-        f'<div class="in"><div class="crow">{pchip(p)}<span class="dt">{p["date_h"]}</span></div><div class="kick">{p["kicker"]}</div><h2>{p["h1"]}</h2><p>{p["dek"]}</p></div></a>'
-        for p in B.POSTS)
+        f'<section class="lane" id="{key}"><h2 class="lane-h">{title}</h2><p class="lane-d">{desc}</p>'
+        + "".join(card(p) for p in B.POSTS if B.lane_of(p["slug"]) == key) + "</section>"
+        for key, title, desc, _ in B.LANES)
     used = []
     for p in B.POSTS:
         if p.get("product") in PRODUCTS and p["product"] not in used:
@@ -641,8 +705,8 @@ def blog_index_html(css, head_icons):
   </section>"""
     ld = [{"@context": "https://schema.org", "@type": "Blog", "name": "SVG to Slides blog", "url": C.SITE + "/blog",
            "blogPost": [{"@type": "BlogPosting", "headline": p["h1"], "url": f"{C.SITE}/blog/{p['slug']}", "datePublished": p["date"]} for p in B.POSTS]}]
-    return blog_shell("Blog — Design notes for Google Slides & Docs | SVG to Slides",
-                      "Short, design-minded notes on Google Slides and Docs: new features, typography and layout craft.",
+    return blog_shell("Blog: Google Slides Design and Product Marketing | SVG to Slides",
+                      "Two lanes: graphics, type and layout in Google Slides, and Sheets, Slides, Forms and Gemini setups for product marketing in Google Workspace.",
                       "/blog", f"blog/img/{B.POSTS[0]['og']}", ld, body, css, head_icons, "blog", "/blog.md", og_type="website")
 
 def build_blog(css, head_icons):
@@ -650,18 +714,21 @@ def build_blog(css, head_icons):
     (STATIC / "blog").mkdir(exist_ok=True)
     (MD / "blog").mkdir(exist_ok=True)
     (STATIC / "blog" / "index.html").write_text(blog_index_html(css, head_icons))
-    idx_md = ["# SVG to Slides blog", "", "Short, design-minded notes on Google Slides and Docs.", ""]
+    idx_md = ["# SVG to Slides blog", ""]
+    for key, title, desc, _ in B.LANES:
+        idx_md += [f"## {title}", desc, ""]
+        idx_md += [f"- [{p['h1']}]({C.SITE}/blog/{p['slug']}.md) ({p['date']}): {p['dek']}" for p in B.POSTS if B.lane_of(p["slug"]) == key]
+        idx_md.append("")
     items = []
     for p in B.POSTS:
         (STATIC / "blog" / f"{p['slug']}.html").write_text(post_html(p, css, head_icons))
         (MD / "blog" / f"{p['slug']}.md").write_text(p["md"])
-        idx_md.append(f"- [{p['h1']}]({C.SITE}/blog/{p['slug']}.md) ({p['date']}): {p['dek']}")
         d = dt.datetime.fromisoformat(p["date"] + "T12:00:00+00:00").strftime("%a, %d %b %Y %H:%M:%S +0000")
         items.append(f"<item><title>{html.escape(p['h1'])}</title><link>{C.SITE}/blog/{p['slug']}</link>"
                      f"<guid>{C.SITE}/blog/{p['slug']}</guid><pubDate>{d}</pubDate><description>{html.escape(plain(p['dek']))}</description></item>")
     (MD / "blog.md").write_text("\n".join(idx_md) + "\n")
     feed = ('<?xml version="1.0" encoding="UTF-8"?>\n<rss version="2.0"><channel><title>SVG to Slides blog</title>'
-            f"<link>{C.SITE}/blog</link><description>Design notes for Google Slides and Docs.</description>"
+            f"<link>{C.SITE}/blog</link><description>Google Slides design, and product marketing in Google Workspace.</description>"
             + "".join(items) + "</channel></rss>\n")
     (STATIC / "blog" / "feed.xml").write_text(feed)
 
@@ -778,6 +845,10 @@ def main():
     about, about_md = P.about_page(ctx)
     (STATIC / "about.html").write_text(about)
     (MD / "about.md").write_text(about_md)
+    import site_specs
+    specs, specs_md = site_specs.specs_page(ctx)
+    (STATIC / "specs.html").write_text(specs)
+    (MD / "specs.md").write_text(specs_md)
 
     # 3. hand-maintained pages
     camp = {"index.html": "home", "features.html": "features", "support.html": "support",
@@ -792,7 +863,9 @@ def main():
                        "/index.md" if fname == "index.html" else None)
         if fname == "index.html":
             doc = set_home_faq(doc)
-            doc = set_ld(doc, [software_ld(), {"@context": "https://schema.org", "@type": "WebSite", "name": "SVG to Slides", "url": C.SITE + "/"},
+            doc = set_ld(doc, [software_ld(), org_ld(full=True),
+                               {"@context": "https://schema.org", "@type": "WebSite", "name": "SVG to Slides", "url": C.SITE + "/",
+                                "publisher": {"@id": C.SITE + "/#org"}},
                                faq_ld(C.HOME_FAQ)])
             doc = re.sub(r"  <!-- guides:start -->.*?<!-- guides:end -->\n", "", doc, flags=re.S)
         if fname != "chrome.html":  # chrome.html's CWS link is a JS redirect, leave its target bare
@@ -810,11 +883,25 @@ def main():
     # 5. sitemap
     urls = [("/", "1.0"), ("/convert", "0.8"), ("/google-slides-addon", "0.8"), ("/guides", "0.9")] + [(f"/guides/{p['slug']}", "0.8") for p in C.PAGES] + \
            [("/blog", "0.7")] + [(f"/blog/{p['slug']}", "0.7") for p in B.POSTS] + \
-           [("/about", "0.5"), ("/support", "0.4"), ("/privacy", "0.2"), ("/terms", "0.2")]
+           [("/specs", "0.7"), ("/about", "0.5"), ("/support", "0.4"), ("/privacy", "0.2"), ("/terms", "0.2")]
+    urls.insert(urls.index(("/about", "0.5")), ("/features", "0.4"))
+    def page_file(u):
+        if u == "/":
+            return STATIC / "index.html"
+        f = STATIC / f"{u.strip('/')}.html"
+        return f if f.is_file() else STATIC / u.strip("/") / "index.html"
+    posts = {f"/blog/{p['slug']}": p for p in B.POSTS}
     sm = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
-    sm += [f"  <url><loc>{C.SITE}{u}</loc><lastmod>{TODAY}</lastmod><priority>{pr}</priority></url>" for u, pr in urls]
+    for u, pr in urls:
+        f = page_file(u)
+        seed = post_modified(posts[u]) if u in posts else git_date(f)
+        lm = lastmod("url:" + u, f.read_text() if f.is_file() else u, seed=seed)
+        if u in posts:
+            lm = max(lm, post_modified(posts[u]))
+        sm.append(f"  <url><loc>{C.SITE}{u}</loc><lastmod>{lm}</lastmod><priority>{pr}</priority></url>")
     sm.append("</urlset>")
     (STATIC / "sitemap.xml").write_text("\n".join(sm) + "\n")
+    save_lastmod()
 
     # 6. robots
     bots = ["GPTBot", "OAI-SearchBot", "ChatGPT-User", "ClaudeBot", "Claude-User", "Claude-SearchBot",
@@ -842,6 +929,7 @@ def main():
              f"- [Google Slides add-on]({C.SITE}/google-slides-addon.md): insert SVGs from a dialog inside Slides", "",
              "## Blog"] + [f"- [{p['h1']}]({C.SITE}/blog/{p['slug']}.md): {plain(p['dek'])}" for p in B.POSTS] + ["",
              "## Optional",
+             f"- [Specs: product facts and tested SVG compatibility]({C.SITE}/specs.md)",
              f"- [About]({C.SITE}/about.md)",
              f"- [Privacy policy]({C.SITE}/privacy): per-surface data handling",
              f"- [Support]({C.SITE}/support)",

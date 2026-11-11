@@ -31,7 +31,7 @@ def nav_html(campaign, logo_svg):
 # --------------------------------------------------------------- footer
 FOOTER_COLS = [
     ("Products", [("Chrome Extension", "CWS"), ("Workspace Add-on", "/google-slides-addon"), ("Web Uploader", "/convert")]),
-    ("Resources", [("Guides", "/guides"), ("Blog", "/blog")]),
+    ("Resources", [("Guides", "/guides"), ("Specs", "/specs"), ("Blog", "/blog")]),
     ("Details", [("Privacy", "/privacy"), ("Terms", "/terms")]),
     ("About", [("About", "/about")]),
     ("Contact", [("joe@glmn.co", "mailto:joe@glmn.co"), ("Support", "/support")]),
@@ -43,7 +43,7 @@ FOOTER_CSS = """
 .sfoot .brandcol{display:flex;flex-direction:column;gap:10px;font-size:13px;line-height:1.5;color:#6b6f76}
 .sfoot .brandcol b{font-family:Overpass,Verdana,sans-serif;font-weight:700;font-size:16px;color:#1c1e22;display:flex;align-items:center;gap:8px}
 .sfoot .brandcol svg.logo{width:28px;height:28px}
-.sfoot h4{margin:0 0 12px;font:800 12px/1 Overpass,Verdana,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#6b6f76}
+.sfoot .fh{margin:0 0 12px;font:800 12px/1 Overpass,Verdana,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#6b6f76}
 .sfoot ul{list-style:none;margin:0;padding:0;display:grid;gap:9px}
 .sfoot a{color:#1c1e22;text-decoration:none;font-size:14px}
 .sfoot a:hover{text-decoration:underline}
@@ -60,7 +60,7 @@ def footer_html(logo_svg):
             f'<li><a href="{cws("footer", "footer") if href == "CWS" else href}"'
             + (' data-cta="footer"' if href == "CWS" else "") + f">{label}</a></li>"
             for label, href in links)
-        cols.append(f"<div><h4>{head}</h4><ul>{lis}</ul></div>")
+        cols.append(f"<div><p class=\"fh\">{head}</p><ul>{lis}</ul></div>")
     return f"""<!-- sitefoot:start --><footer class="sfoot" aria-label="Site">
   <div class="cols">
     <div class="brandcol"><b>{logo_svg}SVG to Slides</b><span>Editable SVGs in Google Slides&trade;. {C.FREE_LINE}</span></div>
@@ -320,7 +320,7 @@ CONVERT_JS = r"""<script>
 def convert_page(ctx):
     body = f"""  <section class="wrap phero">
     <div class="kick">Web Uploader</div>
-    <h1>SVG to Google Slides&trade; converter</h1>
+    <h1>Convert SVG to Google Slides&trade; online</h1>
     <p class="lede">Upload SVG files and get a Slides-ready file in Google Drive, with every path as a real, editable vector shape. One slide per SVG.</p>
     <div class="tool">
       <div id="dropzone">
@@ -350,15 +350,38 @@ def convert_page(ctx):
     <div><b>7-day links</b>Converted files are deleted after 7 days. Make a copy in Drive to keep one.</div>
     <div><b>Gradients kept</b>Solid fills, strokes and gradients come through. Arcs are converted into smooth curves.</div>
     <div><b>Free, no account</b>{C.FREE_LINE}</div>
-  </div></section>"""
+  </div></section>
+  <div class="wrap"><hr class="rule"></div>
+  <section class="wrap sec"><h2>What the online converter keeps</h2><ul class="list">
+    <li>Paths, basic shapes, arcs, transforms and even-odd cut-outs become native Slides shapes.</li>
+    <li>Gradients stay gradients. Text is outlined into shapes, so it keeps its look but isn't editable text.</li>
+    <li>Strokes become filled outline shapes, including line icons that set the stroke on the whole SVG.</li>
+    <li>Clip paths, masks, patterns, filters and transparency don't come through. <a href="/specs#compatibility">See results for 20 tested SVG features</a>.</li>
+  </ul></section>
+  <div class="wrap"><hr class="rule"></div>
+  <section class="wrap sec"><h2>Online converter or Chrome extension?</h2><ul class="list">
+    <li><b>Use the online converter</b> to convert a batch, keep gradients, turn text into shapes, or build an icon library deck.</li>
+    <li><b>Use the <a href="{cws('convert', 'compare')}">Chrome extension</a></b> to drop SVGs straight onto a slide you're editing. It converts in your browser.</li>
+  </ul></section>
+  <div class="wrap"><hr class="rule"></div>
+  <section class="wrap sec faq" id="faq"><h2>Questions</h2>
+    {"".join(f"<details><summary>{q}</summary><p>{a}</p></details>" for q, a in CONVERT_FAQ)}
+  </section>"""
     ld = [ctx["software_ld"](), ctx["crumbs"]([("Web Uploader", "/convert")])]
-    return shell(title="SVG to Google Slides Converter (Online, Free) | SVG to Slides",
-                 desc="Upload SVG files and get a Google Slides-ready file with real, editable vector shapes. One slide per SVG. Free online converter, no account required.",
+    return shell(title="Convert SVG to Google Slides Online (Free) | SVG to Slides",
+                 desc="Convert SVG files to Google Slides online: upload, get a Google Drive file with editable vector shapes, one slide per SVG. Free, no account required.",
                  path="/convert", body=body, md="/convert.md", extra_css=CONVERT_CSS + ctx["extra_css"], campaign="convert",
                  ld_block=ctx["ld_block"](ld), tail=CONVERT_JS, og_type="website", **ctx["common"])
 
 
-CONVERT_MD = """# SVG to Google Slides converter (online)
+CONVERT_FAQ = [
+    ("How do I convert an SVG to Google Slides online?", "Upload one or more SVG files on this page and press Convert. You get a Google Drive link to a file with one slide per SVG, every path a native shape."),
+    ("Does the converted file open in Google Slides?", "Yes. Open the Drive link and the file opens in Google Slides. To keep it, choose File &rarr; Make a copy."),
+    ("Do I need a Google account?", "No. Adding an email is optional; it shares the file straight to that account."),
+    ("How many SVGs can I convert at once?", "Upload a batch. Each SVG becomes its own slide in the same file."),
+]
+
+CONVERT_MD = """# Convert SVG to Google Slides online
 
 Upload SVG files at {site}/convert and get a Slides-ready file in Google Drive with real, editable vector shapes.
 
@@ -367,7 +390,8 @@ Upload SVG files at {site}/convert and get a Slides-ready file in Google Drive w
 3. The file is uploaded to Google Drive and a link is returned, optionally shared to a Google account you provide.
 
 - Links are deleted after 7 days. To keep a file, open it in Drive and choose File → Make a copy.
-- Solid fills, strokes and gradients come through. Arc commands are converted into smooth curves.
+- Solid fills, strokes and gradients come through. Arc commands are converted into smooth curves. Text is outlined into shapes.
+- Clip paths, masks, patterns, filters and transparency don't come through. Tested results: {site}/specs
 
 Working in a deck already? The free Chrome extension drops SVGs straight onto a slide: {cws}
 

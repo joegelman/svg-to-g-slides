@@ -1,4 +1,4 @@
-# SVG to Google Slides converter (online)
+# Convert SVG to Google Slides online
 
 Upload SVG files at https://svgslid.es/convert and get a Slides-ready file in Google Drive with real, editable vector shapes.
 
@@ -7,7 +7,8 @@ Upload SVG files at https://svgslid.es/convert and get a Slides-ready file in Go
 3. The file is uploaded to Google Drive and a link is returned, optionally shared to a Google account you provide.
 
 - Links are deleted after 7 days. To keep a file, open it in Drive and choose File → Make a copy.
-- Solid fills, strokes and gradients come through. Arc commands are converted into smooth curves.
+- Solid fills, strokes and gradients come through. Arc commands are converted into smooth curves. Text is outlined into shapes.
+- Clip paths, masks, patterns, filters and transparency don't come through. Tested results: https://svgslid.es/specs
 
 Working in a deck already? The free Chrome extension drops SVGs straight onto a slide: https://chromewebstore.google.com/detail/svg-to-slides/bdhhnakellmdnbgbdokiojipaebdeioi
 

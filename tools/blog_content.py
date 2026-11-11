@@ -150,3 +150,46 @@ for _p in POSTS:
     if _p["slug"] == "messaging-workshop-brand-style-sheet-google-sheets":
         _p.setdefault("order", 1)
 POSTS.sort(key=lambda p: (p["date"], p.get("order", 0)), reverse=True)
+
+
+# Search-result title and description, where the on-page ones run past what
+# Google shows (~60 chars / ~155 chars). The headline and dek on the page are unchanged.
+_META = {
+    "native-ui-mockups-google-slides": (None, "Replace product screenshots in Google Slides with UI mockups made of native shapes and live text: built in Figma, brought in as SVG, kept in a library deck."),
+    "messaging-workshop-brand-style-sheet-google-sheets": ("Messaging Workshop in Google Forms, Brand Style Sheet in Sheets", "Run a messaging workshop as a Google Form, turn the answers into a five-level messaging architecture, and keep fonts, colours and voice in Google Sheets."),
+    "google-slides-collateral-messaging-sheet-gemini": (None, "Gemini in Google Slides can now edit a whole deck from one prompt. Pair it with a messaging sheet, real page sizes, slot tags, copy rules and a starter pack."),
+    "letter-spacing-google-slides": (None, "Google Slides now has letter spacing (tracking): a toolbar button and Format › Text › Letter spacing, with presets and custom values. How to use it well."),
+    "audit-gemini-whole-deck-edits-google-slides": (None, "Gemini can now edit a whole Google Slides deck from one prompt. An Apps Script snapshots every object before and after, and diffs the two in Google Sheets."),
+    "competitor-matrix-google-sheets-gemini-citations": ("Competitor Matrix in Google Sheets Where Every Cell Cites a Source", "Build a competitor matrix in Google Sheets with Fill with Gemini's cell-level web citations: one row per claim, a checked-on date and a staleness flag."),
+    "on-brand-charts-google-slides": (None, "Make Google Slides charts match your brand: when to link a Sheets chart, and when to draw it as native shapes, by script or with SVG to Slides."),
+    "workspace-studio-shared-files-messaging-flow": ("Workspace Studio Won't Run on Shared Files: Design Around It", "Workspace Studio flows fail on shared drives, shared folders and IMPORTRANGE. A two-sheet pattern mirrors a shared messaging sheet to a private one."),
+    "gemini-skills-messaging-recipes": (None, "Package product marketing copy rules as reusable Gemini skills in Google Workspace, invoked with @ in Docs and Slides. What changes for Gems and Studio."),
+    "customer-proof-points-expiry-google-sheets": (None, "A Google Sheets proof library for customer logos, quotes and case studies, with permission scope, expiry dates and a flow that warns before one expires."),
+    "google-meet-notes-screenshots-slide-objections": (None, "Google Meet's Take notes for me now embeds slide screenshots. Log sales call objections per slide in Google Sheets and find the slides that need work."),
+    "sales-enablement-quiz-google-forms": (None, "Turn approved messaging into a Google Forms quiz for sales enablement, with Gemini quiz generation or an Apps Script that uses retired lines as wrong answers."),
+    "localize-one-pager-google-slides": (None, "A Sheets-first way to localize Google Slides one-pagers and decks: a budget per slot per language, AI translations held to it, and a fit check."),
+}
+META = {p["slug"]: (_META[p["slug"]][0] or p["title"], _META[p["slug"]][1]) for p in POSTS if p["slug"] in _META}
+
+
+# Two lanes on the blog index. "design" is the search-acquisition lane (Slides
+# graphics, type and layout, where SVG to Slides is part of the workflow);
+# everything else is the wider Workspace-for-product-marketing lane.
+LANES = [
+    ("design", "Google Slides design and vector graphics",
+     "Graphics, type and layout inside Google Slides, and getting vector artwork in.",
+     ["native-ui-mockups-google-slides", "on-brand-charts-google-slides", "letter-spacing-google-slides"]),
+    ("pmm", "Product marketing in Google Workspace",
+     "Sheets, Slides, Forms and Gemini setups that keep messaging and collateral current.", None),
+]
+
+def lane_of(slug):
+    for key, _t, _d, slugs in LANES:
+        if slugs and slug in slugs:
+            return key
+    return LANES[-1][0]
+
+def uses_product(p):
+    """Show the SVG to Slides call to action only where the post's workflow uses it."""
+    text = p.get("md", "") + p.get("body", "")
+    return "SVG to Slides" in text
