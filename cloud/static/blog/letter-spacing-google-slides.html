@@ -206,6 +206,25 @@ a{color:inherit}
 .pcard .in{padding:20px 24px 24px;font-size:16px;line-height:1.6}
 .pcard h2{font-size:28px;line-height:1.12;margin:6px 0 8px}
 .pcard p{margin:0;color:var(--mute)}
+
+.pchip{display:inline-block;font-family:var(--display);font-weight:800;font-size:12px;letter-spacing:.08em;text-transform:uppercase;border-radius:999px;padding:3px 10px 2px;margin-right:10px;vertical-align:1px;background:var(--pc,#f9c80e);color:var(--pci,#1c1e22)}
+.post .kick,.pcard .kick{color:var(--pct,var(--blue))}
+.post .tldr{border-left-color:var(--pc,var(--yellow))}
+.post ol.steps li::before{background:var(--pc,var(--yellow));color:var(--pci,#1c1e22)}
+.pcard{border-top:5px solid var(--pc,var(--rule))}
+.pcard+.pcard{margin-top:22px}
+.upd{display:block;font-size:14px;color:var(--mute);margin:-18px 0 26px}
+.rel{margin:44px 0 0}.rel h2{font-size:20px;margin:0 0 12px}
+.rel a.rc{display:flex;gap:12px;align-items:baseline;padding:12px 0;border-top:1px solid var(--rule);text-decoration:none;color:var(--fg)}
+.rel a.rc:hover b{text-decoration:underline}
+.rel a.rc .pchip{flex:none;font-size:10.5px}
+.rel a.rc span.d{margin-left:auto;flex:none;font-size:13px;color:var(--mute)}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin:-14px 0 30px}
+.legend .pchip{margin:0}
+.post pre{background:var(--tint);border-radius:10px;padding:14px 16px;font-size:13.5px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 1.05em}
+.post table.t{border-collapse:collapse;width:100%;font-size:15px;margin:0 0 1.2em}
+.post table.t th,.post table.t td{border-bottom:1px solid var(--rule);padding:8px 10px;text-align:left;vertical-align:top}
+.post table.t th{font-family:var(--display);font-weight:800;font-size:14px}
 </style>
 <style id="sw">.brand svg.logo{width:40px;height:40px;display:block;flex:none}.nav .sm{display:none}@media (max-width:560px){.nav .lg{display:none}.nav .sm{display:inline}.nav .btn{padding:0 16px}.nav .brand span{display:none}}html{scroll-behavior:smooth}.bnav{display:flex;gap:22px;align-items:center}.bnav a.txt{color:#1c1e22;text-decoration:none;font-family:Overpass,Verdana,sans-serif;font-weight:700;font-size:16px}.bnav a.txt:hover{text-decoration:underline}@media (max-width:560px){.bnav{gap:14px}.bnav a.txt{font-size:15px}}.sfoot{max-width:1040px;margin:0 auto;padding:44px max(16px,env(safe-area-inset-right,0px)) 40px max(16px,env(safe-area-inset-left,0px));font-family:Verdana,Geneva,sans-serif;color:#1c1e22}.sfoot .cols{display:grid;grid-template-columns:1.4fr repeat(5,1fr);gap:28px}.sfoot .brandcol{display:flex;flex-direction:column;gap:10px;font-size:13px;line-height:1.5;color:#6b6f76}.sfoot .brandcol b{font-family:Overpass,Verdana,sans-serif;font-weight:700;font-size:16px;color:#1c1e22;display:flex;align-items:center;gap:8px}.sfoot .brandcol svg.logo{width:28px;height:28px}.sfoot h4{margin:0 0 12px;font:800 12px/1 Overpass,Verdana,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#6b6f76}.sfoot ul{list-style:none;margin:0;padding:0;display:grid;gap:9px}.sfoot a{color:#1c1e22;text-decoration:none;font-size:14px}.sfoot a:hover{text-decoration:underline}.sfoot .legal{margin-top:36px;padding-top:18px;border-top:1px solid #e6e7ea;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:12px;color:#6b6f76}@media (max-width:820px){.sfoot .cols{grid-template-columns:repeat(3,1fr)}.sfoot .brandcol{grid-column:1/-1}}@media (max-width:480px){.sfoot .cols{grid-template-columns:repeat(2,1fr)}}@media (max-width:560px){.wrap{padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}.sfoot{padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}.post{padding-left:24px;padding-right:24px}.about{padding-left:24px;padding-right:24px}.bindex{padding-left:24px;padding-right:24px}.post figcaption{padding:0 24px}.answer{margin-left:0;margin-right:0}}</style>
 </head>
@@ -217,12 +236,13 @@ a{color:inherit}
   </nav>
 </div>
 <main>
-  <article class="post">
+  <article class="post" style="--pc:#F4B400;--pci:#1C1E22;--pct:#8A5A00">
     <p class="crumb" style="margin:0"><a href="/blog">Blog</a></p>
-    <div class="kick">New in Slides</div>
+    <div class="kick"><span class="pchip">Google Slides</span>New in Slides</div>
     <h1>Google Slides finally does letter spacing</h1>
     <p class="dek">Tracking has landed in Slides. Here's what it is, how to use it well, and why Docs looks next.</p>
     <p class="meta"><time datetime="2026-11-07">Nov 7, 2026</time> &middot; 4 min read &middot; Joe Gelman</p>
+    
     <a class="jump" href="#docs"><span class="ar" aria-hidden="true">&darr;</span><span><b>Skip ahead:</b> the subtle Google slip-up that hints letter spacing is coming to Docs very soon</span></a>
     <div class="herofig"><picture><source type="image/webp" srcset="/static/blog/img/hero-letter-spacing.webp"><img src="/static/blog/img/hero-letter-spacing.png" width="2400" height="1260" alt="Close-up of the new Letter spacing button in the Google Slides toolbar, with cursor and tooltip" decoding="async"></picture></div>
     <div class="tldr"><b class="h">TL;DR</b><ul><li>Slides now has <b>letter spacing</b>, which type designers call <b>tracking</b>.</li><li>Find it in the toolbar (the <b>|A|</b> button next to line spacing) or <b>Format › Text › Letter spacing</b>.</li><li>Presets: <b>6, 3, 0, &minus;1.5</b>, plus <b>Custom spacing</b>.</li><li>Docs&rsquo; help center already documents it. The Docs editor doesn&rsquo;t show it yet.</li></ul></div>
@@ -283,6 +303,7 @@ a{color:inherit}
       <p><b>Building decks with real design assets?</b> SVG to Slides drops SVG logos and icons into Google Slides as native, editable shapes &mdash; recolor any part, no PNG blur. Free forever. Every feature, no daily cap, no account, no Pro tier.</p>
       <a class="btn btn-primary" href="https://chromewebstore.google.com/detail/svg-to-slides/bdhhnakellmdnbgbdokiojipaebdeioi?utm_source=svgslid.es&amp;utm_medium=web&amp;utm_campaign=blog-letter-spacing-google-slides&amp;utm_content=post-end" data-cta="post-end"><img src="/static/chrome-glyph.svg" alt="">Add to Chrome &mdash; free</a>
     </div>
+    <section class="rel"><h2>Related posts</h2><a class="rc" href="/blog/localize-one-pager-google-slides" style="--pc:#188038;--pci:#FFFFFF;--pct:#137333"><span class="pchip">Google Sheets</span><b>Localize a one-pager without breaking the layout</b><span class="d">Jul 31, 2026</span></a><a class="rc" href="/blog/on-brand-charts-google-slides" style="--pc:#188038;--pci:#FFFFFF;--pct:#137333"><span class="pchip">Google Sheets</span><b>On-brand charts in Slides, from Sheets data to native shapes</b><span class="d">Oct 26, 2026</span></a><a class="rc" href="/blog/native-ui-mockups-google-slides" style="--pc:#F4B400;--pci:#1C1E22;--pct:#8A5A00"><span class="pchip">Google Slides</span><b>Product screenshots go stale. Native UI mockups don't.</b><span class="d">Nov 10, 2026</span></a></section>
     <section class="sources"><h2>Sources</h2><ul><li><a href="https://support.google.com/docs/answer/1663349">Change how paragraphs &amp; fonts look (Google Docs Editors Help)</a></li><li><a href="https://web.archive.org/web/20261005194616/https://support.google.com/docs/answer/1663349?rd=1&visit_id=639268263719815361-3052973569">Wayback Machine capture, Oct 5, 2026 (no letter spacing)</a></li><li><a href="https://web.archive.org/web/20261012192940/https://support.google.com/docs/answer/1663349?hl=enGoogle:">Wayback Machine capture, Oct 12, 2026 (letter spacing present)</a></li><li><a href="https://workspaceupdates.googleblog.com/2019/09/line-spacing-docs-slides.html">Better line spacing support for branding in Google Docs and Slides (Sept 2019)</a></li></ul></section>
   </article>
 </main>

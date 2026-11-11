@@ -449,6 +449,56 @@ BLOG_CSS = """
 .pcard p{margin:0;color:var(--mute)}
 """
 
+PRODUCTS = {  # key: (label, chip bg, chip text, text colour on white)
+    "slides": ("Google Slides", "#F4B400", "#1C1E22", "#8A5A00"),
+    "sheets": ("Google Sheets", "#188038", "#FFFFFF", "#137333"),
+    "gemini": ("Gemini", "#3B5BDB", "#FFFFFF", "#3B5BDB"),
+    "studio": ("Workspace Studio", "#E8710A", "#1C1E22", "#B4500A"),
+    "meet": ("Google Meet", "#00897B", "#FFFFFF", "#00796B"),
+    "forms": ("Google Forms", "#7248B9", "#FFFFFF", "#6A3FB0"),
+}
+BLOG_CSS += """
+.pchip{display:inline-block;font-family:var(--display);font-weight:800;font-size:12px;letter-spacing:.08em;text-transform:uppercase;border-radius:999px;padding:3px 10px 2px;margin-right:10px;vertical-align:1px;background:var(--pc,#f9c80e);color:var(--pci,#1c1e22)}
+.post .kick,.pcard .kick{color:var(--pct,var(--blue))}
+.post .tldr{border-left-color:var(--pc,var(--yellow))}
+.post ol.steps li::before{background:var(--pc,var(--yellow));color:var(--pci,#1c1e22)}
+.pcard{border-top:5px solid var(--pc,var(--rule))}
+.pcard+.pcard{margin-top:22px}
+.upd{display:block;font-size:14px;color:var(--mute);margin:-18px 0 26px}
+.rel{margin:44px 0 0}.rel h2{font-size:20px;margin:0 0 12px}
+.rel a.rc{display:flex;gap:12px;align-items:baseline;padding:12px 0;border-top:1px solid var(--rule);text-decoration:none;color:var(--fg)}
+.rel a.rc:hover b{text-decoration:underline}
+.rel a.rc .pchip{flex:none;font-size:10.5px}
+.rel a.rc span.d{margin-left:auto;flex:none;font-size:13px;color:var(--mute)}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin:-14px 0 30px}
+.legend .pchip{margin:0}
+.post pre{background:var(--tint);border-radius:10px;padding:14px 16px;font-size:13.5px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 1.05em}
+.post table.t{border-collapse:collapse;width:100%;font-size:15px;margin:0 0 1.2em}
+.post table.t th,.post table.t td{border-bottom:1px solid var(--rule);padding:8px 10px;text-align:left;vertical-align:top}
+.post table.t th{font-family:var(--display);font-weight:800;font-size:14px}
+"""
+
+def pvars(p):
+    k = p.get("product")
+    if k not in PRODUCTS:
+        return ""
+    _, bg, ink, txt = PRODUCTS[k]
+    return f' style="--pc:{bg};--pci:{ink};--pct:{txt}"'
+
+def pchip(p):
+    k = p.get("product")
+    return f'<span class="pchip">{PRODUCTS[k][0]}</span>' if k in PRODUCTS else ""
+
+def related_html(p):
+    by = {q["slug"]: q for q in B.POSTS}
+    rows = []
+    for slug in p.get("related", []):
+        q = by.get(slug)
+        if not q:
+            continue
+        rows.append(f'<a class="rc" href="/blog/{slug}"{pvars(q)}>{pchip(q)}<b>{q["h1"]}</b><span class="d">{q["date_h"]}</span></a>')
+    return f'<section class="rel"><h2>Related posts</h2>{"".join(rows)}</section>' if rows else ""
+
 def blog_webp():
     for png in BLOG_IMG.glob("*.png"):
         wp = png.with_suffix(".webp")
@@ -518,12 +568,14 @@ def post_html(p, css, head_icons):
     body_html = FIG_RE.sub(lambda m: fig(m.group(1), m.group(2), m.group(3)), p["body"])
     tldr = "".join(f"<li>{x}</li>" for x in p["tldr"])
     src = "".join(f'<li><a href="{u}">{html.escape(t)}</a></li>' for t, u in p["sources"])
-    body = f"""  <article class="post">
+    upd = f'<span class="upd">Updated {p["updated_h"]}</span>' if p.get("updated_h") else ""
+    body = f"""  <article class="post"{pvars(p)}>
     <p class="crumb" style="margin:0"><a href="/blog">Blog</a></p>
-    <div class="kick">{p["kicker"]}</div>
+    <div class="kick">{pchip(p)}{p["kicker"]}</div>
     <h1>{p["h1"]}</h1>
     <p class="dek">{p["dek"]}</p>
     <p class="meta"><time datetime="{p["date"]}">{p["date_h"]}</time> &middot; {p["read"]} &middot; Joe Gelman</p>
+    {upd}
     {jump(p)}
     {fig(p["hero"][0], p["hero"][1], "", hero=True)}
     <div class="tldr"><b class="h">TL;DR</b><ul>{tldr}</ul></div>
@@ -532,6 +584,7 @@ def post_html(p, css, head_icons):
       <p><b>Building decks with real design assets?</b> SVG to Slides drops SVG logos and icons into Google Slides as native, editable shapes &mdash; recolor any part, no PNG blur. {C.FREE_LINE}</p>
       <a class="btn btn-primary" href="{cws(camp, 'post-end')}" data-cta="post-end"><img src="/static/chrome-glyph.svg" alt="">Add to Chrome &mdash; free</a>
     </div>
+    {related_html(p)}
     <section class="sources"><h2>Sources</h2><ul>{src}</ul></section>
   </article>"""
     ld = [{"@context": "https://schema.org", "@type": "BlogPosting", "headline": p["h1"], "description": plain(p["desc"]),
@@ -548,14 +601,20 @@ def post_html(p, css, head_icons):
 
 def blog_index_html(css, head_icons):
     cards = "".join(
-        f'<a class="pcard" href="/blog/{p["slug"]}"><picture><source type="image/webp" srcset="/static/blog/img/{p["og"][:-4]}.webp">'
+        f'<a class="pcard" href="/blog/{p["slug"]}"{pvars(p)}><picture><source type="image/webp" srcset="/static/blog/img/{p["og"][:-4]}.webp">'
         f'<img src="/static/blog/img/{p["og"]}" width="1200" height="630" alt="{esc(p["hero"][1])}"></picture>'
-        f'<div class="in"><div class="kick">{p["kicker"]} &middot; {p["date_h"]}</div><h2>{p["h1"]}</h2><p>{p["dek"]}</p></div></a>'
+        f'<div class="in"><div class="kick">{pchip(p)}{p["kicker"]} &middot; {p["date_h"]}</div><h2>{p["h1"]}</h2><p>{p["dek"]}</p></div></a>'
         for p in B.POSTS)
+    used = []
+    for p in B.POSTS:
+        if p.get("product") in PRODUCTS and p["product"] not in used:
+            used.append(p["product"])
+    legend = "".join(f'<span class="pchip" style="--pc:{PRODUCTS[k][1]};--pci:{PRODUCTS[k][2]}">{PRODUCTS[k][0]}</span>' for k in used)
     body = f"""  <section class="bindex">
     <div class="kick">svgslid.es</div>
     <h1>Blog</h1>
-    <p>Short notes on making Google Workspace look designed: new features, type, and layout craft for Slides and Docs.</p>
+    <p>Practical builds for product marketing in Google Workspace: new features, type, layout, and the Sheets, Slides and Gemini setups that keep collateral current.</p>
+    <div class="legend">{legend}</div>
     {cards}
   </section>"""
     ld = [{"@context": "https://schema.org", "@type": "Blog", "name": "SVG to Slides blog", "url": C.SITE + "/blog",

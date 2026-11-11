@@ -135,3 +135,17 @@ from blog_collateral import POST as _COLLATERAL
 from blog_collateral2 import POST as _COLLATERAL2
 POSTS.insert(0, _COLLATERAL)
 POSTS.insert(0, _COLLATERAL2)
+
+from blog_workspace import POSTS as _WORKSPACE
+POSTS.extend(_WORKSPACE)
+_PRODUCT = {"letter-spacing-google-slides": "slides", "google-slides-collateral-messaging-sheet-gemini": "slides",
+            "messaging-workshop-brand-style-sheet-google-sheets": "forms"}
+_REL = {"letter-spacing-google-slides": ["localize-one-pager-google-slides", "on-brand-charts-google-slides", "native-ui-mockups-google-slides"],
+        "google-slides-collateral-messaging-sheet-gemini": ["audit-gemini-whole-deck-edits-google-slides", "competitor-matrix-google-sheets-gemini-citations", "workspace-studio-shared-files-messaging-flow"],
+        "messaging-workshop-brand-style-sheet-google-sheets": ["gemini-skills-messaging-recipes", "sales-enablement-quiz-google-forms", "native-ui-mockups-google-slides"]}
+for _p in POSTS:
+    _p.setdefault("product", _PRODUCT.get(_p["slug"]))
+    _p.setdefault("related", _REL.get(_p["slug"], []))
+    if _p["slug"] == "messaging-workshop-brand-style-sheet-google-sheets":
+        _p.setdefault("order", 1)
+POSTS.sort(key=lambda p: (p["date"], p.get("order", 0)), reverse=True)

@@ -310,6 +310,76 @@ Yes. Converted shapes are vectors, so they resize at any size and stay crisp.
 
 ---
 
+# Product screenshots go stale. Native UI mockups don't.
+
+*Nov 10, 2026 · svgslid.es blog*
+
+Every release breaks the screenshots in your decks. Build simplified product UI as native shapes and live text instead, kept in one library deck, and a renamed button is a find and replace.
+
+## TL;DR
+- Screenshots go stale every release, blur in print, and can’t be searched, recoloured or translated.
+- A simplified UI mockup shows the one thing the slide is about, in your brand colours, at any size.
+- Build components in Figma, export SVG, drop them into Slides with SVG to Slides. Shapes land native; labels go in as Slides text boxes.
+- Keep every component in one library deck with a searchable label, so anyone can copy the current version.
+
+## Why screenshots rot
+
+A screenshot is a picture of one build of your product, on one screen, at one size. The next release renames a button and it’s wrong. Printed on a one-pager, it’s soft. Put in a German deck, the UI is still in English. And nobody can find which twelve decks use it.
+
+[Figure: Left: a screenshot. Right: the same screen as native shapes and text.]
+
+A simplified mockup fixes all four. It shows only what the slide is about, built from shapes and live text. It scales cleanly, takes your colours, translates like any text box, and a find and replace updates every label.
+
+## Simplify first
+
+A mockup is a diagram of the product, not a copy of it. For each slide, decide the one thing the viewer should see, and draw that.
+
+- **Keep:** the layout, the element being talked about, the labels that explain it.
+- **Drop:** real data, menus nobody looks at, avatars, timestamps, scroll bars.
+- **Grey everything** except the element the slide is about. Colour that one.
+- **Eight to twenty elements** per mockup. More, and it’s a screenshot again.
+
+## Build in Figma, bring in as SVG
+
+- **Draw components in Figma:** button, input, toggle, card, nav bar, table row. Flat fills and strokes. No shadows, blurs or gradients.
+- **Keep text out of the SVG,** or delete it after export. Labels go in as Slides text boxes so they stay editable.
+- **Export each component as SVG.** Figma’s export settings (https://help.figma.com/hc/en-us/articles/13402894554519) cover the options.
+- **Drop it into Slides with SVG to Slides.** Drag the file onto your Slides tab, click where it goes, press Cmd/Ctrl+V. Every path becomes a native shape. Step by step: how to insert an SVG into Google Slides (https://svgslid.es/guides/insert-svg-into-google-slides).
+- **Add the labels** as text boxes in your type styles, on top of the shapes. Group them.
+
+Why flat: SVG to Slides converts paths, shapes, fills and strokes. Filters, clip paths, patterns and gradient transforms don’t convert. What Google Slides supports from SVG (https://svgslid.es/guides/does-google-slides-support-svg) has the details.
+
+## One library deck
+
+Put every component on its own slide in a single deck: the UI library. Under each one, add a small text label in white or light grey with its name, like `ui:button-primary`. Nobody sees it in use, but **Ctrl+F** finds it.
+
+[Figure: The UI library. Each slide holds one component and a searchable label. Mockup.]
+
+- When the product changes, update the component in the library. Note the date on the slide.
+- To use one, copy it from the library. Don’t copy from an old deck.
+- The same deck holds your icons. Convert an open-licence set once, one icon per slide, each with its label. That answers “where do I get icons for Google Slides (https://svgslid.es/guides/svg-logos-icons-google-slides)?” for the whole team.
+
+## A renamed button is a find and replace
+
+[Figure: One rename, every mockup in the deck. Mockup.]
+
+Labels are live text, so **Edit › Find and replace** updates every mockup in a deck at once. Colours are fills, so a rebrand is a recolour: change the colour of any shape or icon in Google Slides (https://svgslid.es/guides/recolor-svg-in-google-slides) with the fill picker. And the same mockup works in Docs and Drawings, since it’s native shapes.
+Logo designers build marks as vectors so one file works at every size. If you want to see that discipline up close, Will Paterson’s logo design channel (https://www.youtube.com/@WillPaterson) walks through it. Your product visuals deserve the same treatment: one source, every size, no blur. That’s the SVG vs PNG (https://svgslid.es/guides/svg-vs-png-google-slides) argument in practice.
+
+## Where this fits
+
+This is the visual side of the collateral system in part 1 (https://svgslid.es/blog/google-slides-collateral-messaging-sheet-gemini) and part 2 (https://svgslid.es/blog/messaging-workshop-brand-style-sheet-google-sheets): copy comes from the messaging sheet, visuals come from the library. Charts follow the same rule: draw them as native shapes (https://svgslid.es/blog/on-brand-charts-google-slides). And after any Gemini restyle, diff the deck (https://svgslid.es/blog/audit-gemini-whole-deck-edits-google-slides) to check the mockups weren’t touched.
+
+## What we have tested
+
+- **Checked:** a 16-element UI mockup SVG converted to 12 native shapes and 2 text boxes with the SVG to Slides converter and our placement script, and the shapes recolour with the fill picker.
+- **Note:** the Chrome extension doesn’t convert SVG text. Add labels as text boxes, as above.
+
+The screens in this post are mockups, not captures of Google’s products. Google Slides, Google Sheets, Google Docs, Google Forms, Google Meet, Google Chat, Google Drive, Gemini and Google Workspace are trademarks of Google LLC.
+
+
+---
+
 # Run a messaging workshop in Google Forms and build a brand style sheet in Google Sheets
 
 *Nov 9, 2026 · svgslid.es blog · Part 2 of the collateral series (part 1: https://svgslid.es/blog/google-slides-collateral-messaging-sheet-gemini)*
@@ -464,6 +534,696 @@ Tracking has landed in Google Slides. Here's what it is, how to use it well, and
 - Docs editor Format › Text menu has no Letter spacing yet (checked Nov 7, 2026).
 - Precedent: custom line spacing shipped to Docs and Slides together in Sept 2019 (https://workspaceupdates.googleblog.com/2019/09/line-spacing-docs-slides.html).
 - No Workspace Updates announcement found yet. Strong signal, not a promise.
+
+
+---
+
+# Audit what Gemini's whole-deck edit changed
+
+*Nov 3, 2026 · svgslid.es blog*
+
+Gemini can now edit an entire presentation from one prompt. It tells you what it changed. Here is how to check, object by object, with a snapshot before and a diff after.
+
+## TL;DR
+- Since October 30, Gemini in Slides can edit multiple slides or a whole deck from one prompt, and it lists what it changed.
+- For collateral with approved copy, check the list against the deck: text, fonts, sizes, positions, new and deleted objects, alt text tags.
+- A short Apps Script snapshots every object to a sheet. Snapshot, run the prompt, snapshot again, diff.
+- Anything in the diff you didn’t ask for gets undone.
+
+## One prompt, many slides
+
+On October 30, Google announced that Gemini in Google Slides can edit multiple slides or an entire presentation at once (https://workspaceupdates.googleblog.com/2026/10/edit-entire-presentations-with-gemini-in-Google-Slides.html). You can refresh fonts, backgrounds and colour schemes across a deck, restyle it to match another file, or condense and expand slides. Gemini decides which slides need to change and lists the changes in the side panel.
+For a pitch draft, the list is enough. For a solution brief with approved wording, slot tags and a print layout, you want to know exactly which objects moved and which words changed. That takes a before and an after.
+
+## The loop
+
+[Figure: Snapshot, edit, snapshot, diff.]
+
+- **Snapshot.** Record every object on every slide.
+- **Edit.** Run your prompt in the Gemini side panel.
+- **Snapshot again.**
+- **Diff.** List every object whose text, font, size or position changed, and every object added or deleted.
+
+## The script
+
+Make a sheet with a tab called **Audit** and paste the deck URL into B1. Then **Extensions › Apps Script**, paste this, save and reload:
+
+    // Bound to a sheet. Put the deck URL in Audit!B1. Menu: Audit > Snapshot / Diff last two.
+    function onOpen() {
+      SpreadsheetApp.getUi().createMenu('Audit')
+        .addItem('Snapshot deck', 'snapshot').addItem('Diff last two snapshots', 'diff').addToUi();
+    }
+    
+    function snapshot() {
+      const ss = SpreadsheetApp.getActive();
+      const deck = SlidesApp.openByUrl(ss.getSheetByName('Audit').getRange('B1').getValue());
+      const rows = [['Slide', 'Object ID', 'Type', 'Tag', 'Left', 'Top', 'Width', 'Height', 'Font', 'Size', 'Text']];
+      deck.getSlides().forEach((slide, i) => slide.getPageElements().forEach(el => {
+        let font = '', size = '', text = '';
+        if (el.getPageElementType() === SlidesApp.PageElementType.SHAPE) {
+          const t = el.asShape().getText();
+          text = t.asString().trim();
+          if (text) { font = t.getTextStyle().getFontFamily() || 'mixed'; size = t.getTextStyle().getFontSize() || 'mixed'; }
+        }
+        rows.push([i + 1, el.getObjectId(), String(el.getPageElementType()), el.getTitle() || '',
+                   Math.round(el.getLeft()), Math.round(el.getTop()), Math.round(el.getWidth()), Math.round(el.getHeight()), font, size, text]);
+      }));
+      const sh = ss.insertSheet('Snap ' + Utilities.formatDate(new Date(), ss.getSpreadsheetTimeZone(), 'MM-dd HHmmss'));
+      sh.getRange(1, 1, rows.length, rows[0].length).setValues(rows);
+    }
+    
+    function diff() {
+      const ss = SpreadsheetApp.getActive();
+      const snaps = ss.getSheets().filter(s => s.getName().startsWith('Snap ')).sort((x, y) => x.getName() < y.getName() ? -1 : 1).slice(-2);
+      if (snaps.length < 2) throw new Error('Take two snapshots first.');
+      const [a, b] = snaps.map(s => new Map(s.getDataRange().getValues().slice(1).map(r => [r[1], r])));
+      const head = ['Slide', 'Object ID', 'Type', 'Tag', 'Left', 'Top', 'Width', 'Height', 'Font', 'Size', 'Text'];
+      const out = [['Slide', 'Object ID', 'Tag', 'Change', 'Before', 'After']];
+      a.forEach((r, id) => {
+        const n = b.get(id);
+        if (!n) { out.push([r[0], id, r[3], 'Deleted', r[10], '']); return; }
+        for (let k = 4; k < head.length; k++) if (String(r[k]) !== String(n[k])) out.push([n[0], id, n[3], head[k], r[k], n[k]]);
+      });
+      b.forEach((n, id) => { if (!a.has(id)) out.push([n[0], id, n[3], 'New object', '', n[10]]); });
+      const sh = ss.getSheetByName('Diff') || ss.insertSheet('Diff');
+      sh.clearContents().getRange(1, 1, out.length, out[0].length).setValues(out);
+    }
+
+The **Audit** menu appears in the sheet. Each snapshot gets its own tab. **Diff last two snapshots** writes a Diff tab.
+
+[Figure: A Diff tab after a restyle prompt. Mockup.]
+
+## Reading the diff
+
+- **Text:** compare each changed line with your approved copy. Paraphrase is the most common drift.
+- **Font and size:** a restyle prompt should change these. A copy prompt shouldn’t.
+- **Left, top, width, height:** moved boxes cause layout shift. Check the page.
+- **New object / Deleted:** a deleted object loses its object ID and its alt text tag. If scripts find boxes by tag, re-tag the replacement.
+- **Tag:** the alt text title. If you tag boxes like `slot:headline`, the diff shows which slot changed.
+
+Two limits: the snapshot reads top-level objects, so shapes inside a group appear as one group; and it records the style of the text as a whole, shown as “mixed” when a box has more than one font or size.
+
+## When something changed that shouldn’t have
+
+Gemini’s edits work like your own: undo and version history both apply. Undo straight away, or restore the version from before the prompt and rerun with a tighter instruction. “Do not change any text” and “do not move or resize any object” are worth stating outright.
+If your decks are localized, run the diff on every language version: a font change that fits English may break German. See localizing a one-pager without breaking the layout (https://svgslid.es/blog/localize-one-pager-google-slides). If a skill drives the prompt, the diff is how you test it: see Gemini skills for messaging recipes (https://svgslid.es/blog/gemini-skills-messaging-recipes).
+
+## What we have tested
+
+- **Not yet run by us against a Gemini edit:** whole-deck editing hadn’t reached our account when we wrote this. Google said rollout could take longer than 15 days.
+- The script is written against the SlidesApp reference (https://developers.google.com/apps-script/reference/slides). Run it on copies.
+
+*Update, Nov 2026:* part 1 of our collateral series puts this to work: update Google Slides collateral from one messaging sheet with Gemini (https://svgslid.es/blog/google-slides-collateral-messaging-sheet-gemini).
+The screens in this post are mockups, not captures of Google’s products. Google Slides, Google Sheets, Google Docs, Google Forms, Google Meet, Google Chat, Google Drive, Gemini and Google Workspace are trademarks of Google LLC.
+
+
+---
+
+# A competitor matrix where every cell cites its source
+
+*Oct 29, 2026 · svgslid.es blog*
+
+AI-filled competitive research was unusable because nobody could check it. As of this week, Fill with Gemini attaches a web source to each cell. Build the matrix around that.
+
+## TL;DR
+- Since October 28, values generated with Fill with Gemini carry web citations per cell in Sheets on the web. Requests can cover up to 3,000 cells.
+- Lay the matrix out long: one row per competitor and claim. It sorts, filters and cites cleanly.
+- Add a Checked on date and a staleness flag. A citation tells you where to look, not that the claim is true.
+- Only cited cells that a person has opened and confirmed reach the battlecard.
+
+## What changed on October 28
+
+Competitive matrices go stale fast and are tedious to fill. AI could fill them, but an uncited “Yes” in a pricing column is worse than a blank: someone repeats it on a call.
+On October 28, Google announced that Fill with Gemini now provides cell-level citations for web sources (https://workspaceupdates.googleblog.com/2026/10/fill-with-gemini-now-provides-cell-level-citations-for-web-sources-and-supports-larger-requests.html). Each generated value gets its sources attached, and you can open them per cell in Sheets on the web. The same update lets one request cover far more cells: up to 3,000, according to coverage of the announcement.
+That turns the AI-filled matrix from a liability into a first draft you can audit.
+
+## Lay it out long, not wide
+
+The classic matrix has competitors across the top and features down the side. It reads well and maintains badly. Use one row per competitor and claim instead.
+
+[Figure: One row per competitor and claim. Mockup.]
+
+- **Competitor** and **Capability:** “Acme”, “SSO on all plans”.
+- **Value:** Yes, No, Partial, Unclear.
+- **Evidence:** one short phrase from the source.
+- **Source:** the URL you confirmed, pasted by hand during review.
+- **Checked on** and **Status:** who confirmed it, and when.
+
+Long format sorts by competitor, filters by capability, and pivots back into the wide view for a slide whenever you need it.
+
+## Fill with Gemini
+
+Select the empty Value cells and use Fill with Gemini, or write the AI function (https://support.google.com/docs/answer/15877199) directly:
+
+    =AI("Using the vendor's public pricing or documentation pages, does "&A2&" offer "&B2&"? Answer Yes, No, Partial or Unclear, then a short phrase of evidence.")
+
+Open the citations on a few cells before you trust the rest. You are checking two things: that the source is the vendor’s own page, not a reseller or a forum, and that it says what the cell says.
+
+## Make staleness visible
+
+    =IF(F2="","Not checked",IF(TODAY()-F2>90,"Recheck","OK"))
+
+- **Not checked:** AI value, nobody opened the source. Never leaves the sheet.
+- **Recheck:** confirmed more than 90 days ago. Pricing pages change.
+- **Unclear** values are research tasks. Assign them.
+
+## From matrix to battlecard
+
+[Figure: Only confirmed rows reach the card, each with its footnote.]
+
+Filter the matrix to Status = OK for one competitor. Those rows, and only those, go on the battlecard, each with a numbered footnote to its source. Reps can open the source in front of a prospect, which is the point. Put the competitor’s logo on the card as a vector so it prints cleanly: here is how to add a logo to Google Slides (https://svgslid.es/guides/svg-logos-icons-google-slides).
+Customer proof on the same card has its own expiry dates. Track those in a proof library (https://svgslid.es/blog/customer-proof-points-expiry-google-sheets). Charts that compare you with the competitor should match your brand: draw them as native shapes (https://svgslid.es/blog/on-brand-charts-google-slides).
+
+## What we have tested
+
+- **Checked in Sheets:** the staleness formula.
+- **Not yet checked by us:** cell-level citations. They were rolling out when we wrote this. We also don’t know yet whether a script can read the citations, so the Source column is filled by hand.
+
+The screens in this post are mockups, not captures of Google’s products. Google Slides, Google Sheets, Google Docs, Google Forms, Google Meet, Google Chat, Google Drive, Gemini and Google Workspace are trademarks of Google LLC.
+
+
+---
+
+# On-brand charts in Slides, from Sheets data to native shapes
+
+*Oct 26, 2026 · svgslid.es blog*
+
+Sheets keeps adding chart types. None of them look like your brand once they're in a deck. Draw the chart as shapes instead, and every bar takes your colours and type.
+
+## TL;DR
+- Sheets added box and whisker, combo and multi-series scatter charts this year. Linked into Slides, they still carry Sheets’ look.
+- Linked charts are right when numbers change weekly. For launch decks and printed collateral, draw the chart as native shapes.
+- Bar charts need only rectangles and text boxes: a short Apps Script draws them on the current slide.
+- Curves (lines, areas, donuts) come in as SVG with SVG to Slides. Labels stay as live text boxes.
+
+## More chart types, same look
+
+Sheets has had a busy year for charts: combo charts (https://workspaceupdates.googleblog.com/2026/07/import-and-create-combo-charts-in-Google-Sheets.html) and scatter charts with multiple x-series (https://workspaceupdates.googleblog.com/2026/07/create-and-import-scatter-charts-with-multiple-x-series-in-Google-Sheets.html) in July, and native box and whisker charts (https://androidauthority.com/google-sheets-adds-box-plot-support-3726846) rolling out in October. All useful for analysis.
+Paste one into Slides and it still looks like Sheets: its own fonts, gridlines and colours. In a sales deck built on your type and palette, a default chart is the one thing on the slide that isn’t yours. (For why default type reads as default, Linus Boman’s video essays on typography (https://www.youtube.com/channel/UCSb-xYOELhIqVr2n9s-b_4w) are a good watch.)
+
+[Figure: Same data. Left: linked chart. Right: native shapes.]
+
+## When to link, when to draw
+
+| Use a linked chart when | Draw native shapes when |
+
+| The numbers change weekly and someone clicks Update | The numbers are final for this launch or print run |
+
+| It’s an internal review deck | It’s a customer-facing deck or one-pager |
+
+| Accuracy matters more than look | It must match your type, colours and spacing |
+
+Linked charts update from **Tools › Linked objects**. Google’s help page (https://support.google.com/docs/answer/7009814) covers how. Everything below is for the right-hand column.
+
+## Bars: rectangles and text boxes, by script
+
+A bar chart is rectangles and labels. Slides draws both natively, so a script can build one on the current slide from a range in Sheets. Every bar is then a shape you can recolour, and every label is text in your font.
+
+    // Draws a bar chart on the current slide as native rectangles and text boxes.
+    // Data: a two-column range (label, value) in the sheet named below.
+    const SHEET_ID = 'paste-your-sheet-id', RANGE = 'Chart!A2:B6';
+    const BAR = '#0066FF', INK = '#1C1E22', FONT = 'Verdana';
+    
+    function drawBars() {
+      const rows = SpreadsheetApp.openById(SHEET_ID).getRange(RANGE).getValues().filter(r => r[0] !== '');
+      const slide = SlidesApp.getActivePresentation().getSelection().getCurrentPage().asSlide();
+      const max = Math.max(...rows.map(r => r[1]));
+      const left = 60, top = 80, rowH = 44, labelW = 150, maxW = 420;     // points
+      rows.forEach((r, i) => {
+        const y = top + i * rowH, w = Math.max(2, (r[1] / max) * maxW);
+        const bar = slide.insertShape(SlidesApp.ShapeType.RECTANGLE, left + labelW, y, w, rowH - 14);
+        bar.getFill().setSolidFill(BAR); bar.getBorder().setTransparent();
+        text(slide, String(r[0]), left, y, labelW - 10, rowH - 14, 'END');
+        text(slide, String(r[1]), left + labelW + w + 8, y, 80, rowH - 14, 'START');
+      });
+    }
+    
+    function text(slide, s, x, y, w, h, align) {
+      const box = slide.insertTextBox(s, x, y, w, h);
+      box.getText().getTextStyle().setFontFamily(FONT).setFontSize(12).setForegroundColor(INK);
+      box.getText().getParagraphStyle().setParagraphAlignment(SlidesApp.ParagraphAlignment[align]);
+      box.setContentAlignment(SlidesApp.ContentAlignment.MIDDLE);
+    }
+
+Open your deck, go to **Extensions › Apps Script**, paste the code, set the sheet ID and range, select a slide and run `drawBars`. Change `BAR`, `INK` and `FONT` to your brand values. The SlidesApp reference (https://developers.google.com/apps-script/reference/slides) covers each call.
+
+## Lines, areas, donuts: SVG to Slides
+
+Curves need custom geometry, which a script can’t add to an existing deck. Draw them as SVG instead, in any tool that exports SVG, and bring them in with SVG to Slides.
+
+[Figure: Data to SVG to native shapes.]
+
+- Style the chart in brand colours before export. Flat fills, no gradients or shadows.
+- Export as SVG.
+- Drag the file onto your Slides tab with SVG to Slides and press Cmd/Ctrl+V. Every path lands as a native shape. See how to insert an SVG into Google Slides (https://svgslid.es/guides/insert-svg-into-google-slides).
+- Add labels as Slides text boxes, in your type styles. SVG text is not converted, and live labels are easier to edit and translate anyway.
+
+Native shapes stay sharp at any size, which matters when the same chart goes on a printed one-pager. The SVG vs PNG comparison (https://svgslid.es/guides/svg-vs-png-google-slides) shows the difference.
+
+## Highlight one bar
+
+[Figure: Click a bar, pick a colour. It’s a shape.]
+
+The best reason to draw charts as shapes: you can make the point of the chart obvious. Grey every bar, then recolour the one that matters. Recolouring a shape in Google Slides (https://svgslid.es/guides/recolor-svg-in-google-slides) is one click in the fill picker.
+
+## What we have tested
+
+- SVG to Slides converts rects, circles and paths, which is all a flat chart SVG contains. Text and gradients are the parts to check after import.
+- **Not yet run by us:** the `drawBars` script. It’s written against the SlidesApp reference. Run it on a copy.
+
+If localized decks carry these charts, give the labels budgets too: see localizing a one-pager without breaking the layout (https://svgslid.es/blog/localize-one-pager-google-slides).
+The screens in this post are mockups, not captures of Google’s products. Google Slides, Google Sheets, Google Docs, Google Forms, Google Meet, Google Chat, Google Drive, Gemini and Google Workspace are trademarks of Google LLC.
+
+
+---
+
+# Workspace Studio won't run on shared files. Design around it.
+
+*Oct 13, 2026 · svgslid.es blog*
+
+Studio flows fail on shared drives, shared folders and IMPORTRANGE. Messaging sheets are shared by definition. Here is the two-sheet pattern that works.
+
+## TL;DR
+- Google’s Studio guide: flows fail on Shared Drives, shared folders and sheets with IMPORTRANGE. Files must be private to you.
+- Keep the team’s messaging sheet shared. Mirror it to a private sheet the flow owner owns, with a short script.
+- The flow watches the private sheet, asks Gemini what changed and which assets it touches, and posts to Chat.
+- October’s nested conditionals let one flow route headline changes and proof changes to different people.
+
+## The wall
+
+The obvious product marketing flow: when the messaging sheet changes, tell the team what changed and which assets need updating. Workspace Studio has a starter for “when a sheet changes” and steps to ask Gemini and notify a Chat space. It should take five minutes.
+Then it fails. Google’s getting-started guide (https://support.google.com/workspace-studio/answer/16444479) lists the file restrictions: flows fail if you use Shared Drives, shared folders or spreadsheets with the IMPORTRANGE function, and files must be private to you. A messaging sheet that only one person can see isn’t a messaging sheet.
+
+## Two sheets: shared for people, private for the flow
+
+[Figure: People edit the shared sheet. The flow only ever touches the private copy.]
+
+- **Shared sheet:** where the team writes and approves lines. Stays in your shared drive or folder.
+- **Private sheet:** owned by the flow owner, shared with nobody, in My Drive. Holds a copy of the Messages tab.
+- **Mirror script:** runs from the shared sheet and writes values into the private one. Values only, no IMPORTRANGE.
+
+In the shared sheet, open **Extensions › Apps Script** and paste:
+
+    // In the SHARED messaging sheet. Copies the Messages tab into a private sheet that the Studio flow watches.
+    const PRIVATE_ID = 'paste-the-private-sheet-id';
+    
+    function mirrorMessages() {
+      const src = SpreadsheetApp.getActive().getSheetByName('Messages').getDataRange().getValues();
+      const dst = SpreadsheetApp.openById(PRIVATE_ID).getSheetByName('Messages');
+      const old = dst.getDataRange().getValues();
+      if (JSON.stringify(old) === JSON.stringify(src)) return;   // write only when something changed
+      dst.clearContents();
+      dst.getRange(1, 1, src.length, src[0].length).setValues(src);
+    }
+    
+    // Run once to mirror every 15 minutes.
+    function installMirror() {
+      ScriptApp.newTrigger('mirrorMessages').timeBased().everyMinutes(15).create();
+    }
+
+Run `installMirror` once, as the flow owner. The script runs with that person’s access, so it can write to their private sheet.
+
+## The flow
+
+- **Starter:** when a sheet changes. Pick the private sheet and, if you like, only the Approved line column.
+- **Step:** ask Gemini. “List the messaging rows that changed. For each, give the key, the old and new line, and the assets in its Used in column.”
+- **Step:** notify the launch space in Chat with Gemini’s answer.
+
+[Figure: What the launch space sees. Mockup.]
+
+On October 9, Google added nested conditionals and new search steps (https://workspaceupdates.googleblog.com/2026/10/new-logic-and-search-steps-in-workspace-Studio-help-expand-automation-capabilities.html) to Studio. Use a condition to route by row type: headline and positioning changes to the PMM lead, proof changes to whoever owns the proof library (https://svgslid.es/blog/customer-proof-points-expiry-google-sheets).
+
+## Limits to plan for
+
+- **Delay:** a 15-minute mirror plus the flow’s own timing. Fine for messaging; wrong for anything urgent. The script only writes when the Messages tab actually changed, so the flow doesn’t fire every 15 minutes.
+- **One owner:** the private sheet and the flow belong to one person. Document who, and what happens when they leave.
+- **Usage limits:** Studio has per-user limits that depend on your plan.
+- **Gems:** if an older flow uses an Ask a Gem step, it will stop working as Gems are phased out. See turning your messaging recipes into Gemini skills (https://svgslid.es/blog/gemini-skills-messaging-recipes).
+
+For the meeting side of the same idea, see logging objections per slide from Meet notes (https://svgslid.es/blog/google-meet-notes-screenshots-slide-objections).
+
+## What we have tested
+
+- **Not yet run by us:** the mirror script and the flow together. The script is written against the Apps Script reference. Test on copies.
+
+The screens in this post are mockups, not captures of Google’s products. Google Slides, Google Sheets, Google Docs, Google Forms, Google Meet, Google Chat, Google Drive, Gemini and Google Workspace are trademarks of Google LLC.
+
+
+---
+
+# Turn your messaging recipes into Gemini skills
+
+*Oct 8, 2026 · svgslid.es blog*
+
+Skills are replacing Gems as the way to give Gemini standing instructions. Write your copy rules once and call them with @ in Docs, Slides and Gmail.
+
+## TL;DR
+- Google is rolling out skills: reusable instructions for Gemini that work across the Gemini app and Workspace apps. Rollout in Workspace began October 5.
+- A copy recipe is an ideal skill: fixed structure, length limits, banned words, a reference file.
+- Call a skill with @ in the Gemini side panel. Gemini can also pick one when it fits the prompt.
+- Gems are being phased out. Studio flows with an Ask a Gem step will stop working; rebuild them with skills.
+
+## Skills, in one paragraph
+
+On September 30, Google introduced skills in the Gemini app and Workspace (https://workspaceupdates.googleblog.com/2026/09/skills-gemini-app-workspace.html), with Workspace rollout from October 5. A skill is a named set of instructions, optionally with reference files, that Gemini applies when you call it. Google’s transition guide (https://knowledge.workspace.google.com/admin/generative-ai/gemini-app/about-the-transition-to-skills) says skills work in the Gemini app and in Workspace apps, while Gems can’t be used in Workspace apps, and that skills will replace Gems.
+For product marketing, that is the missing piece. Your copy rules stop living in a doc people forget to open and start living where the writing happens.
+
+## A recipe is already a skill
+
+A messaging recipe says how a kind of line is built: what it starts with, how long it is, what it never says. That is exactly the shape of a skill.
+
+[Figure: Anatomy of a copy skill.]
+
+Here is one for headlines:
+
+    Name: Headline recipe
+    When to use: writing or rewriting a headline for a one-pager, solution brief, deck title slide or landing page.
+    
+    Instructions:
+    1. Start from the approved fact the user gives you. Do not add claims.
+    2. Lead with what the customer can do, in their words. Active voice.
+    3. 6 to 9 words. Never over the character budget if one is given.
+    4. No superlatives, no exclamation marks, no em dashes.
+    5. Banned: "seamless", "revolutionary", "unlock", "empower", "next-generation".
+    6. Return three options, each with its character count.
+    
+    Reference: @Brand style sheet (Voice and Type tabs)
+
+Keep each skill to one job. A headline skill, a proof line skill and a battlecard rewrite skill beat one “brand voice” skill that tries to do all three.
+
+[Figure: Three skills, one job each.]
+
+## Using a skill
+
+- Open the Gemini side panel in Docs, Slides, Gmail, Chat or Drive.
+- Type **@** and the skill’s name, then the fact or draft you want worked on.
+- Gemini applies the skill’s instructions and any reference files.
+- Check the output against the fact. A skill sets the rules; it doesn’t check the claim.
+
+Gemini can also recognise when a skill applies and use it without the @. That is convenient for writers and a reason to make each skill’s “when to use” line precise.
+Admins switch skills on in the Admin console under Workspace Studio. If you don’t see them, ask your admin.
+
+## What happens to Gems
+
+[Figure: The transition, from Google’s timeline.]
+
+- **Gems in the Gemini app** will be migrated to draft skills automatically, per Google’s transition guide.
+- **Workspace Studio flows** with an **Ask a Gem** step will stop working. Rebuild those steps with skills or other actions.
+- **Skills don’t sync** between the Gemini app and Workspace apps. To use one in both, create it in both.
+
+## The recipe comes after the strategy
+
+A skill makes rules repeatable. It doesn’t decide what you stand for. If the rules aren’t settled, settle them first: positioning, audience, the one thing you lead with. If you want an outside primer on brand strategy before you write recipes, The Futur (https://thefutur.com/) has a deep library on it.
+Then write the recipes from your real best lines. Take three headlines you would ship today and describe what they have in common. That description is the skill.
+Related: if your proof points feed these skills, keep their permissions current with a proof library in Sheets (https://svgslid.es/blog/customer-proof-points-expiry-google-sheets). If you train reps on the result, a Forms quiz (https://svgslid.es/blog/sales-enablement-quiz-google-forms) checks the message stuck.
+
+## What we have tested
+
+- **Not yet tried by us:** skills in Workspace. They had not reached our account when we wrote this.
+
+*Update, Oct 2026:* Google later said the skills rollout in Workspace was running slightly behind its original schedule. Check the announcement (https://workspaceupdates.googleblog.com/2026/09/skills-gemini-app-workspace.html) for current dates.
+The screens in this post are mockups, not captures of Google’s products. Google Slides, Google Sheets, Google Docs, Google Forms, Google Meet, Google Chat, Google Drive, Gemini and Google Workspace are trademarks of Google LLC.
+
+
+---
+
+# Customer proof points expire. Track them.
+
+*Sep 9, 2026 · svgslid.es blog*
+
+Logos, quotes and case studies come with permission, and permission has an end date. Keep a proof library in Sheets and get warned before a quote goes stale.
+
+## TL;DR
+- Every customer logo and quote you use was approved by someone, for some use, until some date. Write all three down.
+- One row per proof point: claim, customer, scope, source of approval, expiry, days left, used in.
+- A Workspace Studio flow can check the sheet weekly and post what is about to expire to Chat.
+- September’s new Studio steps (Move Drive file, Copy Drive file) can also move retired assets out of the way.
+
+## The logo strip nobody re-checked
+
+A customer agreed to a logo on the website two years ago. Their champion left. The logo is still on the homepage, in four decks and on a printed one-pager. Nobody knows whether the permission covered print.
+Proof points are borrowed. Treat them like anything else with a licence: record the terms, and track the end date.
+
+## The proof library
+
+[Figure: One row per proof point. Mockup.]
+
+- **Claim:** the exact words you use. “Cut file transfer tickets by 60%.”
+- **Customer** and **contact** who approved it.
+- **Scope:** logo, name only, quote, case study, website, print, events. A dropdown keeps it consistent.
+- **Source:** a link to the approval: an email, a signed form, a comment in a doc.
+- **Expires:** the date the permission ends, or a review date if it has none. One year is a sensible default.
+- **Days left:** `=IF(G2="","No date",G2-TODAY())`, with red under 30 and amber under 90.
+- **Used in:** every asset that carries it.
+
+The **Used in** column is what makes expiry cheap to handle. When a quote ends, you already know which files to open.
+
+## Get warned before it expires
+
+Workspace Studio builds flows from starters and steps, without code. A weekly flow with two steps is enough here:
+
+[Figure: A weekly check, built from a starter and three steps. Mockup.]
+
+- **Starter:** on a schedule, every Monday morning.
+- **Step:** ask Gemini, with the Proof sheet as its source, to list rows with fewer than 30 days left, with the claim, customer and Used in.
+- **Step:** notify the proof owner in Chat.
+
+On September 2, Google added four new Studio steps (https://workspaceupdates.googleblog.com/2026/09/automate-drive-gmail-and-google-chat-actions-with-new-steps-in-Workspace-Studio.html): Move Drive file, Copy Drive file, Send a Chat reply and Reply to email. Move Drive file lets the same flow move an expired logo file from your shared assets folder to a Retired folder, so nobody drops it into a new deck.
+One constraint to plan around: Google’s getting-started guide (https://support.google.com/workspace-studio/answer/16444479) says flows fail on files in shared drives or shared folders, and on spreadsheets that use IMPORTRANGE. Keep the sheet the flow reads private to the flow owner.
+
+## On the page
+
+[Figure: An expired logo, caught before the next print run.]
+
+- **Logos as vectors.** A customer logo pasted as a PNG goes soft in print and can’t be recoloured for a one-colour strip. Add the logo to Google Slides as an SVG (https://svgslid.es/guides/svg-logos-icons-google-slides) and recolour it (https://svgslid.es/guides/recolor-svg-in-google-slides) to match the strip.
+- **Tag each logo** in its alt text title with the proof row key, such as `proof:acme-logo`. Then a search, by hand or by script, finds every use.
+- **Quotes keep their attribution** exactly as approved: name, title, company.
+
+## What we have tested
+
+- **Checked in Sheets:** the Days left formula.
+- **Not yet built by us:** the Studio flow above. Starter and step names follow Google’s help pages; your Studio may label them slightly differently.
+
+The screens in this post are mockups, not captures of Google’s products. Google Slides, Google Sheets, Google Docs, Google Forms, Google Meet, Google Chat, Google Drive, Gemini and Google Workspace are trademarks of Google LLC.
+
+
+---
+
+# Find which slide draws the objections
+
+*Aug 12, 2026 · svgslid.es blog*
+
+Meet notes now capture the slide on screen. Log each objection against that slide and the weak spots in your deck show up in a week.
+
+## TL;DR
+- Since August 3, Meet’s Take notes for me can embed screenshots of presented content, such as slides, in the notes doc.
+- That ties what was said to the slide on screen. Log each objection with the slide it came up on.
+- A simple Objections tab plus COUNTIFS shows which slides draw pushback.
+- Presenters are notified and can turn capture off. Tell prospects notes are being taken.
+
+## Call notes lose the slide
+
+Call notes say “pricing concern” or “asked about SSO.” They rarely say which slide was up. So when product marketing asks which part of the deck isn’t working, the answer is a guess.
+On August 3, Google started including screenshots of presented content in Meet’s meeting notes (https://workspaceupdates.googleblog.com/2026/08/visual-screenshots-now-included-in-Google-Meet-meeting-notes.html). When you present during a call with **Take notes for me** on, Gemini can capture slides, charts and diagrams into the notes document, next to the summary. Now the notes know which slide was on screen.
+
+[Figure: Meeting notes with a captured slide. Mockup.]
+
+## Before the call
+
+- **Present from Slides inside Meet.** Screenshots cover presented content.
+- **Number your slides** and give each a short title in the speaker notes or on the slide. A screenshot is easier to log when the slide says “7 · Pricing.”
+- **Tell the prospect notes are being taken.** Meet notifies the presenter that Gemini may capture screenshots, and the feature can be turned off from the notes panel. Admins can also require consent before notes start.
+
+## After the call: one row per objection
+
+Open the notes doc. For each objection, add a row to an Objections tab in your deck-feedback sheet.
+
+[Figure: One row per objection, keyed to the slide. Mockup.]
+
+- **Slide:** the number and title from the screenshot.
+- **Objection:** one plain sentence. “Thinks SSO costs extra.”
+- **Category:** a short fixed list: price, security, fit, proof, competitor, timing.
+- **Quote:** the prospect’s words, if the notes have them.
+
+Gemini in the Docs side panel can draft this for you from the notes. Ask for a table with those columns, then check each row against the notes before you paste it.
+
+## Count by slide
+
+On a Summary tab, list the slides and count:
+
+    =COUNTIFS(Objections!C:C, A2)
+
+Add a colour scale to the count column and you have a heat map of the deck. After ten calls the pattern is usually obvious: one or two slides draw most of the pushback.
+
+[Figure: Objections per slide after ten calls. Illustrative numbers.]
+
+Read the hot slides with the quotes next to them. Often the fix is a missing proof point or an unclear line, not a missing feature. Those are product marketing fixes.
+
+## Automating the log
+
+Workspace Studio has a starter that runs when a meeting transcript is ready, and steps that can ask Gemini and add rows to a sheet. That could write the Objections tab for you. Google’s starter guide (https://support.google.com/workspace-studio/answer/16765661) notes that this starter fires on the transcript, not on Gemini’s notes, so whether a flow sees the slide screenshots is something to test. We haven’t yet.
+
+## What we have tested
+
+- **Checked in Sheets:** the COUNTIFS summary formula.
+- **Not yet checked by us:** screenshot capture itself. It was rolling out when we wrote this; availability depends on your Workspace edition and admin settings.
+
+The screens in this post are mockups, not captures of Google’s products. Google Slides, Google Sheets, Google Docs, Google Forms, Google Meet, Google Chat, Google Drive, Gemini and Google Workspace are trademarks of Google LLC.
+
+
+---
+
+# Certify reps on the new message with a Forms quiz
+
+*Aug 4, 2026 · svgslid.es blog*
+
+A launch isn't landed until the people selling it can say it. Build a short quiz from the messaging, score it in Sheets, and follow up with whoever missed.
+
+## TL;DR
+- Since July 30, Help me create in Google Forms can generate a quiz, with correct answers, from a prompt and files.
+- The best wrong answers are your own retired lines. They are plausible because you used to say them.
+- Score in Sheets, set a pass mark, and follow up one to one.
+- Keep it to ten questions. It checks recall of the message, not product knowledge.
+
+## A message nobody can repeat isn't launched
+
+Product marketing ships the new positioning, the deck, the one-pager. Two weeks later a rep describes the product the old way on a call. The assets changed. The words in people’s mouths didn’t.
+A ten-question quiz after the enablement session tells you who has the new message and who needs a second pass. Google Forms has done quizzes for years. What changed is how fast you can build one.
+
+## Route 1: let Gemini draft the quiz
+
+On July 30, Google announced that Help me create in Google Forms now generates quizzes (https://workspaceupdates.googleblog.com/2026/07/use-gemini-in-google-forms-to-quickly-create-a-new-quiz.html). You describe the quiz in a prompt and point it at files, including PDFs. Gemini drafts the questions, sets quiz settings and marks the correct answers.
+
+    Create a 10-question multiple choice quiz for account executives on our new SSO messaging.
+    Use only the approved lines in the attached messaging doc as correct answers.
+    Each question gets three wrong answers that sound plausible. Do not invent product facts.
+
+Read every question before you send it. Gemini decides what to ask, and it may test a detail that doesn’t matter. Delete those. Check every correct answer against the messaging doc word for word.
+Availability per Google’s post: Business Standard and Plus, Enterprise Standard and Plus, Education Plus.
+
+## Route 2: build it from the messaging sheet
+
+If your messages already live in a sheet, a script gives you exact control. The trick is the wrong answers. Generic distractors are easy to spot. Your **retired lines** are not: they are what the team said last quarter, and they are what a rep will say if the new message didn’t stick.
+
+[Figure: Approved line becomes the correct answer. Retired lines become the wrong ones.]
+
+Add a Question column and up to three Retired columns to the Messages tab. Then, in the sheet, open **Extensions › Apps Script** and paste:
+
+    function buildMessagingQuiz() {
+      const sheet = SpreadsheetApp.getActive().getSheetByName('Messages');
+      const rows = sheet.getDataRange().getValues().slice(1);   // Key, Question, Approved line, Retired 1, Retired 2, Retired 3
+      const form = FormApp.create('Messaging check: ' + new Date().toDateString());
+      form.setIsQuiz(true);
+      rows.filter(r => r[1] && r[2]).forEach(r => {
+        const item = form.addMultipleChoiceItem();
+        const options = [item.createChoice(r[2], true)]
+          .concat(r.slice(3, 6).filter(String).map(t => item.createChoice(t, false)));
+        item.setTitle(r[1]).setChoices(shuffle(options)).setPoints(1).setRequired(true);
+      });
+      form.setDestination(FormApp.DestinationType.SPREADSHEET, SpreadsheetApp.getActive().getId());
+      Logger.log(form.getPublishedUrl());
+    }
+    
+    function shuffle(a) {
+      for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+      return a;
+    }
+
+Run `buildMessagingQuiz`. It creates a quiz form, one question per row, with the approved line marked correct and the options shuffled, and sends responses to a new tab in the same spreadsheet. The FormApp reference (https://developers.google.com/apps-script/reference/forms) covers every call it uses.
+
+## Score it and follow up
+
+[Figure: Responses land in the sheet with a score. Mockup.]
+
+- **Pass mark:** 8 of 10 is a reasonable start. Add a column: `=IF(C2>=8,"Pass","Follow up")`.
+- **Look at the misses by question,** not only by person. If half the team picks the same retired line, the message is the problem, not the reps.
+- **Follow up one to one.** A short call beats a public leaderboard.
+- **Re-run after a change.** When a line changes, it moves to a Retired column and becomes a wrong answer in the next quiz.
+
+## What we have tested
+
+- **Not yet run by us:** the script above. It is written against the FormApp reference. Run it on a copy of your sheet first.
+- **Not yet tried by us:** quiz generation with Help me create. Our account did not have it when we wrote this.
+
+The screens in this post are mockups, not captures of Google’s products. Google Slides, Google Sheets, Google Docs, Google Forms, Google Meet, Google Chat, Google Drive, Gemini and Google Workspace are trademarks of Google LLC.
+
+
+---
+
+# Localize a one-pager without breaking the layout
+
+*Jul 31, 2026 · svgslid.es blog*
+
+Translations run long. Give every slot a budget per language, draft in Sheets, and catch the overflow before it reaches the page.
+
+## TL;DR
+- Translated copy is a layout problem first. German and French lines often run longer than English; Japanese is shorter in characters but wider per character.
+- Keep one row per slot in Sheets and one column per language, each with its own character budget.
+- Draft with the Sheets AI function. Fill with Gemini now works in 11 more languages. A native speaker approves.
+- Flag anything over budget in the sheet. Fix length there, never by shrinking type on the page.
+
+## The page breaks before the translation does
+
+A one-pager is built around its English copy. The headline box is sized for eight words. The three benefit columns are sized for two short lines each. Then the German version arrives and every box overflows.
+You can fix it slide by slide, file by file, every launch. Or you can treat length as data and catch it before it reaches a page. The second way takes one sheet.
+
+## One row per slot, one column per language
+
+Every text box on the page is a slot with a key: `headline`, `subhead`, `benefit_1_title`. The sheet has one row per key. Each language gets a copy column and a budget column.
+
+[Figure: One row per slot. The German headline is 11 characters over. Mockup.]
+
+- **Key:** the slot name. It never changes between languages.
+- **Source line:** the approved English line.
+- **Budget per language:** the most characters that slot can hold in that language, at that size, in that font. Set it by filling the box until it looks full, then counting.
+- **Fits:** `=IF(LEN(D2)<=E2,"OK","Over by "&(LEN(D2)-E2))`
+
+Budgets differ by language for two reasons. Some languages need more letters to say the same thing. And a character count is a stand-in for width: a Japanese character takes far more room than a Latin *i*. Measure each language in its own font.
+
+## Draft the translation in the sheet
+
+Google announced on July 7 that Fill with Gemini in Sheets works in 11 more languages (https://workspaceupdates.googleblog.com/2026/07/fill-with-gemini-in-sheets-now-available-in-11-additional-languages.html). Fill with Gemini runs on the AI function (https://support.google.com/docs/answer/15877199), so you can write the budget into the prompt:
+
+    =AI("Translate this product marketing line into German. Keep it under "&E2&" characters. Plain, specific, no exclamation marks.", B2)
+
+Three rules keep this safe:
+
+- **A draft is a draft.** A native speaker who knows the product approves every line. Machine drafts miss product terms and register.
+- **Keep a glossary tab.** Product names, feature names and terms you never translate. Paste the relevant terms into the prompt.
+- **Keep draft and approved separate.** A formula can recalculate. An approved line must not. Paste approved lines as values.
+
+## Catch overflow in the sheet, not on the page
+
+[Figure: One headline, four languages, one box. Budgets are set per language.]
+
+When a line is over budget, shorten the line. Do not shrink the font for one language. A German headline set smaller than the English one breaks the type system you built for every other asset, and readers notice.
+Some fixes that work:
+
+- **Write a shorter source line.** If three languages run over, the English line is too long for the layout.
+- **Allow a two-line headline** in the layout, and budget for two lines in every language.
+- **Split long compounds** with your translator, or choose a shorter term from the glossary.
+
+## Fonts per language
+
+Your brand font may not cover every script. Overpass, our headline font, has no Japanese glyphs. Pick a fallback per language and record it in the sheet, so everyone uses the same one. Google Fonts has Noto families for most scripts. Re-measure budgets in the fallback font.
+Check letter spacing too. A tracked-out all-caps eyebrow in English can look wrong in a script with no capitals. Set tracking per language.
+
+## One file per language
+
+- Make a copy of the finished English file for each language. Keep page size, layout and slot names identical.
+- Name files the same way: `One-pager - Relay - de-DE`.
+- Paste approved lines slot by slot. If you tag text boxes with their key in the alt text title, a script can do this for every language at once.
+- Look at every page after the copy lands. A count is an estimate; line breaks still surprise.
+
+Logos and icons should not change between languages. Keep them as vectors so one file serves every version: see how to add a logo to Google Slides as an editable SVG (https://svgslid.es/guides/svg-logos-icons-google-slides).
+
+## What we have tested
+
+- **Checked in Sheets:** the LEN-based fit formula.
+- **Not checked by us:** translation quality from the AI function in each of the 11 new languages. Google’s post lists them; treat every draft as a draft.
+
+*Update, Nov 2026:* the slot-and-sync approach mentioned above is now written up in full in Update Google Slides collateral from one messaging sheet with Gemini (https://svgslid.es/blog/google-slides-collateral-messaging-sheet-gemini).
+The screens in this post are mockups, not captures of Google’s products. Google Slides, Google Sheets, Google Docs, Google Forms, Google Meet, Google Chat, Google Drive, Gemini and Google Workspace are trademarks of Google LLC.
 
 
 ---
