@@ -466,10 +466,11 @@ BLOG_CSS += """
 .pcard+.pcard{margin-top:22px}
 .upd{display:block;font-size:14px;color:var(--mute);margin:-18px 0 26px}
 .rel{margin:44px 0 0}.rel h2{font-size:20px;margin:0 0 12px}
-.rel a.rc{display:flex;gap:12px;align-items:baseline;padding:12px 0;border-top:1px solid var(--rule);text-decoration:none;color:var(--fg)}
+.rel a.rc{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;padding:12px 0;border-top:1px solid var(--rule);text-decoration:none;color:var(--fg);min-width:0}
+.rel a.rc b{order:3;flex:1 1 100%;min-width:0;overflow-wrap:anywhere;line-height:1.35}
 .rel a.rc:hover b{text-decoration:underline}
-.rel a.rc .pchip{flex:none;font-size:10.5px}
-.rel a.rc span.d{margin-left:auto;flex:none;font-size:13px;color:var(--mute)}
+.rel a.rc .pchip{order:1;flex:none;font-size:10.5px;margin-right:0}
+.rel a.rc span.d{order:2;margin-left:auto;flex:none;font-size:13px;color:var(--mute)}
 .legend{display:flex;flex-wrap:wrap;gap:8px;margin:-14px 0 30px}
 .legend .pchip{margin:0}
 .post pre{background:var(--tint);border-radius:10px;padding:14px 16px;font-size:13.5px;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere;margin:0 0 1.05em}
