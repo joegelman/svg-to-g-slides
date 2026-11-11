@@ -136,6 +136,7 @@ from blog_collateral2 import POST as _COLLATERAL2
 POSTS.insert(0, _COLLATERAL)
 POSTS.insert(0, _COLLATERAL2)
 
+import blog_appscript  # noqa: F401  (appends to blog_workspace.POSTS)
 from blog_workspace import POSTS as _WORKSPACE
 POSTS.extend(_WORKSPACE)
 _PRODUCT = {"letter-spacing-google-slides": "slides", "google-slides-collateral-messaging-sheet-gemini": "slides",

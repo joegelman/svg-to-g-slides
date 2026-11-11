@@ -456,6 +456,7 @@ PRODUCTS = {  # key: (label, chip bg, chip text, text colour on white)
     "studio": ("Workspace Studio", "#E8710A", "#1C1E22", "#B4500A"),
     "meet": ("Google Meet", "#00897B", "#FFFFFF", "#00796B"),
     "forms": ("Google Forms", "#7248B9", "#FFFFFF", "#6A3FB0"),
+    "appsscript": ("Apps Script", "#1A73E8", "#FFFFFF", "#1967D2"),
 }
 BLOG_CSS += """
 .pchip{display:inline-block;font-family:var(--display);font-weight:800;font-size:12px;letter-spacing:.08em;text-transform:uppercase;border-radius:999px;padding:3px 10px 2px;margin-right:10px;vertical-align:1px;background:var(--pc,#f9c80e);color:var(--pci,#1c1e22)}
@@ -480,6 +481,23 @@ BLOG_CSS += """
 .post table.t{border-collapse:collapse;width:100%;font-size:15px;margin:0 0 1.2em}
 .post table.t th,.post table.t td{border-bottom:1px solid var(--rule);padding:8px 10px;text-align:left;vertical-align:top}
 .post table.t th{font-family:var(--display);font-weight:800;font-size:14px}
+.post pre.code{background:#1C1E22;color:#E6E6E6;border-radius:12px;padding:16px 18px;font:13px/1.6 "Roboto Mono",ui-monospace,SFMono-Regular,Menlo,monospace;white-space:pre;overflow-x:auto;margin:0 0 1.2em}
+.post pre.code .kw{color:#C792EA}.post pre.code .st{color:#C3E88D}.post pre.code .nu{color:#F78C6C}.post pre.code .fn{color:#82AAFF}
+.post pre.code .cl{color:#FFCB6B}.post pre.code .pr{color:#89DDFF}.post pre.code .cm{color:#7F848E;font-style:italic}
+.deckembed{width:min(940px,100vw);position:relative;left:50%;transform:translateX(-50%);margin:30px 0 0}
+.deckembed .fr{position:relative;width:100%;padding-top:calc(56.25% + 29px);background:#1c1e22;border-radius:14px;overflow:hidden;border:1px solid var(--rule)}
+.deckembed iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+@media (max-width:700px){.deckembed .fr{border-radius:0;border-left:0;border-right:0}}
+.deckacts{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 30px}
+.deckacts a,.deckacts button{display:inline-flex;align-items:center;gap:8px;font:600 15px var(--body);border:1.5px solid var(--rule);background:#fff;color:var(--fg)!important;text-decoration:none!important;border-radius:999px;padding:9px 16px;cursor:pointer}
+.deckacts a:hover,.deckacts button:hover{border-color:var(--mute)}
+.deckacts .pri{background:var(--pc,#0066ff);border-color:var(--pc,#0066ff);color:var(--pci,#fff)!important}
+.cheat{display:flex;gap:18px;align-items:center;border:1px solid var(--rule);border-radius:16px;padding:18px 20px;margin:26px 0}
+.cheat img{width:120px;height:auto;border:1px solid var(--rule);border-radius:6px;flex:none}
+.cheat p{margin:0 0 10px}
+@media (max-width:560px){.cheat{flex-direction:column;align-items:flex-start}}
+.tease{background:#1c1e22;color:#fff;border-radius:16px;padding:22px 24px;margin:34px 0}
+.tease h2{color:#fff;margin:0 0 10px!important}.tease ul{margin:0}.tease p{color:#c4c7cc}
 """
 
 def pvars(p):

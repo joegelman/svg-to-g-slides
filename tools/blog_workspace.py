@@ -75,10 +75,11 @@ def _sub(body, extra=None):
 
 def _md(p):
     """Plain markdown twin built from the HTML body."""
-    b = p["body"]
+    b = re.sub(r"<script.*?</script>", "", p["body"], flags=re.S)
     b = re.sub(r"\{fig:[^|}]+\|[^|}]+\|([^}]*)\}", lambda m: f"\n[Figure: {m.group(1)}]\n", b)
-    b = re.sub(r"<pre[^>]*>(.*?)</pre>", lambda m: "\n" + "\n".join("    " + l for l in m.group(1).strip("\n").split("\n")) + "\n", b, flags=re.S)
-    b = re.sub(r'<a href="([^"]+)">(.*?)</a>', lambda m: f"{m.group(2)} ({m.group(1) if m.group(1).startswith('http') else 'https://svgslid.es' + m.group(1)})", b)
+    b = re.sub(r"<pre[^>]*>(.*?)</pre>", lambda m: "\n" + "\n".join("    " + l for l in re.sub(r"</?code>", "", m.group(1)).strip("\n").split("\n")) + "\n", b, flags=re.S)
+    b = re.sub(r"<button[^>]*>.*?</button>", "", b, flags=re.S)
+    b = re.sub(r'<a [^>]*?href="([^"]+)"[^>]*>(.*?)</a>', lambda m: f"{m.group(2)} ({m.group(1) if m.group(1).startswith('http') else 'https://svgslid.es' + m.group(1)})", b)
     b = re.sub(r"<h2[^>]*>(.*?)</h2>", r"\n## \1\n", b)
     b = re.sub(r"<h3[^>]*>(.*?)</h3>", r"\n### \1\n", b)
     b = re.sub(r"<li>", "- ", b)

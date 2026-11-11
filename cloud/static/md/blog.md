@@ -2,6 +2,7 @@
 
 Short, design-minded notes on Google Slides and Docs.
 
+- [Apps Script for GTM superpowers, part 1](https://svgslid.es/blog/apps-script-for-gtm-part-1.md) (2026-11-10): Five scripts that turn Sheets into a launch control panel: a copy-length formula, one deck per account, follow-up drafts, a Monday digest and a change log. Slides, code and a cheat sheet.
 - [Product screenshots go stale. Native UI mockups don't.](https://svgslid.es/blog/native-ui-mockups-google-slides.md) (2026-11-10): Every release breaks the screenshots in your decks. Build simplified product UI as native shapes and live text instead, kept in one library deck, and a renamed button is a find and replace.
 - [Run a messaging workshop in Google Forms and build a brand style sheet in Google Sheets](https://svgslid.es/blog/messaging-workshop-brand-style-sheet-google-sheets.md) (2026-11-09): A form collects the answers. One sheet turns them into messaging. A second sheet holds the brand's colours, type and voice in a form scripts and Gems can read.
 - [Update Google Slides collateral from one messaging sheet with Gemini](https://svgslid.es/blog/google-slides-collateral-messaging-sheet-gemini.md) (2026-11-09): Write the brief once in a sheet. Gemini writes each line to a recipe and a character limit, and a script puts it in every one-pager, brief, whitepaper and battlecard.

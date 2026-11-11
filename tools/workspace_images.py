@@ -25,9 +25,10 @@ PC = {  # dominant colour, darker tone, light tint, ink on dominant
     "studio": ("#E8710A", "#B4500A", "#FDEBDC", "#1C1E22"),
     "meet": ("#00897B", "#00695C", "#DDF2EF", "#FFFFFF"),
     "forms": ("#7248B9", "#56338F", "#EEE7F8", "#FFFFFF"),
+    "appsscript": ("#1A73E8", "#1557B0", "#E8F0FE", "#FFFFFF"),
 }
 LABEL = {"slides": "Google Slides", "sheets": "Google Sheets", "gemini": "Gemini", "studio": "Workspace Studio",
-         "meet": "Google Meet", "forms": "Google Forms"}
+         "meet": "Google Meet", "forms": "Google Forms", "appsscript": "Apps Script"}
 
 EXTRA = """
 .ico.d{background:#4285f4}.ico.f{background:#7248b9}.ico.m{background:#00897b}.ico.c{background:#188038}.ico.w{background:#e8710a}
@@ -605,6 +606,18 @@ def ui_rename():
 <div style="margin-top:10px;font-size:12px;color:#5f6368">Replaced 9 occurrences on 3 slides</div><div class="btnrow" style="justify-content:flex-end;margin-top:14px"><span class="gbtn">Replace</span><span class="gbtn p">Replace all</span></div></div>"""
     minis = "".join(f'<div>{ui_mock(scale=.55)}<div class="b" style="font-size:11px;margin-top:4px;color:#6b6f76">Slide {n}</div></div>' for n in (4, 7, 11))
     return f'<div class="dia"><div class="cap">One rename, every mockup</div><div style="display:flex;gap:30px;margin-top:18px;align-items:center">{dlg}<div class="arr" style="min-width:40px;flex:none"></div><div style="display:flex;gap:16px">{minis}</div></div></div>'
+
+
+# ================================================================ 11. Apps Script part 1
+@fig("hero-appscript-1", "appsscript")
+def hero_appscript():
+    import gtm_appscript as G
+    css = "".join(f".hc .{k}{{color:{v}}}" for k, v in G.DARK.items() if k not in ("bg", "tx"))
+    code = G.code_html("decks", "hc")
+    card = (f'<style>{css}.hc{{background:#1C1E22;color:#E6E6E6;border-radius:16px;padding:46px 26px 24px;font:14px/1.6 "Roboto Mono",monospace;white-space:pre;position:relative;margin:0}}'
+            f'.dots{{position:absolute;left:22px;top:18px;display:flex;gap:8px}}.dots i{{width:11px;height:11px;border-radius:50%;display:block}}</style>'
+            f'<div style="position:relative"><div class="dots" style="z-index:2"><i style="background:#FF5F57"></i><i style="background:#FEBC2E"></i><i style="background:#28C840"></i></div>{code}</div>')
+    return hero("appsscript", "Apps Script for GTM, part 1", f'<div style="zoom:.95">{card}</div>', foot="Five scripts to run this week")
 
 
 # ================================================================ render
