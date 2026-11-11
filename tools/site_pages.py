@@ -30,7 +30,7 @@ def nav_html(campaign, logo_svg):
 
 # --------------------------------------------------------------- footer
 FOOTER_COLS = [
-    ("Products", [("Chrome Extension", "CWS"), ("Web Uploader", "/convert")]),
+    ("Products", [("Chrome Extension", "CWS"), ("Workspace Add-on", "/google-slides-addon"), ("Web Uploader", "/convert")]),
     ("Resources", [("Guides", "/guides"), ("Blog", "/blog")]),
     ("Details", [("Privacy", "/privacy"), ("Terms", "/terms")]),
     ("About", [("About", "/about")]),
@@ -385,6 +385,84 @@ ABOUT_CSS = """
 .about .facts3 div{padding:16px;border-radius:14px;background:var(--tint);font-size:14px;line-height:1.45;color:var(--mute)}
 .about .facts3 b{display:block;color:var(--fg);font-family:var(--display);font-size:16px;margin-bottom:4px}
 @media (max-width:560px){.about .facts3{grid-template-columns:1fr}}
+"""
+
+
+# ---------------------------------------------------------- add-on page
+ADDON_CSS = """
+.tool.demo{padding:0;overflow:hidden}
+.demo .dh{padding:18px 24px;border-bottom:1px solid var(--rule);font:800 17px var(--display)}
+.demo .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:20px 24px 6px}
+.demo .cell{aspect-ratio:4/3;border-radius:12px;background:var(--tint);display:grid;place-items:center}
+.demo .cell svg{width:38%;height:auto}
+.demo .ready{margin:14px 24px 0;text-align:center;font:700 15px var(--display)}
+.demo .copy{display:block;margin:12px auto 22px;width:200px;height:44px;line-height:44px;border-radius:999px;background:var(--blue);color:#fff;text-align:center;font:800 16px/44px var(--display)}
+.democap{max-width:640px;margin:10px auto 0;font-size:13px;color:var(--mute);text-align:center}
+.getrow{margin-top:26px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+@media (max-width:520px){.demo .grid{grid-template-columns:repeat(2,1fr)}}
+"""
+_SHAPES = [
+    '<svg viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="#1c1e22"/></svg>',
+    '<svg viewBox="0 0 40 40"><rect x="5" y="5" width="30" height="30" rx="7" fill="#0066ff"/></svg>',
+    '<svg viewBox="0 0 40 40"><path d="M20 4l16 30H4z" fill="#f9c80e"/></svg>',
+    '<svg viewBox="0 0 40 40"><path d="M20 3l5 11 12 1-9 8 3 12-11-6-11 6 3-12-9-8 12-1z" fill="#1c1e22"/></svg>',
+]
+
+
+def addon_page(ctx):
+    cells = "".join(f'<div class="cell">{s}</div>' for s in _SHAPES)
+    body = f"""  <section class="wrap phero">
+    <div class="kick">Workspace Add-on</div>
+    <h1>SVG add-on for Google Slides&trade;</h1>
+    <p class="lede">Insert SVG files from a dialog inside Slides. Pick your files, copy, paste. Every path lands as a real, editable vector shape.</p>
+    <div class="getrow"><a class="btn btn-primary" href="/addon" data-cta="addon-hero">Get the add-on</a></div>
+    <div class="tool demo" aria-hidden="true">
+      <div class="dh">Insert SVGs</div>
+      <div class="grid">{cells}</div>
+      <p class="ready">Ready, click below or press Enter to copy</p>
+      <span class="copy">Copy</span>
+    </div>
+    <p class="democap">The add-on dialog. Illustration.</p>
+    <div class="xsell"><span><b>Prefer drag and drop?</b> The Chrome extension drops SVGs straight onto your slide.</span><a class="btn btn-primary" href="{cws('addon', 'xsell')}" data-cta="xsell"><img src="/static/chrome-glyph.svg" alt="">Add to Chrome</a></div>
+  </section>
+  <div class="wrap"><hr class="rule" style="margin-top:56px"></div>
+  <section class="wrap steps" id="how"><h2>How it works</h2><div class="steprow">
+    <div class="step"><div class="n">Step 1</div><h3>Open it in Slides.</h3><p>Choose Insert SVGs from the Extensions menu, or click the add-on&rsquo;s icon in the side panel.</p></div>
+    <div class="step"><div class="n">Step 2</div><h3>Pick your SVGs.</h3><p>They convert as you select them. Click Copy or press Enter.</p></div>
+    <div class="step"><div class="n">Step 3</div><h3>Paste.</h3><p>Press Cmd/Ctrl+V. The shapes land on the slide you have open.</p></div>
+  </div></section>
+  <div class="wrap"><hr class="rule"></div>
+  <section class="wrap sec"><h2>Good to know</h2><div class="facts">
+    <div><b>Several at once</b>Select more than one file and they land side by side on the current slide.</div>
+    <div><b>Solid colours</b>A gradient comes through as its first colour. For full gradients, use the <a href="/convert">web uploader</a>.</div>
+    <div><b>Free</b>{C.FREE_LINE}</div>
+  </div></section>"""
+    ld = [ctx["software_ld"](), ctx["crumbs"]([("Workspace Add-on", "/google-slides-addon")])]
+    return shell(title="SVG Add-on for Google Slides (Free) | SVG to Slides",
+                 desc="A free Google Slides add-on that inserts SVG files as real, editable vector shapes. Pick files in a dialog, copy, and paste into your slide.",
+                 path="/google-slides-addon", body=body, md="/google-slides-addon.md", extra_css=CONVERT_CSS + ADDON_CSS + ctx["extra_css"], campaign="addon",
+                 ld_block=ctx["ld_block"](ld), og_type="website", **ctx["common"])
+
+
+ADDON_MD = """# SVG add-on for Google Slides
+
+A Google Slides add-on that inserts SVG files as real, editable vector shapes. Get it from the Google Workspace Marketplace: {site}/addon
+
+## How it works
+1. In Slides, choose Insert SVGs from the Extensions menu, or click the add-on's icon in the side panel.
+2. Pick your SVG files. They convert as you select them. Click Copy or press Enter.
+3. Press Cmd/Ctrl+V. The shapes land on the slide you have open.
+
+## Good to know
+- Select several files and they land side by side on the current slide.
+- A gradient comes through as its first colour. For full gradients use the web uploader: {site}/convert
+- {free}
+
+## Other ways in
+- Chrome extension (drag and drop onto the slide): {cws}
+- Web uploader (one slide per SVG, as a Drive file): {site}/convert
+
+Google Slides is a trademark of Google LLC.
 """
 
 

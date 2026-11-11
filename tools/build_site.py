@@ -755,6 +755,8 @@ def main():
     build_blog(css, head_icons)
     (STATIC / "convert.html").write_text(P.convert_page(ctx))
     (MD / "convert.md").write_text(P.CONVERT_MD.format(site=C.SITE, cws=C.CWS, free=C.FREE_LINE))
+    (STATIC / "google-slides-addon.html").write_text(P.addon_page(ctx))
+    (MD / "google-slides-addon.md").write_text(P.ADDON_MD.format(site=C.SITE, cws=C.CWS, free=C.FREE_LINE))
     about, about_md = P.about_page(ctx)
     (STATIC / "about.html").write_text(about)
     (MD / "about.md").write_text(about_md)
@@ -788,7 +790,7 @@ def main():
     (STATIC / "redirects.json").write_text(json.dumps(redirects, indent=1, sort_keys=True) + "\n")
 
     # 5. sitemap
-    urls = [("/", "1.0"), ("/convert", "0.8"), ("/guides", "0.9")] + [(f"/guides/{p['slug']}", "0.8") for p in C.PAGES] + \
+    urls = [("/", "1.0"), ("/convert", "0.8"), ("/google-slides-addon", "0.8"), ("/guides", "0.9")] + [(f"/guides/{p['slug']}", "0.8") for p in C.PAGES] + \
            [("/blog", "0.7")] + [(f"/blog/{p['slug']}", "0.7") for p in B.POSTS] + \
            [("/about", "0.5"), ("/support", "0.4"), ("/privacy", "0.2"), ("/terms", "0.2")]
     sm = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
@@ -818,7 +820,8 @@ def main():
         f"- [Guides index]({C.SITE}/guides.md)",
     ]
     llms += [f"- [{plain(p['nav'])}]({C.SITE}/guides/{p['slug']}.md): {plain(p['answer'])}" for p in C.PAGES]
-    llms += [f"- [Web uploader]({C.SITE}/convert.md): upload SVGs, get a Slides-ready Drive file", "",
+    llms += [f"- [Web uploader]({C.SITE}/convert.md): upload SVGs, get a Slides-ready Drive file",
+             f"- [Google Slides add-on]({C.SITE}/google-slides-addon.md): insert SVGs from a dialog inside Slides", "",
              "## Blog"] + [f"- [{p['h1']}]({C.SITE}/blog/{p['slug']}.md): {plain(p['dek'])}" for p in B.POSTS] + ["",
              "## Optional",
              f"- [About]({C.SITE}/about.md)",

@@ -17,6 +17,7 @@ Google Slides doesn't keep SVG files as editable vectors. SVG to Slides converts
 - [Edit & recolor SVGs in Google Slides](https://svgslid.es/guides/recolor-svg-in-google-slides.md): Once converted with SVG to Slides, every path in your SVG is a separate native Slides shape. Select one element and change its fill with the standard picker, edit its points, or animate it on its own.
 - [SVG logos & icons in Slides themes](https://svgslid.es/guides/svg-logos-icons-google-slides.md): Convert your logo or icon set with SVG to Slides, add it to your theme layouts, and reuse it on every slide. The shapes resize without losing quality and also work in Google Drawings.
 - [Web uploader](https://svgslid.es/convert.md): upload SVGs, get a Slides-ready Drive file
+- [Google Slides add-on](https://svgslid.es/google-slides-addon.md): insert SVGs from a dialog inside Slides
 
 ## Blog
 - [Product screenshots go stale. Native UI mockups don't.](https://svgslid.es/blog/native-ui-mockups-google-slides.md): Every release breaks the screenshots in your decks. Build simplified product UI as native shapes and live text instead, kept in one library deck, and a renamed button is a find and replace.
