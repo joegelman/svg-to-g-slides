@@ -35,7 +35,7 @@ Not as an editable graphic. Google Slides doesn't support SVG files. Install SVG
 PowerPoint can insert an SVG file and convert it to shapes. Google Slides can't. SVG to Slides gives Slides the same result: vector graphics you can select, recolour, and resize.
 
 ### Can you edit the points of a shape in Google Slides?
-Only for lines and polylines you draw yourself. With SVG to Slides, double-click any shape, including Slides’ own shapes and WordArt, and click Edit as SVG to move its points and curves in place. See how.
+Only for lines and polylines you draw yourself. With SVG to Slides, double-click any shape, including Slides’ own shapes and WordArt, and click Edit Shape to move its points and curves in place. See how.
 
 ### Can I add SVG icons to Google Slides?
 Yes. Drag up to 25 SVG icons onto a slide at once. Each one becomes editable shapes with no background box, so you can recolour it to match your theme.
@@ -134,7 +134,7 @@ _Free forever. Every feature, no daily cap, no account, no Pro tier._
 3. **Drag the SVG file onto a slide.** Click where it goes. It lands there and its paths become editable shapes. Up to 25 SVG files per drop.
 
 ## Reshape it after you insert it
-- Double-click any shape and click Edit as SVG. A vector editor opens on the slide at the shape’s exact size, so you can drag its points and curve handles, add or remove points, and undo as you go. Click Done and the shape updates in place.
+- Double-click any shape and click Edit Shape. A vector editor opens on the slide at the shape’s exact size, so you can drag its points and curve handles, add or remove points, round corners, and undo as you go. Click Done and the shape updates in place.
 - It works on Slides’ own shapes, lines and WordArt too. What’s new in 1.2.
 
 ## Import an SVG without installing anything
@@ -1468,7 +1468,9 @@ The screens in this post are mockups, not captures of Google’s products. Googl
 
 ## 1.2.0 (November 2026)
 
-- Edit as SVG: double-click a shape, then click Edit as SVG. A vector editor opens on the slide at the shape's exact size and position. Drag points and curve handles, add or remove points, multi-select, undo, redo, zoom. Done updates the shape in place.
+- Edit Shape: double-click a shape, then click Edit Shape. A vector editor opens on the slide at the shape's exact size and position. Drag points and curve handles, add or remove points, multi-select, undo, redo, zoom. Done updates the shape in place.
+- Round corners: on shapes with corners, drag a circle inside a corner or type a pixel radius. The whole shape or several shapes round every corner together; selected points round only those corners.
+- Layers stay put: shapes above the one you're editing stay visible, and Done returns each shape to its place in the stack.
 - Works on Slides' own shapes, lines, text boxes and WordArt by converting them to custom shapes first. Adjustment handles, connection points, automatic 3D shading and editable WordArt text don't carry over. Text inside a shape stays editable. Cancel restores the original.
 - Click to insert: drop an SVG and click where it goes. It lands as native shapes with nothing to paste. Falls back to Cmd/Ctrl+V if Slides refuses the insert.
 - Straight-line SVG shapes land as Slides polylines, so Slides' own Edit points works on them.

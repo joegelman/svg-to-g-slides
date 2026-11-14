@@ -431,6 +431,7 @@ EDITOR_KEYS = [
     ("Select points", "<kbd>A</kbd> or <kbd>V</kbd>, then click, Shift-click or drag a box"),
     ("Pen: add or remove points", "<kbd>P</kbd>, then click a segment to add, a point to remove"),
     ("Smooth or corner point", "Double-click the point"),
+    ("Round corners", "Drag a circle inside a corner, or type a value in the pill below the shape. <kbd>Shift</kbd> for 10&nbsp;px steps"),
     ("Constrain to 45&deg;", "Hold <kbd>Shift</kbd> while dragging"),
     ("Break a curve handle", "Hold <kbd>Option</kbd> / <kbd>Alt</kbd> while dragging it"),
     ("Nudge", "Arrow keys, <kbd>Shift</kbd> for 10&times;"),
@@ -443,18 +444,19 @@ EDITOR_KEYS = [
 
 
 def whats_new_page(ctx):
-    clip = ROOT / "cloud" / "static" / "whats-new" / "edit-as-svg.mp4"
-    video = ""
-    if clip.exists():
-        video = ('<div class="clip"><video src="/static/whats-new/edit-as-svg.mp4" poster="/static/whats-new/edit-as-svg.jpg" '
-                 'autoplay muted loop playsinline preload="metadata" aria-label="Double-clicking a star in Google Slides, '
-                 'dragging its points in the SVG editor, then clicking Done"></video></div>'
-                 '<p class="cap">Double-click, drag the points, Done. Recorded in Google Slides.</p>')
+    video = ('<div class="clip"><video src="/static/whats-new/edit-points.mp4" poster="/static/whats-new/edit-points.jpg" '
+             'autoplay muted loop playsinline preload="metadata" aria-label="Double-clicking a palm tree in Google Slides, '
+             'then dragging its points and curve handles in the editor"></video></div>'
+             '<p class="cap">Double-click, Edit Shape, drag. Recorded in Google Slides.</p>')
+    corners = ('<div class="clip"><video src="/static/whats-new/round-corners.mp4" poster="/static/whats-new/round-corners.jpg" '
+               'autoplay muted loop playsinline preload="metadata" aria-label="Selecting three cards, dragging a corner handle '
+               'to round all twelve corners, then typing 25"></video></div>'
+               '<p class="cap">Three cards, twelve corners, one drag. Then type 25 and press Enter.</p>')
     keys = "".join(f"<tr><td>{a}</td><td>{b}</td></tr>" for a, b in EDITOR_KEYS)
     body = f"""  <div class="wrap"><p class="crumb"><a href="/">SVG to Slides</a> &rsaquo; What&rsquo;s new</p></div>
   <section class="wrap phero">
     <div class="kick">What&rsquo;s new</div>
-    <h1>Edit any shape in Google Slides&trade; as SVG.</h1>
+    <h1>Reshape any shape in Google Slides&trade;.</h1>
   </section>
   <article class="about wn">
     <p>Slides lets you recolour and resize a shape, but not reshape it. Version 1.2 of the Chrome extension adds a vector editor that opens right on the slide, so you can move the points and curves of any shape and put it back where it was.</p>
@@ -462,6 +464,11 @@ def whats_new_page(ctx):
     <div class="rel">Version 1.2.0 &middot; November 2026</div>
     <h2>Edit Shape</h2>
     <p>Double-click a shape, then click <b>Edit Shape</b>. The editor opens on top of the slide at the shape&rsquo;s exact size and position. Drag points and curve handles, add or remove points with the pen, and select several at once. Undo, redo and zoom work the way they do in Figma and Illustrator. Click <b>Done</b> and the shape updates in place, at the zoom you were editing at.</p>
+    <h2>Round corners</h2>
+    <p>On shapes with corners, small circles appear just inside each one. Drag a circle toward the middle to round it; a pill under the shape shows the radius in pixels, and you can type a value there instead. Select the whole shape, or several shapes, and every corner rounds together. Select one or a few points and only those corners change.</p>
+    {corners}
+    <h2>Layers stay put</h2>
+    <p>Shapes that sit on top of the one you&rsquo;re editing stay visible while you work, so you can line things up against them. Click <b>Done</b> and each edited shape goes back to its place in the stack.</p>
     <h2>Works on Slides&rsquo; own shapes</h2>
     <p>The editor also opens on shapes you didn&rsquo;t bring in with SVG to Slides: the shape menu, arrows, callouts, lines, text boxes and WordArt. It converts them into custom shapes first, and the button tells you what that costs:</p>
     <ul>
@@ -496,8 +503,8 @@ def whats_new_page(ctx):
     ld = [{"@context": "https://schema.org", "@type": "WebPage", "name": "What's new in SVG to Slides", "url": C.SITE + "/whats-new",
            "about": {"@id": C.SITE + "/#app"}, "dateModified": "2026-11-14"},
           ctx["crumbs"]([("What's new", "/whats-new")])]
-    doc = shell(title="What's New: Edit Any Shape in Google Slides as SVG | SVG to Slides",
-                desc="SVG to Slides 1.2 adds a vector editor inside Google Slides. Double-click any shape to move its points and curves, including Slides' own shapes, lines and WordArt.",
+    doc = shell(title="What's New: Edit Points and Round Corners in Google Slides | SVG to Slides",
+                desc="SVG to Slides 1.2 adds a vector editor inside Google Slides. Double-click any shape to move its points and curves or round its corners, including Slides' own shapes, lines and WordArt.",
                 path="/whats-new", body=body, md="/whats-new.md", extra_css=ABOUT_CSS + WHATS_NEW_CSS, campaign="whats-new",
                 ld_block=ctx["ld_block"](ld), **ctx["common"])
     md = f"""# What's new in SVG to Slides
@@ -505,6 +512,8 @@ def whats_new_page(ctx):
 ## 1.2.0 (November 2026)
 
 - Edit Shape: double-click a shape, then click Edit Shape. A vector editor opens on the slide at the shape's exact size and position. Drag points and curve handles, add or remove points, multi-select, undo, redo, zoom. Done updates the shape in place.
+- Round corners: on shapes with corners, drag a circle inside a corner or type a pixel radius. The whole shape or several shapes round every corner together; selected points round only those corners.
+- Layers stay put: shapes above the one you're editing stay visible, and Done returns each shape to its place in the stack.
 - Works on Slides' own shapes, lines, text boxes and WordArt by converting them to custom shapes first. Adjustment handles, connection points, automatic 3D shading and editable WordArt text don't carry over. Text inside a shape stays editable. Cancel restores the original.
 - Click to insert: drop an SVG and click where it goes. It lands as native shapes with nothing to paste. Falls back to Cmd/Ctrl+V if Slides refuses the insert.
 - Straight-line SVG shapes land as Slides polylines, so Slides' own Edit points works on them.

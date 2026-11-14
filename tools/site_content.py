@@ -67,7 +67,7 @@ PAGES = [
         ],
         "sections": [
             ("Reshape it after you insert it", [
-                "Double-click any shape and click <b>Edit Shape</b>. A vector editor opens on the slide at the shape&rsquo;s exact size, so you can drag its points and curve handles, add or remove points, and undo as you go. Click <b>Done</b> and the shape updates in place.",
+                "Double-click any shape and click <b>Edit Shape</b>. A vector editor opens on the slide at the shape&rsquo;s exact size, so you can drag its points and curve handles, add or remove points, round corners, and undo as you go. Click <b>Done</b> and the shape updates in place.",
                 "It works on Slides&rsquo; own shapes, lines and WordArt too. <a href=\"/whats-new\">What&rsquo;s new in 1.2</a>.",
             ]),
             ("Import an SVG without installing anything", [

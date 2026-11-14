@@ -16,7 +16,7 @@ Tested November 11, 2026.
 - **Gradients:** Kept by the web uploader. The extension and add-on fill the shape with the gradient's first colour.
 - **Text:** Web uploader: converted to outlined shapes, not editable text. Extension and add-on: not converted.
 - **Placement:** The extension fits each SVG to about a fifth of the slide, centred where you click. The add-on fits it to the current slide.
-- **Editing:** Chrome extension: double-click any shape and click Edit as SVG to move its points and curve handles on the slide. Works on Slides' own shapes, lines and WordArt by converting them to custom shapes first. SVG shapes made only of straight lines also support Slides' own Edit points.
+- **Editing:** Chrome extension: double-click any shape and click Edit Shape to move its points and curve handles on the slide, or round its corners by dragging or typing a radius. Works on Slides' own shapes, lines and WordArt by converting them to custom shapes first. SVG shapes made only of straight lines also support Slides' own Edit points.
 - **Also works in:** Google Drawings
 - **Current versions:** Chrome extension 1.2.0 (what’s new)
 - **Source code:** github.com/joegelman/svg-to-g-slides (MIT)

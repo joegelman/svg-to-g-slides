@@ -35,7 +35,7 @@ Not as an editable graphic. Google Slides doesn't support SVG files. Install SVG
 PowerPoint can insert an SVG file and convert it to shapes. Google Slides can't. SVG to Slides gives Slides the same result: vector graphics you can select, recolour, and resize.
 
 ### Can you edit the points of a shape in Google Slides?
-Only for lines and polylines you draw yourself. With SVG to Slides, double-click any shape, including Slides’ own shapes and WordArt, and click Edit as SVG to move its points and curves in place. See how.
+Only for lines and polylines you draw yourself. With SVG to Slides, double-click any shape, including Slides’ own shapes and WordArt, and click Edit Shape to move its points and curves in place. See how.
 
 ### Can I add SVG icons to Google Slides?
 Yes. Drag up to 25 SVG icons onto a slide at once. Each one becomes editable shapes with no background box, so you can recolour it to match your theme.

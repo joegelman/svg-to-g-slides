@@ -13,7 +13,7 @@ _Free forever. Every feature, no daily cap, no account, no Pro tier._
 3. **Drag the SVG file onto a slide.** Click where it goes. It lands there and its paths become editable shapes. Up to 25 SVG files per drop.
 
 ## Reshape it after you insert it
-- Double-click any shape and click Edit as SVG. A vector editor opens on the slide at the shape’s exact size, so you can drag its points and curve handles, add or remove points, and undo as you go. Click Done and the shape updates in place.
+- Double-click any shape and click Edit Shape. A vector editor opens on the slide at the shape’s exact size, so you can drag its points and curve handles, add or remove points, round corners, and undo as you go. Click Done and the shape updates in place.
 - It works on Slides’ own shapes, lines and WordArt too. What’s new in 1.2.
 
 ## Import an SVG without installing anything
