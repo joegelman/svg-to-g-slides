@@ -227,6 +227,46 @@ console.log('[svg2slides] svg-editor.js loaded');
     return false;
   }
 
+  // A shape picked from inside a group arrives in the copy data with its
+  // transform relative to that group, and the group itself isn't in the
+  // data, so the payload alone puts it in the wrong place. Slides draws
+  // every path in absolute page units, so fit the decoded points to the
+  // drawn ones and use that as the true local → page mapping; `fix` is the
+  // correction to bake into the pasted transform on Done.
+  function placeFromRendering(sh) {
+    if (sh.src !== sh.id) return; // converted in memory: already absolute
+    try {
+      const el = SB.elementFor(sh.id);
+      if (!el) return;
+      let sp0 = null, rendered = null;
+      for (const p of el.querySelectorAll('path')) {
+        const subs = SB.parseRenderedD(p.getAttribute('d'));
+        if (!subs) continue;
+        // Same subpath on both sides, the first with enough points.
+        for (let i = 0; i < Math.min(subs.length, sh.subs.length); i++) {
+          const pts = subs[i].filter((seg) => seg[0] !== 'Z').map((seg) => ({ x: seg[seg.length - 2], y: seg[seg.length - 1] }));
+          if (pts.length >= 3 && sh.subs[i].nodes.length >= 3) { sp0 = sh.subs[i]; rendered = pts; break; }
+        }
+        if (rendered) break;
+      }
+      if (!rendered) return;
+      const k = Math.min(sp0.nodes.length, rendered.length, 16);
+      const fit = SB.solveAffine(sp0.nodes.slice(0, k), rendered.slice(0, k));
+      if (!fit) return;
+      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+      rendered.forEach((q) => { minX = Math.min(minX, q.x); maxX = Math.max(maxX, q.x); minY = Math.min(minY, q.y); maxY = Math.max(maxY, q.y); });
+      const size = Math.hypot(maxX - minX, maxY - minY) || 1;
+      if (fit.err > Math.max(2, size * 0.004)) return; // points don't correspond: trust the payload
+      const M0 = sh.toPage;
+      const same = M0.every((v, i) => Math.abs(v - fit.m[i]) <= (i < 4 ? 1e-3 * Math.max(1, Math.abs(v)) : Math.max(2, size * 0.002)));
+      if (same) return;
+      sh.fix = SB.matMul(fit.m, SB.matInv(M0));
+      sh.toPage = fit.m;
+    } catch (err) {
+      console.warn('[svg2slides] could not check placement against the slide', err);
+    }
+  }
+
   // ── Replace in place ──────────────────────────────────────────────────
   // A payload's top-level units: each top-level shape, or a group together
   // with everything inside it (and the text entries that belong to them).
@@ -379,6 +419,7 @@ console.log('[svg2slides] svg-editor.js loaded');
       });
     }
     if (!shapes.length) return;
+    shapes.forEach(placeFromRendering);
     const vis = SB.visibleWorkspaceRect();
     if (vis.right - vis.left < 160 || vis.bottom - vis.top < 120) {
       console.warn('[svg2slides] canvas too small or off-screen — not opening editor', vis);
@@ -1671,7 +1712,28 @@ console.log('[svg2slides] svg-editor.js loaded');
         }
       }
       // A group left with one child: ungroup it.
-      return out.filter((e) => !(e[0] === 2 && e[2].length < 2));
+      const final = out.filter((e) => !(e[0] === 2 && e[2].length < 2));
+      // Shapes edited from inside a group paste at the top level, so give
+      // their units absolute transforms (see placeFromRendering).
+      const fixOf = new Map();
+      this.shapes.forEach((sh) => { if (sh.fix) fixOf.set(idMap.get(sh.id), sh.fix); });
+      if (fixOf.size) {
+        const childIds = new Set();
+        final.forEach((e) => { if (e[0] === 2) e[2].forEach((c) => childIds.add(c)); });
+        const byId = new Map(final.filter((e) => e[0] === 2 || e[0] === 3).map((e) => [e[1], e]));
+        const firstFix = (id) => {
+          if (fixOf.has(id)) return fixOf.get(id);
+          const e = byId.get(id);
+          if (e && e[0] === 2) for (const c of e[2]) { const f = firstFix(c); if (f) return f; }
+          return null;
+        };
+        final.forEach((e) => {
+          if ((e[0] !== 2 && e[0] !== 3) || childIds.has(e[1])) return;
+          const f = firstFix(e[1]);
+          if (f && Array.isArray(e[3])) e[3] = SB.matMul(f, e[3]);
+        });
+      }
+      return final;
     }
 
     onKeyUp(e) {

@@ -267,6 +267,37 @@ const SB = (() => {
     return true;
   }
 
+  // Least-squares affine map taking points `src` to `dst` (≥ 3 pairs, not
+  // all collinear). Returns { m: [a,b,c,d,e,f], err } (max residual) or null.
+  function solveAffine(src, dst) {
+    const n = Math.min(src.length, dst.length);
+    if (n < 3) return null;
+    let sxx = 0, sxy = 0, sx = 0, syy = 0, sy = 0;
+    let bx = [0, 0, 0], by = [0, 0, 0];
+    for (let i = 0; i < n; i++) {
+      const { x, y } = src[i], X = dst[i].x, Y = dst[i].y;
+      sxx += x * x; sxy += x * y; sx += x; syy += y * y; sy += y;
+      bx[0] += x * X; bx[1] += y * X; bx[2] += X;
+      by[0] += x * Y; by[1] += y * Y; by[2] += Y;
+    }
+    const A = [[sxx, sxy, sx], [sxy, syy, sy], [sx, sy, n]];
+    const solve3 = (M, b) => {
+      const det = (m) => m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) - m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0]) + m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
+      const D = det(M);
+      if (Math.abs(D) < 1e-12) return null;
+      return [0, 1, 2].map((k) => det(M.map((row, r) => row.map((v, c) => (c === k ? b[r] : v)))) / D);
+    };
+    const px = solve3(A, bx), py = solve3(A, by);
+    if (!px || !py) return null;
+    const m = [px[0], py[0], px[1], py[1], px[2], py[2]];
+    let err = 0;
+    for (let i = 0; i < n; i++) {
+      const q = apply(m, src[i].x, src[i].y);
+      err = Math.max(err, Math.hypot(q.x - dst[i].x, q.y - dst[i].y));
+    }
+    return { m, err };
+  }
+
   // ── Stacking order ────────────────────────────────────────────────────
   // Top-level objects on the current slide, bottom to top (document order
   // is paint order). A paste always lands on top, so after replacing a
@@ -760,6 +791,6 @@ const SB = (() => {
     topLevelOrder, topLevelIdOf, pressArrange, moveToIndex,
     ZOOM_MIN, ZOOM_MAX, zoomPctFromCTM, setSlidesZoom, scrollPagePointTo, matchSlidesView,
     decodePath, encodePath, normalizeSubs, typeFor, svgPathD,
-    convertibleKind, convertSelection, KIND_NOTE,
+    convertibleKind, convertSelection, KIND_NOTE, parseRenderedD, solveAffine,
   };
 })();
