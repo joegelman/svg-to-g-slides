@@ -268,6 +268,22 @@ console.log('[svg2slides] svg-editor.js loaded');
     }
   }
 
+  // Slides styles parts of its SVG with page CSS (e.g. invisible text-box
+  // backings), which doesn't reach into our shadow root. Copy the computed
+  // paint and text styles onto a clone so it renders the same.
+  const COVER_STYLE_PROPS = ['fill', 'fill-opacity', 'fill-rule', 'stroke', 'stroke-opacity', 'stroke-width', 'stroke-linecap',
+    'stroke-linejoin', 'stroke-dasharray', 'opacity', 'visibility', 'display', 'font-family', 'font-size', 'font-weight',
+    'font-style', 'letter-spacing', 'word-spacing', 'text-decoration', 'white-space', 'dominant-baseline', 'text-anchor'];
+  function inlineComputedStyles(orig, copy) {
+    const a = [orig, ...orig.querySelectorAll('*')];
+    const b = [copy, ...copy.querySelectorAll('*')];
+    for (let i = 0; i < a.length && i < b.length; i++) {
+      const cs = getComputedStyle(a[i]);
+      const st = b[i].style;
+      COVER_STYLE_PROPS.forEach((p) => { const v = cs.getPropertyValue(p); if (v) st.setProperty(p, v); });
+    }
+  }
+
   // ── Geometry helpers ───────────────────────────────────────────────────
   const clone = (o) => JSON.parse(JSON.stringify(o));
   const lerp = (a, b, t) => ({ x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t });
@@ -375,6 +391,7 @@ console.log('[svg2slides] svg-editor.js loaded');
 
       this.hideSlidesChrome();
       this.buildDOM();
+      this.buildCover();
       this.render();
       this.onResize = () => {
         const c = SB.pageCTM();
@@ -399,7 +416,66 @@ console.log('[svg2slides] svg-editor.js loaded');
         s.Minv = SB.matInv(s.M);
       });
       this.updateZoomLayer();
+      if (this.gCover) this.gCover.setAttribute('transform', 'matrix(' + this.ctm.join(' ') + ')');
       if (this.zoomLabel) this.zoomLabel.textContent = Math.round(v.s * 100) + '%';
+    }
+
+    // ── Shapes above the one being edited ──
+    // Anything Slides draws on top of the edited shape stays on top while
+    // editing: a static copy of those objects sits over our fills but under
+    // the outline, points and handles, and ignores the pointer. Copies keep
+    // their ids (they live in our shadow root, so document lookups never
+    // see them) so internal clip paths and gradients still resolve; defs
+    // they borrow from elsewhere on the page are copied alongside.
+    buildCover() {
+      try {
+        const page = SB.currentPageGroup();
+        const pageCTM = SB.pageCTM();
+        if (!page || !pageCTM) return;
+        const pageInv = SB.matInv(pageCTM);
+        const edited = this.shapes.map((sh) => SB.elementFor(sh.id)).filter(Boolean);
+        if (!edited.length) return;
+        // Topmost edited element in paint (document) order.
+        const top = edited.reduce((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? b : a));
+        const above = [];
+        for (const g of page.querySelectorAll('g[id^="editor-"]')) {
+          if (/-bg$|-paragraph$/.test(g.id)) continue;
+          if (!(top.compareDocumentPosition(g) & Node.DOCUMENT_POSITION_FOLLOWING)) continue;
+          if (edited.some((e) => e.contains(g) || g.contains(e))) continue;
+          if (above.some((t) => t.contains(g))) continue;
+          if (getComputedStyle(g).visibility === 'hidden' || getComputedStyle(g).display === 'none') continue;
+          above.push(g);
+        }
+        if (!above.length) return;
+        const refs = new Set();
+        above.forEach((g) => {
+          const parent = g.parentNode && g.parentNode.getScreenCTM ? g.parentNode.getScreenCTM() : null;
+          const rel = parent ? SB.matMul(pageInv, [parent.a, parent.b, parent.c, parent.d, parent.e, parent.f]) : [1, 0, 0, 1, 0, 0];
+          const wrap = sv('g', { transform: 'matrix(' + rel.join(' ') + ')' });
+          const copy = g.cloneNode(true);
+          inlineComputedStyles(g, copy);
+          copy.style.visibility = 'visible';
+          wrap.append(copy);
+          this.gCover.append(wrap);
+          [copy, ...copy.querySelectorAll('*')].forEach((n) => {
+            for (const a of ['clip-path', 'mask', 'fill', 'stroke', 'filter', 'href', 'xlink:href']) {
+              const v = n.getAttribute(a);
+              const m = v && /^url\(["']?#([^"')]+)["']?\)$/.exec(v);
+              if (m) refs.add(m[1]);
+              else if (v && (a === 'href' || a === 'xlink:href') && v[0] === '#') refs.add(v.slice(1));
+            }
+          });
+        });
+        refs.forEach((id) => {
+          if (this.gCover.querySelector('#' + CSS.escape(id))) return;
+          const src = document.getElementById(id);
+          if (src) this.gDefs.append(src.cloneNode(true));
+        });
+        this.gCover.setAttribute('transform', 'matrix(' + this.ctm.join(' ') + ')');
+      } catch (err) {
+        console.warn('[svg2slides] could not copy shapes above the edited one', err);
+        if (this.gCover) this.gCover.replaceChildren();
+      }
     }
 
     // ── Zoom / pan ──
@@ -605,7 +681,7 @@ console.log('[svg2slides] svg-editor.js loaded');
           .anchors, .handles, .cornerh { filter: drop-shadow(0 0 1px rgba(0,0,0,.35)) drop-shadow(0 1px 2px rgba(0,0,0,.18)); }`));
 
       const svg = sv('svg', { class: 'stage' });
-      ['fills', 'outlines', 'handles', 'anchors', 'cornerh'].forEach((c) => svg.append(sv('g', { class: c })));
+      ['defs', 'fills', 'cover', 'outlines', 'handles', 'anchors', 'cornerh'].forEach((c) => svg.append(sv(c === 'defs' ? 'defs' : 'g', { class: c })));
       svg.append(
         sv('rect', { class: 'marquee', fill: 'rgba(11,87,208,.08)', stroke: ACCENT, 'stroke-width': 1, visibility: 'hidden' }),
         sv('circle', { class: 'pen-ghost', r: 4, fill: ACCENT, visibility: 'hidden' })
@@ -676,6 +752,9 @@ console.log('[svg2slides] svg-editor.js loaded');
       this.gOutlines = svg.querySelector('.outlines');
       this.gHandles = svg.querySelector('.handles');
       this.gAnchors = svg.querySelector('.anchors');
+      this.gCover = svg.querySelector('.cover');
+      this.gCover.setAttribute('pointer-events', 'none');
+      this.gDefs = svg.querySelector('defs');
       this.gCorners = svg.querySelector('.cornerh');
       this.marquee = svg.querySelector('.marquee');
       this.penGhost = svg.querySelector('.pen-ghost');
