@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "SVG to Slides",
   "version": "1.2.0",
-  "description": "Drop SVGs into Google Slides as editable vector shapes, and edit any shape's points and curves as SVG.",
+  "description": "Drop SVGs into Google Slides as editable vector shapes, and reshape any shape's points, curves and corners.",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",

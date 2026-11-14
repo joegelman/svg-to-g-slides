@@ -52,7 +52,7 @@
       el('div', { class: 't' }, 'SVG to Slides got an upgrade'),
       el('div', { class: 'v' }, 'Version ' + version),
       el('ul', {},
-        el('li', {}, el('b', {}, 'Edit Shape. '), 'Double-click any shape to drag its points and curve handles.'),
+        el('li', {}, el('b', {}, 'Edit Shape. '), 'Double-click any shape to drag its points and curve handles, or round its corners.'),
         el('li', {}, el('b', {}, 'Any shape. '), 'Works on Slides’ own shapes, lines and WordArt too.'),
         el('li', {}, el('b', {}, 'One click to insert. '), 'Drop an SVG, click where it goes. It lands right there.')),
       el('div', { class: 'row' }, more, ok));
