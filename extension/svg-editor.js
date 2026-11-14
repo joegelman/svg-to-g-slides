@@ -34,6 +34,7 @@ console.log('[svg2slides] svg-editor.js loaded');
     elev2: '0 1px 2px rgba(60,64,67,.3), 0 2px 6px 2px rgba(60,64,67,.15)',
   };
   const HIT = 9; // px: matches the larger point markers
+  const CORNER_INSET = 14; // px from a corner to its radius handle at radius 0
   const SVGNS = 'http://www.w3.org/2000/svg';
 
   // Slides enforces Trusted Types, so build every element with DOM calls —
@@ -587,22 +588,24 @@ console.log('[svg2slides] svg-editor.js loaded');
                   font: 400 12px/16px ${FONT}; padding: 6px 10px; border-radius: 4px; white-space: nowrap;
                   opacity: 0; transition: opacity .25s; }
           .hint.show { opacity: .94; }
-          .btn.hide { display: none; }
-          .corners { position: fixed; z-index: 2; display: none; align-items: center; gap: 8px; height: 40px; padding: 0 12px 0 14px;
-                     background: ${GM.surface}; border-radius: 20px; box-shadow: ${GM.elev2}; color: #1f1f1f;
-                     font: 500 12px/1 ${FONT}; user-select: none; white-space: nowrap; }
-          .corners.show { display: flex; }
-          .corners .cl { color: ${GM.icon}; }
-          .corners input[type=range] { width: 120px; accent-color: ${ACCENT}; margin: 0; cursor: pointer; }
-          .corners input[type=number] { width: 52px; height: 26px; box-sizing: border-box; border: 1px solid #c4c7c5; border-radius: 6px;
-                     background: #fff; font: 500 12px/1 ${FONT}; color: #1f1f1f; padding: 0 4px 0 8px; text-align: right; }
-          .corners input[type=number]:focus { outline: 2px solid ${ACCENT}; outline-offset: -1px; border-color: transparent; }
-          .corners .u { color: ${GM.icon}; margin-left: -4px; }
-          .corners .sc { color: ${GM.icon}; font-weight: 400; padding-left: 8px; border-left: 1px solid #c4c7c5; }
-          .anchors, .handles { filter: drop-shadow(0 0 1px rgba(0,0,0,.35)) drop-shadow(0 1px 2px rgba(0,0,0,.18)); }`));
+          .rpill { position: fixed; z-index: 2; display: none; align-items: center; gap: 6px; height: 30px; padding: 0 10px 0 12px;
+                   background: ${GM.tooltip}; color: ${GM.onTooltip}; border-radius: 15px; box-shadow: ${GM.elev2};
+                   font: 500 12px/1 ${FONT}; user-select: none; white-space: nowrap; transform: translateX(-50%); }
+          .rpill.show { display: flex; }
+          .rpill .ic { width: 14px; height: 14px; display: block; opacity: .8; }
+          .rpill input { width: 40px; height: 20px; box-sizing: border-box; border: 0; border-radius: 4px; padding: 0 4px;
+                   background: rgba(255,255,255,.12); color: inherit; font: 500 12px/1 ${FONT}; text-align: right;
+                   -moz-appearance: textfield; }
+          .rpill input::-webkit-inner-spin-button, .rpill input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+          .rpill input::placeholder { color: rgba(242,242,242,.6); }
+          .rpill input:focus { outline: 1px solid #a8c7fa; background: rgba(255,255,255,.18); }
+          .rpill .u { opacity: .7; margin-left: -2px; }
+          .rpill .sc { opacity: .7; padding-left: 8px; border-left: 1px solid rgba(255,255,255,.25); }
+          .rpill.live input { background: transparent; }
+          .anchors, .handles, .cornerh { filter: drop-shadow(0 0 1px rgba(0,0,0,.35)) drop-shadow(0 1px 2px rgba(0,0,0,.18)); }`));
 
       const svg = sv('svg', { class: 'stage' });
-      ['fills', 'outlines', 'handles', 'anchors'].forEach((c) => svg.append(sv('g', { class: c })));
+      ['fills', 'outlines', 'handles', 'anchors', 'cornerh'].forEach((c) => svg.append(sv('g', { class: c })));
       svg.append(
         sv('rect', { class: 'marquee', fill: 'rgba(11,87,208,.08)', stroke: ACCENT, 'stroke-width': 1, visibility: 'hidden' }),
         sv('circle', { class: 'pen-ghost', r: 4, fill: ACCENT, visibility: 'hidden' })
@@ -633,7 +636,6 @@ console.log('[svg2slides] svg-editor.js loaded');
       const rail = el('div', { class: 'rail' },
         b({ 'data-tool': 'direct', 'data-tip': 'Select points', 'data-key': 'A' }, I.select),
         b({ 'data-tool': 'pen', 'data-tip': 'Add / remove points', 'data-key': 'P' }, I.pen),
-        b({ 'data-act': 'corners', class: 'btn hide', 'data-tip': 'Round corners' }, I.corners),
         el('div', { class: 'sep' }),
         b({ 'data-act': 'undo', 'data-tip': 'Undo', 'data-key': '⌘Z' }, I.undo),
         b({ 'data-act': 'redo', 'data-tip': 'Redo', 'data-key': '⇧⌘Z' }, I.redo),
@@ -647,25 +649,26 @@ console.log('[svg2slides] svg-editor.js loaded');
       );
       const tip = el('div', { class: 'tip' });
       const hint = el('div', { class: 'hint' });
-      // Corner radius: drag the slider or type a value. Rounds every corner,
-      // or only the selected points when some are selected.
-      const cRange = el('input', { type: 'range', min: '0', max: '100', step: '1', value: '0', 'aria-label': 'Corner radius' });
-      const cNum = el('input', { type: 'number', min: '0', step: '1', value: '0', 'aria-label': 'Corner radius in px' });
-      const cScope = el('span', { class: 'sc' }, 'All corners');
-      const corners = el('div', { class: 'corners', role: 'group', 'aria-label': 'Round corners' },
-        el('span', { class: 'cl' }, 'Corners'), cRange, cNum, el('span', { class: 'u' }, 'px'), cScope);
-      root.append(svg, rail, corners, tip, hint);
-      this.cornersPanel = corners;
-      this.cornerRange = cRange;
-      this.cornerNum = cNum;
-      this.cornerScopeEl = cScope;
-      this.cornerOpen = true;
-      corners.addEventListener('pointerdown', (e) => { e.stopPropagation(); this.hideHint(); });
-      cRange.addEventListener('input', () => this.setRound(Number(cRange.value), false));
-      cNum.addEventListener('input', () => {
-        const v = parseFloat(cNum.value);
-        if (Number.isFinite(v) && v >= 0) this.setRound(v, true);
+      // Corner radius pill: shows under the shape while corner handles are
+      // visible. Live value while dragging a handle; type a px value too.
+      const rIcon = sv('svg', { class: 'ic', viewBox: '0 0 20 20', 'aria-hidden': 'true' });
+      rIcon.append(sv('path', { d: 'M4.25 17V9.5A5.25 5.25 0 0 1 9.5 4.25H17v1.5H9.5A3.75 3.75 0 0 0 5.75 9.5V17Z', fill: 'currentColor' }));
+      const rNum = el('input', { type: 'number', min: '0', step: '1', 'aria-label': 'Corner radius in px' });
+      const rScope = el('span', { class: 'sc' }, 'All corners');
+      const rpill = el('div', { class: 'rpill', role: 'group', 'aria-label': 'Corner radius' }, rIcon, rNum, el('span', { class: 'u' }, 'px'), rScope);
+      root.append(svg, rail, rpill, tip, hint);
+      this.rpill = rpill;
+      this.rNum = rNum;
+      this.rScope = rScope;
+      rpill.addEventListener('pointerdown', (e) => { e.stopPropagation(); this.hideHint(); });
+      rNum.addEventListener('focus', () => { this._rTyping = false; });
+      rNum.addEventListener('input', () => {
+        const v = parseFloat(rNum.value);
+        if (!Number.isFinite(v) || v < 0) return;
+        if (!this._rTyping) { this.pushUndo(); this._rTyping = true; }
+        this.setRadius(this.cornerScope(), v * 381);
       });
+      rNum.addEventListener('blur', () => { this._rTyping = false; });
 
       this.root = root;
       this.svg = svg;
@@ -673,6 +676,7 @@ console.log('[svg2slides] svg-editor.js loaded');
       this.gOutlines = svg.querySelector('.outlines');
       this.gHandles = svg.querySelector('.handles');
       this.gAnchors = svg.querySelector('.anchors');
+      this.gCorners = svg.querySelector('.cornerh');
       this.marquee = svg.querySelector('.marquee');
       this.penGhost = svg.querySelector('.pen-ghost');
       this.rail = rail;
@@ -691,7 +695,6 @@ console.log('[svg2slides] svg-editor.js loaded');
         else if (t.dataset.act === 'zoomin') this.zoomStep(1.5);
         else if (t.dataset.act === 'zoomout') this.zoomStep(1 / 1.5);
         else if (t.dataset.act === 'zoomreset') { if (this.isIdentityView()) this.fitView(); else this.resetView(); }
-        else if (t.dataset.act === 'corners') { this.cornerOpen = !this.cornerOpen; this.render(); }
         else if (t.dataset.act === 'cancel') this.close(true);
         else if (t.dataset.act === 'done') this.commit();
       });
@@ -714,7 +717,7 @@ console.log('[svg2slides] svg-editor.js loaded');
       rail.addEventListener('pointerleave', () => { this.scheduleIdle(600); });
       this.scheduleIdle(2500);
 
-      svg.addEventListener('pointerdown', (e) => { this.hideHint(); this.endRound(); this.onDown(e); });
+      svg.addEventListener('pointerdown', (e) => { this.hideHint(); this.onDown(e); });
       svg.addEventListener('dblclick', (e) => this.onDbl(e));
       window.addEventListener('pointermove', this._mv = (e) => this.onMove(e), true);
       window.addEventListener('pointerup', this._up = (e) => this.onUp(e), true);
@@ -799,7 +802,6 @@ console.log('[svg2slides] svg-editor.js loaded');
     }
 
     setTool(t) {
-      this.endRound();
       const changed = this.tool !== t;
       this.tool = t;
       this.root.querySelectorAll('[data-tool]').forEach((b) => b.classList.toggle('on', b.dataset.tool === t));
@@ -844,14 +846,12 @@ console.log('[svg2slides] svg-editor.js loaded');
       this.render();
     }
     doUndo() {
-      this.endRound();
       if (!this.undo.length) return;
       this.redo.push(this.snapshot());
       this.restore(this.undo.pop());
       this.updateUndoButtons();
     }
     doRedo() {
-      this.endRound();
       if (!this.redo.length) return;
       this.undo.push(this.snapshot());
       this.restore(this.redo.pop());
@@ -926,127 +926,182 @@ console.log('[svg2slides] svg-editor.js loaded');
       this.gOutlines.replaceChildren(...outlines);
       this.gHandles.replaceChildren(...handles);
       this.gAnchors.replaceChildren(...anchors);
-      if (!this.drag) this.updateCornerUI();
+      if (!this.drag || this.drag.kind === 'radius') this.updateCornerUI();
+      else { this.gCorners.replaceChildren(); }
     }
 
-    // ── Corner rounding ──
-    // Works in page units so the radius means the same thing at any zoom;
-    // 381 page units = 1 px at Slides' 100%. A corner is a point with no
-    // handles between two straight segments. Rounding replaces it with two
-    // points joined by a cubic that approximates a circular arc: for a turn
-    // of φ, the tangent points sit R·tan(φ/2) from the corner and each
-    // handle is (4/3)·tan(φ/4)·R long. Each corner is capped at half its
-    // shorter side. A session keeps the unrounded geometry, so dragging the
-    // slider back to 0 restores it exactly.
-    roundableCorners(subsList, keys) {
-      const out = [];
-      subsList.forEach((subs, si) => {
-        const T = this.shapes[si].toPage;
-        subs.forEach((sp, pi) => {
-          const L = sp.nodes.length;
-          if (L < 3) return;
-          sp.nodes.forEach((n, ni) => {
-            if (keys && !keys.has(this.key(si, pi, ni))) return;
-            if (n.in || n.out) return;
-            const pI = ni > 0 ? ni - 1 : (sp.closed ? L - 1 : -1);
-            const nI = ni < L - 1 ? ni + 1 : (sp.closed ? 0 : -1);
-            if (pI < 0 || nI < 0) return;
-            const pp = sp.nodes[pI], nn = sp.nodes[nI];
-            if (pp.out || nn.in) return;
-            const P = SB.apply(T, n.x, n.y), A = SB.apply(T, pp.x, pp.y), B = SB.apply(T, nn.x, nn.y);
-            const l1 = Math.hypot(P.x - A.x, P.y - A.y), l2 = Math.hypot(B.x - P.x, B.y - P.y);
-            if (l1 < 1e-6 || l2 < 1e-6) return;
-            const u1 = { x: (P.x - A.x) / l1, y: (P.y - A.y) / l1 };
-            const u2 = { x: (B.x - P.x) / l2, y: (B.y - P.y) / l2 };
-            const phi = Math.acos(Math.max(-1, Math.min(1, u1.x * u2.x + u1.y * u2.y)));
-            if (phi < 0.05 || phi > Math.PI - 0.05) return;
-            out.push({ si, pi, ni, P, u1, u2, phi, rmax: (Math.min(l1, l2) / 2) / Math.tan(phi / 2) });
-          });
-        });
+    // ── Corner rounding (Figma-style) ──
+    // A corner is a vertex between two straight segments: either a sharp
+    // point with no handles, or a pair of points joined by an arc-shaped
+    // cubic (what rounding leaves behind). Both are recognised, so a corner
+    // can be re-rounded any time without hidden state. Geometry is in page
+    // units (381 = 1 px at Slides' 100%). For a turn of φ and radius R the
+    // tangent points sit R·tan(φ/2) from the corner and each handle is
+    // (4/3)·tan(φ/4)·R long; a corner is capped at half its side when the
+    // neighbouring vertex is also a corner, at the full side otherwise.
+    subVertices(si, pi) {
+      const s = this.shapes[si], sp = s.subs[pi], T = s.toPage, nodes = sp.nodes, L = nodes.length;
+      const pg = (n) => SB.apply(T, n.x, n.y);
+      const unit = (a, b) => { const l = Math.hypot(b.x - a.x, b.y - a.y); return l < 1e-9 ? null : { x: (b.x - a.x) / l, y: (b.y - a.y) / l, l }; };
+      const at = (i) => (sp.closed ? nodes[(i + L) % L] : nodes[i]);
+      const pairAt = (i) => {
+        const A = at(i), B = at(i + 1), prev = at(i - 1), next = at(i + 2);
+        if (!A || !B || !prev || !next || A.in || !A.out || !B.in || B.out || prev.out || next.in) return null;
+        const pA = pg(A), pB = pg(B);
+        // Directions come from the arc's own handles; the outer segments
+        // only have to line up with them (they may be zero-length when a
+        // corner is rounded all the way to its neighbour).
+        const u1 = unit(pA, pg(A.out)), u2 = unit(pg(B.in), pB);
+        if (!u1 || !u2) return null;
+        const s1 = unit(pg(prev), pA), s2 = unit(pB, pg(next));
+        if ((s1 && s1.l > 1 && s1.x * u1.x + s1.y * u1.y < 0.999) || (s2 && s2.l > 1 && s2.x * u2.x + s2.y * u2.y < 0.999)) return null;
+        const cr = u1.x * u2.y - u1.y * u2.x;
+        if (Math.abs(cr) < 1e-6) return null;
+        const t = ((pB.x - pA.x) * u2.y - (pB.y - pA.y) * u2.x) / cr; // P = pA + u1·t
+        const P = { x: pA.x + u1.x * t, y: pA.y + u1.y * t };
+        const d1 = Math.hypot(P.x - pA.x, P.y - pA.y), d2 = Math.hypot(P.x - pB.x, P.y - pB.y);
+        if (t <= 0 || Math.abs(d1 - d2) > 0.03 * Math.max(d1, d2) + 2) return null;
+        const phi = Math.acos(Math.max(-1, Math.min(1, u1.x * u2.x + u1.y * u2.y)));
+        if (phi < 0.05 || phi > Math.PI - 0.05) return null;
+        return { P, u1, u2, phi, R: ((d1 + d2) / 2) / Math.tan(phi / 2) };
+      };
+      const sharpAt = (i) => {
+        const n = at(i), prev = at(i - 1), next = at(i + 1);
+        if (!n || !prev || !next || n.in || n.out || prev.out || next.in) return null;
+        const P = pg(n), u1 = unit(pg(prev), P), u2 = unit(P, pg(next));
+        if (!u1 || !u2) return null;
+        const phi = Math.acos(Math.max(-1, Math.min(1, u1.x * u2.x + u1.y * u2.y)));
+        if (phi < 0.05 || phi > Math.PI - 0.05) return null;
+        return { P, u1, u2, phi, R: 0 };
+      };
+      if (L < 3) return null;
+      const verts = [];
+      let start = 0, end = L;
+      if (sp.closed && pairAt(L - 1)) { start = 1; } // a pair that wraps round the start
+      for (let i = start; i < end;) {
+        const pr = (sp.closed || i + 1 < L) ? pairAt(i) : null;
+        if (pr && (i + 1 < L || sp.closed)) { verts.push(Object.assign({ nodes: [i, (i + 1) % L] }, pr)); i += 2; continue; }
+        const sh = sharpAt(i);
+        verts.push(sh ? Object.assign({ nodes: [i] }, sh) : { nodes: [i], P: pg(nodes[i]), plain: true });
+        i++;
+      }
+      // Caps: how far each corner's tangent points may travel.
+      const V = verts.length;
+      verts.forEach((v, k) => {
+        if (v.plain) return;
+        const pv = sp.closed ? verts[(k - 1 + V) % V] : verts[k - 1];
+        const nv = sp.closed ? verts[(k + 1) % V] : verts[k + 1];
+        const side = (o) => (o ? Math.hypot(o.P.x - v.P.x, o.P.y - v.P.y) * (o.plain ? 1 : 0.5) : 0);
+        v.rmax = Math.max(0, Math.min(side(pv), side(nv))) / Math.tan(v.phi / 2);
       });
-      return out;
+      return verts;
     }
 
-    // Which corners the control would act on right now.
+    // Corners the handles act on: every corner when nothing (or the whole
+    // shape) is selected, otherwise just the corners whose points are selected.
     cornerScope() {
-      if (this.round) return { corners: this.round.corners, scoped: this.round.scoped };
+      if (this.tool !== 'direct') return null;
       let total = 0;
       this.eachNode(() => { total++; });
-      if (total > 160) return null; // complex artwork: leave it alone
-      const subsList = this.shapes.map((sh) => sh.subs);
-      const all = this.roundableCorners(subsList, null);
-      const sel = this.sel.size ? all.filter((c) => this.sel.has(this.key(c.si, c.pi, c.ni))) : [];
-      if (sel.length) return { corners: sel, scoped: true };
-      if (all.length >= 3) return { corners: all, scoped: false };
-      return null;
+      if (total > 160) return null; // detailed artwork: leave it alone
+      const all = [];
+      this.shapes.forEach((s, si) => s.subs.forEach((sp, pi) => {
+        const verts = this.subVertices(si, pi);
+        if (verts) verts.forEach((v, k) => { if (!v.plain) all.push({ si, pi, k, v }); });
+      }));
+      const whole = this.sel.size === 0 || this.sel.size === total;
+      if (whole) return all.length >= 2 ? { corners: all, scoped: false } : null;
+      const picked = all.filter((c) => c.v.nodes.some((ni) => this.sel.has(this.key(c.si, c.pi, ni))));
+      return picked.length ? { corners: picked, scoped: true } : null;
     }
 
-    beginRound() {
-      const sc = this.cornerScope();
-      if (!sc || !sc.corners.length) return false;
-      this.pushUndo();
-      this.round = { base: this.snapshot(), corners: sc.corners, scoped: sc.scoped, value: 0 };
-      this.sel.clear(); // point indices shift as corners split in two
-      return true;
-    }
-
-    endRound() {
-      if (!this.round) return;
-      this.round = null;
-      if (this.cornerRange) { this.cornerRange.value = '0'; this.cornerNum.value = '0'; }
-    }
-
-    setRound(px, fromNumber) {
-      if (!this.round && !this.beginRound()) return;
-      const r = this.round;
-      r.value = Math.max(0, px);
-      const R = r.value * 381;
-      const byKey = new Map(r.corners.map((c) => [this.key(c.si, c.pi, c.ni), c]));
-      const subsList = JSON.parse(r.base);
-      subsList.forEach((subs, si) => {
-        const inv = SB.matInv(this.shapes[si].toPage);
+    // Rebuild the affected subpaths with radius R (page units) on the given
+    // corners, keeping the selection on the same corners.
+    setRadius(scope, R) {
+      if (!scope) return;
+      const want = new Set(scope.corners.map((c) => c.si + ':' + c.pi + ':' + c.k));
+      const subsTouched = new Set(scope.corners.map((c) => c.si + ':' + c.pi));
+      const newSel = new Set([...this.sel].filter((k) => !subsTouched.has(k.split(':').slice(0, 2).join(':'))));
+      subsTouched.forEach((sk) => {
+        const [si, pi] = sk.split(':').map(Number);
+        const s = this.shapes[si], sp = s.subs[pi];
+        const verts = this.subVertices(si, pi);
+        if (!verts) return;
+        const inv = SB.matInv(s.toPage);
         const loc = (p) => SB.apply(inv, p.x, p.y);
-        subs.forEach((sp, pi) => {
-          const nodes = [];
-          sp.nodes.forEach((n, ni) => {
-            const c = byKey.get(this.key(si, pi, ni));
-            const Re = c ? Math.min(R, c.rmax) : 0;
-            if (!c || Re <= 0) { nodes.push(n); return; }
-            const d = Re * Math.tan(c.phi / 2);
-            const h = (4 / 3) * Math.tan(c.phi / 4) * Re;
-            const a = { x: c.P.x - c.u1.x * d, y: c.P.y - c.u1.y * d };
-            const b = { x: c.P.x + c.u2.x * d, y: c.P.y + c.u2.y * d };
-            nodes.push(
-              Object.assign(loc(a), { in: null, out: loc({ x: a.x + c.u1.x * h, y: a.y + c.u1.y * h }), smooth: false }),
-              Object.assign(loc(b), { in: loc({ x: b.x - c.u2.x * h, y: b.y - c.u2.y * h }), out: null, smooth: false })
-            );
-          });
-          sp.nodes = nodes;
+        const out = [];
+        verts.forEach((v, k) => {
+          const wasSel = v.nodes.some((ni) => this.sel.has(this.key(si, pi, ni)));
+          const first = out.length;
+          const target = want.has(si + ':' + pi + ':' + k);
+          if (v.plain || !target) {
+            v.nodes.forEach((ni) => out.push(sp.nodes[ni]));
+          } else {
+            const Re = Math.max(0, Math.min(R, v.rmax));
+            if (Re <= 1e-6) {
+              out.push(Object.assign(loc(v.P), { in: null, out: null, smooth: false }));
+            } else {
+              const d = Re * Math.tan(v.phi / 2), h = (4 / 3) * Math.tan(v.phi / 4) * Re;
+              const a = { x: v.P.x - v.u1.x * d, y: v.P.y - v.u1.y * d };
+              const b = { x: v.P.x + v.u2.x * d, y: v.P.y + v.u2.y * d };
+              out.push(
+                Object.assign(loc(a), { in: null, out: loc({ x: a.x + v.u1.x * h, y: a.y + v.u1.y * h }), smooth: false }),
+                Object.assign(loc(b), { in: loc({ x: b.x - v.u2.x * h, y: b.y - v.u2.y * h }), out: null, smooth: false }));
+            }
+          }
+          if (wasSel) for (let n = first; n < out.length; n++) newSel.add(this.key(si, pi, n));
         });
+        sp.nodes = out;
       });
-      subsList.forEach((subs, si) => { this.shapes[si].subs = subs; });
+      this.sel = newSel;
       this.dirty = true;
-      if (fromNumber) this.cornerRange.value = String(Math.min(r.value, Number(this.cornerRange.max)));
-      else this.cornerNum.value = String(Math.round(r.value));
       this.render();
     }
 
+    // Small circles just inside each corner in scope, plus the radius pill.
     updateCornerUI() {
-      const btn = this.root.querySelector('[data-act="corners"]');
-      const sc = this.cornerScope();
-      btn.classList.toggle('hide', !sc);
-      btn.classList.toggle('on', !!sc && this.cornerOpen);
-      const show = !!sc && this.cornerOpen;
-      this.cornersPanel.classList.toggle('show', show);
-      if (!show) return;
-      const maxPx = Math.max(1, Math.ceil(Math.max(...sc.corners.map((c) => c.rmax)) / 381));
-      this.cornerRange.max = String(Math.min(maxPx, 999));
-      this.cornerScopeEl.textContent = sc.scoped
-        ? (sc.corners.length === 1 ? '1 corner' : sc.corners.length + ' corners')
-        : 'All corners';
-      const br = btn.getBoundingClientRect(), rr = this.rail.getBoundingClientRect();
-      this.cornersPanel.style.left = (rr.right + 8) + 'px';
-      this.cornersPanel.style.top = (br.top + br.height / 2 - 20) + 'px';
+      const g = this.gCorners;
+      const sc = this.drag && this.drag.kind === 'radius' ? this.drag.liveScope() : this.cornerScope();
+      this.cornerHandles = [];
+      if (!sc) { g.replaceChildren(); this.rpill.classList.remove('show'); return; }
+      const k = Math.sqrt(Math.abs(this.ctm[0] * this.ctm[3] - this.ctm[1] * this.ctm[2])); // page → screen
+      const els = [];
+      let minX = Infinity, maxX = -Infinity, maxY = -Infinity;
+      sc.corners.forEach((c) => {
+        const v = c.v;
+        const P = SB.apply(this.ctm, v.P.x, v.P.y);
+        let bx = v.u2.x - v.u1.x, by = v.u2.y - v.u1.y;
+        const bl = Math.hypot(bx, by) || 1; bx /= bl; by /= bl;
+        const dist = CORNER_INSET + (v.R * k) / Math.cos(v.phi / 2);
+        const H = { x: P.x + bx * dist, y: P.y + by * dist };
+        this.cornerHandles.push({ c, x: H.x, y: H.y, P, bx, by });
+        const active = this.drag && this.drag.kind === 'radius';
+        els.push(sv('circle', { cx: H.x, cy: H.y, r: 4.5, fill: active ? ACCENT : '#fff', stroke: ACCENT, 'stroke-width': 1.5 }));
+        minX = Math.min(minX, P.x); maxX = Math.max(maxX, P.x); maxY = Math.max(maxY, P.y);
+      });
+      g.replaceChildren(...els);
+      // Pill: under the corners in scope.
+      this.shapes.forEach((s) => s.subs.forEach((sp) => sp.nodes.forEach((n) => {
+        const q = this.screen(s, n); maxY = Math.max(maxY, q.y);
+      })));
+      const Rs = sc.corners.map((c) => c.v.R / 381);
+      const same = Rs.every((r) => Math.abs(r - Rs[0]) < 0.5);
+      if (document.activeElement !== this.host || this.root.activeElement !== this.rNum) {
+        this.rNum.value = same ? String(Math.round(Rs[0])) : '';
+        this.rNum.placeholder = same ? '' : 'Mixed';
+      }
+      this.rScope.textContent = sc.scoped ? (sc.corners.length === 1 ? '1 corner' : sc.corners.length + ' corners') : 'All corners';
+      this.rpill.classList.add('show');
+      this.rpill.classList.toggle('live', !!(this.drag && this.drag.kind === 'radius'));
+      const r = this.wsRect;
+      this.rpill.style.left = Math.max(r.left + 80, Math.min(r.right - 80, (minX + maxX) / 2)) + 'px';
+      this.rpill.style.top = Math.min(r.bottom - 42, maxY + 18) + 'px';
+    }
+
+    hitCornerHandle(x, y) {
+      let best = null, bd = 8;
+      (this.cornerHandles || []).forEach((h) => { const d = Math.hypot(h.x - x, h.y - y); if (d <= bd) { bd = d; best = h; } });
+      return best;
     }
 
     // ── Hit testing ──
@@ -1150,6 +1205,23 @@ console.log('[svg2slides] svg-editor.js loaded');
         return;
       }
 
+      const ch = this.hitCornerHandle(x, y);
+      if (ch) {
+        // Drag a corner handle along the corner's bisector to scrub the
+        // radius of every corner in scope.
+        const scope = this.cornerScope();
+        if (scope) {
+          const ids = scope.corners.map((c) => [c.si, c.pi, c.k]);
+          this.drag = { kind: 'radius', start: { x, y }, pushed: false, h: ch, scope,
+            liveScope: () => {
+              const corners = [];
+              ids.forEach(([si, pi, k]) => { const vs = this.subVertices(si, pi); const v = vs && vs[k]; if (v && !v.plain) corners.push({ si, pi, k, v }); });
+              return { corners, scoped: scope.scoped };
+            } };
+          this.render();
+          return;
+        }
+      }
       const h = this.hitHandle(x, y);
       if (h) {
         const hn = this.nodeAt(h.k);
@@ -1214,6 +1286,16 @@ console.log('[svg2slides] svg-editor.js loaded');
         this.pushUndo();
         this.drag.pushed = true;
       }
+      if (this.drag.kind === 'radius') {
+        const h = this.drag.h;
+        const k = Math.sqrt(Math.abs(this.ctm[0] * this.ctm[3] - this.ctm[1] * this.ctm[2]));
+        const proj = (x - h.P.x) * h.bx + (y - h.P.y) * h.by;
+        let R = Math.max(0, proj - CORNER_INSET) * Math.cos(h.c.v.phi / 2) / k;
+        if (e.shiftKey) R = Math.round(R / 381 / 10) * 10 * 381; // Shift: steps of 10 px
+        else R = Math.round(R / 381) * 381;                      // whole px
+        this.setRadius(this.drag.liveScope(), R);
+        return;
+      }
       if (e.shiftKey && this.drag.kind === 'nodes') { const s = snap45(dx, dy); dx = s.x; dy = s.y; }
 
       if (this.drag.kind === 'nodes') {
@@ -1262,7 +1344,9 @@ console.log('[svg2slides] svg-editor.js loaded');
     onUp() {
       if (this.drag && this.drag.kind === 'marquee') this.marquee.setAttribute('visibility', 'hidden');
       if (this.drag && this.drag.kind === 'pan') this.setPanCursor(this.spaceDown ? 'grab' : '');
+      const wasRadius = this.drag && this.drag.kind === 'radius';
       this.drag = null;
+      if (wasRadius) this.render();
     }
 
     onDbl(e) {
