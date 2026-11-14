@@ -1,7 +1,7 @@
 {
  "post:apps-script-for-gtm-part-1": [
-  "52c71d6868c64c4b",
-  "2026-11-10"
+  "4f9faa023433f97d",
+  "2026-11-14"
  ],
  "post:audit-gemini-whole-deck-edits-google-slides": [
   "33d62744f28c0f2d",
@@ -28,8 +28,12 @@
   "2026-11-09"
  ],
  "post:letter-spacing-google-slides": [
-  "41fb96533299eab9",
-  "2026-11-07"
+  "527f687e5da270c3",
+  "2026-11-14"
+ ],
+ "post:letter-spacing-google-slides-pdf-export": [
+  "74cc79cdad816dae",
+  "2026-11-14"
  ],
  "post:localize-one-pager-google-slides": [
   "f05d8b54db499989",
@@ -40,8 +44,8 @@
   "2026-11-09"
  ],
  "post:native-ui-mockups-google-slides": [
-  "77e1d6c190175a4c",
-  "2026-11-10"
+  "ee6ea3c04f16d686",
+  "2026-11-14"
  ],
  "post:on-brand-charts-google-slides": [
   "75f8b22b81176044",
@@ -56,20 +60,20 @@
   "2026-10-13"
  ],
  "url:/": [
-  "e685f0ae08b498fa",
-  "2026-11-10"
+  "c986513f1aab9dfb",
+  "2026-11-14"
  ],
  "url:/about": [
   "0e916157a28fb11c",
   "2026-11-10"
  ],
  "url:/blog": [
-  "52e0d7fc830b79a9",
-  "2026-11-10"
+  "a3b3d2adfd409363",
+  "2026-11-14"
  ],
  "url:/blog/apps-script-for-gtm-part-1": [
-  "acbcb945bcee48d6",
-  "2026-11-10"
+  "1995c1ae74b6a7ff",
+  "2026-11-14"
  ],
  "url:/blog/audit-gemini-whole-deck-edits-google-slides": [
   "ffd6f8311b779261",
@@ -96,8 +100,12 @@
   "2026-11-10"
  ],
  "url:/blog/letter-spacing-google-slides": [
-  "f3bf2c366f3b0e12",
-  "2026-11-10"
+  "aed3b99cd635955a",
+  "2026-11-14"
+ ],
+ "url:/blog/letter-spacing-google-slides-pdf-export": [
+  "fcf36503fa14d038",
+  "2026-11-14"
  ],
  "url:/blog/localize-one-pager-google-slides": [
   "fdf3f47911ac2bc9",
@@ -108,8 +116,8 @@
   "2026-11-10"
  ],
  "url:/blog/native-ui-mockups-google-slides": [
-  "4157447b1a5ebe02",
-  "2026-11-10"
+  "48dd01b2df1a618e",
+  "2026-11-14"
  ],
  "url:/blog/on-brand-charts-google-slides": [
   "322074ea8414befe",
@@ -136,8 +144,8 @@
   "2026-11-10"
  ],
  "url:/guides": [
-  "22614b02227ce5a4",
-  "2026-11-10"
+  "456ca22e4760a7ea",
+  "2026-11-14"
  ],
  "url:/guides/does-google-slides-support-svg": [
   "7e3dae73ab690e1d",

@@ -3,6 +3,7 @@
 ## Google Slides design and vector graphics
 Graphics, type and layout inside Google Slides, and getting vector artwork in.
 
+- [Letter spacing survives the PDF. Kerning does too.](https://svgslid.es/blog/letter-spacing-google-slides-pdf-export.md) (2026-11-14): We set tracking on 10 Google Fonts at six sizes, exported to PDF and measured every letter.
 - [Product screenshots go stale. Native UI mockups don't.](https://svgslid.es/blog/native-ui-mockups-google-slides.md) (2026-11-10): Every release breaks the screenshots in your decks. Build simplified product UI as native shapes and live text instead, kept in one library deck, and a renamed button is a find and replace.
 - [Google Slides finally does letter spacing](https://svgslid.es/blog/letter-spacing-google-slides.md) (2026-11-07): Tracking has landed in Slides. Here's what it is, how to use it well, and why Docs looks next.
 - [On-brand charts in Slides, from Sheets data to native shapes](https://svgslid.es/blog/on-brand-charts-google-slides.md) (2026-10-26): Sheets keeps adding chart types. None of them look like your brand once they're in a deck. Draw the chart as shapes instead, and every bar takes your colours and type.

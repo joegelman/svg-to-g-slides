@@ -15,6 +15,7 @@ POSTS = [
         "slug": "letter-spacing-google-slides",
         "date": "2026-11-07",
         "date_h": "Nov 7, 2026",
+        "updated_h": "Nov 14, 2026",
         "read": "4 min read",
         "jump": ("docs", "<b>Skip ahead:</b> the subtle Google slip-up that hints letter spacing is coming to Docs very soon"),
         "kicker": "New in Slides",
@@ -50,7 +51,8 @@ POSTS = [
 <h2 id="presets">The presets, decoded</h2>
 <p>Four presets cover most jobs. Positive opens text up. Negative pulls it in.</p>
 {{fig:letter-spacing-presets|Letter spacing menu with presets 6, 3, 0 and -1.5, each annotated with a use case|Our rule of thumb for each preset.}}
-<p><b>Custom spacing</b> takes any value, including decimals and negatives. The dialog shows no unit, so judge by eye, not by number.</p>
+<p><b>Custom spacing</b> takes any value, including decimals and negatives. The dialog shows no unit. It&rsquo;s points, so the same value looks bigger on small type.</p>
+<p><b>Update, Nov 14:</b> letter spacing survives PDF export exactly, kerning included. <a href="/blog/letter-spacing-google-slides-pdf-export">We tested 10 fonts at six sizes</a>.</p>
 {{fig:custom-letter-spacing|Custom letter spacing dialog with a value of 4 entered|Custom spacing: type a value, hit Apply.}}
 
 <h2 id="tips">Use it like a designer</h2>
@@ -98,7 +100,8 @@ Tracking has landed in Google Slides. Here's what it is, how to use it well, and
 ## TL;DR
 - Slides now has **letter spacing**, which type designers call **tracking**.
 - Toolbar: the **|A|** button next to line spacing. Menu: **Format › Text › Letter spacing**.
-- Presets: **6, 3, 0, −1.5**, plus **Custom spacing** (any value, decimals and negatives allowed; no unit shown).
+- Presets: **6, 3, 0, −1.5**, plus **Custom spacing** (any value, decimals and negatives allowed; no unit shown, but it's points).
+- Update, Nov 14: letter spacing survives PDF export exactly, kerning included. Test: https://svgslid.es/blog/letter-spacing-google-slides-pdf-export
 - The Docs help center documents it; the Docs editor doesn't show it yet (as of Nov 7, 2026).
 
 ## Tracking vs. kerning vs. leading
@@ -135,13 +138,15 @@ from blog_collateral import POST as _COLLATERAL
 from blog_collateral2 import POST as _COLLATERAL2
 POSTS.insert(0, _COLLATERAL)
 POSTS.insert(0, _COLLATERAL2)
+from blog_pdf_spacing import POST as _PDF_SPACING
+POSTS.insert(0, _PDF_SPACING)
 
 import blog_appscript  # noqa: F401  (appends to blog_workspace.POSTS)
 from blog_workspace import POSTS as _WORKSPACE
 POSTS.extend(_WORKSPACE)
-_PRODUCT = {"letter-spacing-google-slides": "slides", "google-slides-collateral-messaging-sheet-gemini": "slides",
+_PRODUCT = {"letter-spacing-google-slides": "slides", "letter-spacing-google-slides-pdf-export": "slides", "google-slides-collateral-messaging-sheet-gemini": "slides",
             "messaging-workshop-brand-style-sheet-google-sheets": "forms"}
-_REL = {"letter-spacing-google-slides": ["localize-one-pager-google-slides", "on-brand-charts-google-slides", "native-ui-mockups-google-slides"],
+_REL = {"letter-spacing-google-slides": ["letter-spacing-google-slides-pdf-export", "on-brand-charts-google-slides", "native-ui-mockups-google-slides"],
         "google-slides-collateral-messaging-sheet-gemini": ["audit-gemini-whole-deck-edits-google-slides", "competitor-matrix-google-sheets-gemini-citations", "workspace-studio-shared-files-messaging-flow"],
         "messaging-workshop-brand-style-sheet-google-sheets": ["gemini-skills-messaging-recipes", "sales-enablement-quiz-google-forms", "native-ui-mockups-google-slides"]}
 for _p in POSTS:
@@ -158,6 +163,7 @@ _META = {
     "native-ui-mockups-google-slides": (None, "Replace product screenshots in Google Slides with UI mockups made of native shapes and live text: built in Figma, brought in as SVG, kept in a library deck."),
     "messaging-workshop-brand-style-sheet-google-sheets": ("Messaging Workshop in Google Forms, Brand Style Sheet in Sheets", "Run a messaging workshop as a Google Form, turn the answers into a five-level messaging architecture, and keep fonts, colours and voice in Google Sheets."),
     "google-slides-collateral-messaging-sheet-gemini": (None, "Gemini in Google Slides can now edit a whole deck from one prompt. Pair it with a messaging sheet, real page sizes, slot tags, copy rules and a starter pack."),
+    "letter-spacing-google-slides-pdf-export": ("Google Slides Letter Spacing in PDF Export: Tested on 10 Fonts", "We tested Google Slides letter spacing in PDF export across 10 Google Fonts and six sizes. Tracking and kerning carry over exactly. Three things do change."),
     "letter-spacing-google-slides": (None, "Google Slides now has letter spacing (tracking): a toolbar button and Format › Text › Letter spacing, with presets and custom values. How to use it well."),
     "audit-gemini-whole-deck-edits-google-slides": (None, "Gemini can now edit a whole Google Slides deck from one prompt. An Apps Script snapshots every object before and after, and diffs the two in Google Sheets."),
     "competitor-matrix-google-sheets-gemini-citations": ("Competitor Matrix in Google Sheets Where Every Cell Cites a Source", "Build a competitor matrix in Google Sheets with Fill with Gemini's cell-level web citations: one row per claim, a checked-on date and a staleness flag."),
@@ -178,7 +184,7 @@ META = {p["slug"]: (_META[p["slug"]][0] or p["title"], _META[p["slug"]][1]) for 
 LANES = [
     ("design", "Google Slides design and vector graphics",
      "Graphics, type and layout inside Google Slides, and getting vector artwork in.",
-     ["native-ui-mockups-google-slides", "on-brand-charts-google-slides", "letter-spacing-google-slides"]),
+     ["letter-spacing-google-slides-pdf-export", "native-ui-mockups-google-slides", "on-brand-charts-google-slides", "letter-spacing-google-slides"]),
     ("pmm", "Product marketing in Google Workspace",
      "Sheets, Slides, Forms and Gemini setups that keep messaging and collateral current.", None),
 ]

@@ -7,7 +7,8 @@ Tracking has landed in Google Slides. Here's what it is, how to use it well, and
 ## TL;DR
 - Slides now has **letter spacing**, which type designers call **tracking**.
 - Toolbar: the **|A|** button next to line spacing. Menu: **Format › Text › Letter spacing**.
-- Presets: **6, 3, 0, −1.5**, plus **Custom spacing** (any value, decimals and negatives allowed; no unit shown).
+- Presets: **6, 3, 0, −1.5**, plus **Custom spacing** (any value, decimals and negatives allowed; no unit shown, but it's points).
+- Update, Nov 14: letter spacing survives PDF export exactly, kerning included. Test: https://svgslid.es/blog/letter-spacing-google-slides-pdf-export
 - The Docs help center documents it; the Docs editor doesn't show it yet (as of Nov 7, 2026).
 
 ## Tracking vs. kerning vs. leading
