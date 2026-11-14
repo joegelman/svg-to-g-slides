@@ -2,8 +2,8 @@
 // helpers from content.js (writeClipBundleLogged, showInsertTooltip,
 // removeInsertTooltip, armPasteDetection, isMac).
 //
-// "Edit as SVG": double-click a shape that came from a path (ours, or any
-// custom/polyline shape) and an "Edit as SVG" button appears. The editor
+// "Edit Shape" (was "Edit as SVG"): double-click a shape that came from a path (ours, or any
+// custom/polyline shape) and an "Edit Shape" button appears. The editor
 // lays the shape's true vector form over the Slides shape at the exact same
 // size and position, hides the Slides version, and lets you edit anchors and
 // Bézier handles. Done replaces the shape: delete the original, paste the
@@ -33,7 +33,7 @@ console.log('[svg2slides] svg-editor.js loaded');
     elev1: '0 1px 2px rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15)',
     elev2: '0 1px 2px rgba(60,64,67,.3), 0 2px 6px 2px rgba(60,64,67,.15)',
   };
-  const HIT = 7; // px
+  const HIT = 9; // px: matches the larger point markers
   const SVGNS = 'http://www.w3.org/2000/svg';
 
   // Slides enforces Trusted Types, so build every element with DOM calls —
@@ -151,8 +151,8 @@ console.log('[svg2slides] svg-editor.js loaded');
         @keyframes in { from { opacity: 0; transform: translateY(4px); } }`),
       convertKind
         ? el('div', { class: 'b', role: 'button', title: 'Converts to a custom shape. ' + SB.KIND_NOTE[convertKind] + '. Cancel in the editor restores the original.' },
-          'Edit as SVG', el('span', { class: 'n' }, '· ' + SB.KIND_NOTE[convertKind].toLowerCase()))
-        : el('div', { class: 'b', role: 'button', title: 'Edit the vector points (Enter)' }, 'Edit as SVG', el('span', { class: 'k' }, '↵'))
+          'Edit Shape', el('span', { class: 'n' }, '· ' + SB.KIND_NOTE[convertKind].toLowerCase()))
+        : el('div', { class: 'b', role: 'button', title: 'Edit the points and curves (Enter)' }, 'Edit Shape', el('span', { class: 'k' }, '↵'))
     );
     editBtn = root.querySelector('.b');
     const top = Math.max(8, r.top - 36);
@@ -586,7 +586,20 @@ console.log('[svg2slides] svg-editor.js loaded');
           .hint { position: fixed; z-index: 2; pointer-events: none; background: ${GM.tooltip}; color: ${GM.onTooltip};
                   font: 400 12px/16px ${FONT}; padding: 6px 10px; border-radius: 4px; white-space: nowrap;
                   opacity: 0; transition: opacity .25s; }
-          .hint.show { opacity: .94; }`));
+          .hint.show { opacity: .94; }
+          .btn.hide { display: none; }
+          .corners { position: fixed; z-index: 2; display: none; align-items: center; gap: 8px; height: 40px; padding: 0 12px 0 14px;
+                     background: ${GM.surface}; border-radius: 20px; box-shadow: ${GM.elev2}; color: #1f1f1f;
+                     font: 500 12px/1 ${FONT}; user-select: none; white-space: nowrap; }
+          .corners.show { display: flex; }
+          .corners .cl { color: ${GM.icon}; }
+          .corners input[type=range] { width: 120px; accent-color: ${ACCENT}; margin: 0; cursor: pointer; }
+          .corners input[type=number] { width: 52px; height: 26px; box-sizing: border-box; border: 1px solid #c4c7c5; border-radius: 6px;
+                     background: #fff; font: 500 12px/1 ${FONT}; color: #1f1f1f; padding: 0 4px 0 8px; text-align: right; }
+          .corners input[type=number]:focus { outline: 2px solid ${ACCENT}; outline-offset: -1px; border-color: transparent; }
+          .corners .u { color: ${GM.icon}; margin-left: -4px; }
+          .corners .sc { color: ${GM.icon}; font-weight: 400; padding-left: 8px; border-left: 1px solid #c4c7c5; }
+          .anchors, .handles { filter: drop-shadow(0 0 1px rgba(0,0,0,.35)) drop-shadow(0 1px 2px rgba(0,0,0,.18)); }`));
 
       const svg = sv('svg', { class: 'stage' });
       ['fills', 'outlines', 'handles', 'anchors'].forEach((c) => svg.append(sv('g', { class: c })));
@@ -611,6 +624,7 @@ console.log('[svg2slides] svg-editor.js loaded');
         minus: icon('1154 94 20 20', 'M1159 104.75v-1.5h10v1.5Z'),
         plus: icon('1154 94 20 20', 'M1163.25 109v-4.25H1159v-1.5h4.25V99h1.5v4.25H1169v1.5h-4.25V109Z'),
         done: icon('0 0 20 20', 'M8 13.6 4.4 10l-1.05 1.05L8 15.7l9-9-1.05-1.05Z'),
+        corners: icon('0 0 20 20', 'M4.25 17V9.5A5.25 5.25 0 0 1 9.5 4.25H17v1.5H9.5A3.75 3.75 0 0 0 5.75 9.5V17Z'),
         close: icon('0 0 20 20', 'M6.06 15 5 13.94 8.94 10 5 6.06 6.06 5 10 8.94 13.94 5 15 6.06 11.06 10 15 13.94 13.94 15 10 11.06Z'),
       };
       const b = (attrs, child) => el('div', Object.assign({ class: 'btn', role: 'button' }, attrs), child);
@@ -619,6 +633,7 @@ console.log('[svg2slides] svg-editor.js loaded');
       const rail = el('div', { class: 'rail' },
         b({ 'data-tool': 'direct', 'data-tip': 'Select points', 'data-key': 'A' }, I.select),
         b({ 'data-tool': 'pen', 'data-tip': 'Add / remove points', 'data-key': 'P' }, I.pen),
+        b({ 'data-act': 'corners', class: 'btn hide', 'data-tip': 'Round corners' }, I.corners),
         el('div', { class: 'sep' }),
         b({ 'data-act': 'undo', 'data-tip': 'Undo', 'data-key': '⌘Z' }, I.undo),
         b({ 'data-act': 'redo', 'data-tip': 'Redo', 'data-key': '⇧⌘Z' }, I.redo),
@@ -632,7 +647,25 @@ console.log('[svg2slides] svg-editor.js loaded');
       );
       const tip = el('div', { class: 'tip' });
       const hint = el('div', { class: 'hint' });
-      root.append(svg, rail, tip, hint);
+      // Corner radius: drag the slider or type a value. Rounds every corner,
+      // or only the selected points when some are selected.
+      const cRange = el('input', { type: 'range', min: '0', max: '100', step: '1', value: '0', 'aria-label': 'Corner radius' });
+      const cNum = el('input', { type: 'number', min: '0', step: '1', value: '0', 'aria-label': 'Corner radius in px' });
+      const cScope = el('span', { class: 'sc' }, 'All corners');
+      const corners = el('div', { class: 'corners', role: 'group', 'aria-label': 'Round corners' },
+        el('span', { class: 'cl' }, 'Corners'), cRange, cNum, el('span', { class: 'u' }, 'px'), cScope);
+      root.append(svg, rail, corners, tip, hint);
+      this.cornersPanel = corners;
+      this.cornerRange = cRange;
+      this.cornerNum = cNum;
+      this.cornerScopeEl = cScope;
+      this.cornerOpen = true;
+      corners.addEventListener('pointerdown', (e) => { e.stopPropagation(); this.hideHint(); });
+      cRange.addEventListener('input', () => this.setRound(Number(cRange.value), false));
+      cNum.addEventListener('input', () => {
+        const v = parseFloat(cNum.value);
+        if (Number.isFinite(v) && v >= 0) this.setRound(v, true);
+      });
 
       this.root = root;
       this.svg = svg;
@@ -658,6 +691,7 @@ console.log('[svg2slides] svg-editor.js loaded');
         else if (t.dataset.act === 'zoomin') this.zoomStep(1.5);
         else if (t.dataset.act === 'zoomout') this.zoomStep(1 / 1.5);
         else if (t.dataset.act === 'zoomreset') { if (this.isIdentityView()) this.fitView(); else this.resetView(); }
+        else if (t.dataset.act === 'corners') { this.cornerOpen = !this.cornerOpen; this.render(); }
         else if (t.dataset.act === 'cancel') this.close(true);
         else if (t.dataset.act === 'done') this.commit();
       });
@@ -680,7 +714,7 @@ console.log('[svg2slides] svg-editor.js loaded');
       rail.addEventListener('pointerleave', () => { this.scheduleIdle(600); });
       this.scheduleIdle(2500);
 
-      svg.addEventListener('pointerdown', (e) => { this.hideHint(); this.onDown(e); });
+      svg.addEventListener('pointerdown', (e) => { this.hideHint(); this.endRound(); this.onDown(e); });
       svg.addEventListener('dblclick', (e) => this.onDbl(e));
       window.addEventListener('pointermove', this._mv = (e) => this.onMove(e), true);
       window.addEventListener('pointerup', this._up = (e) => this.onUp(e), true);
@@ -765,6 +799,7 @@ console.log('[svg2slides] svg-editor.js loaded');
     }
 
     setTool(t) {
+      this.endRound();
       const changed = this.tool !== t;
       this.tool = t;
       this.root.querySelectorAll('[data-tool]').forEach((b) => b.classList.toggle('on', b.dataset.tool === t));
@@ -809,12 +844,14 @@ console.log('[svg2slides] svg-editor.js loaded');
       this.render();
     }
     doUndo() {
+      this.endRound();
       if (!this.undo.length) return;
       this.redo.push(this.snapshot());
       this.restore(this.undo.pop());
       this.updateUndoButtons();
     }
     doRedo() {
+      this.endRound();
       if (!this.redo.length) return;
       this.undo.push(this.snapshot());
       this.restore(this.redo.pop());
@@ -834,7 +871,7 @@ console.log('[svg2slides] svg-editor.js loaded');
         const f = sv('path', { 'data-si': si, d, fill: s.filled ? s.fill : 'none', 'fill-rule': 'nonzero' });
         if (!s.filled) f.setAttribute('stroke', s.fill);
         fills.push(f);
-        outlines.push(sv('path', { d, fill: 'none', stroke: ACCENT, 'stroke-width': 1.25 }));
+        outlines.push(sv('path', { d, fill: 'none', stroke: ACCENT, 'stroke-width': 1.5 }));
       });
 
       // Handles: selected nodes, plus the inner handles of their neighbours.
@@ -860,24 +897,156 @@ console.log('[svg2slides] svg-editor.js loaded');
         const a = this.screen(h.s, h.n);
         const c = this.screen(h.s, h.n[which]);
         this.visibleHandles.push({ k: parts.slice(0, 3).join(':'), which, x: c.x, y: c.y });
+        // Curve handles read as a different kind of thing from points:
+        // a thin arm ending in a small solid blue dot.
         handles.push(
-          sv('line', { x1: a.x, y1: a.y, x2: c.x, y2: c.y, stroke: ACCENT, 'stroke-width': 1 }),
-          sv('circle', { cx: c.x, cy: c.y, r: 3.5, fill: '#fff', stroke: ACCENT, 'stroke-width': 1.25 })
+          sv('line', { x1: a.x, y1: a.y, x2: c.x, y2: c.y, stroke: ACCENT, 'stroke-width': 1.25, 'stroke-opacity': 0.85 }),
+          sv('circle', { cx: c.x, cy: c.y, r: 4, fill: ACCENT, stroke: '#fff', 'stroke-width': 1.5 })
         );
       });
 
+      // Points: white with a strong blue edge, squares for corners and
+      // circles for curve points. Selected points fill solid blue and get
+      // a halo, so the selection reads at a glance on any fill colour.
       this.eachNode((n, s, si, pi, ni) => {
         const p = this.screen(s, n);
-        const fill = this.sel.has(this.key(si, pi, ni)) ? ACCENT : '#fff';
-        anchors.push((n.in || n.out)
-          ? sv('circle', { cx: p.x, cy: p.y, r: 4, fill, stroke: ACCENT, 'stroke-width': 1.5 })
-          : sv('rect', { x: p.x - 4, y: p.y - 4, width: 8, height: 8, fill, stroke: ACCENT, 'stroke-width': 1.5 }));
+        const on = this.sel.has(this.key(si, pi, ni));
+        const curve = !!(n.in || n.out);
+        const r = on ? 6 : 5;
+        if (on) anchors.push(curve
+          ? sv('circle', { cx: p.x, cy: p.y, r: r + 3, fill: 'rgba(11,87,208,.18)' })
+          : sv('rect', { x: p.x - r - 3, y: p.y - r - 3, width: 2 * r + 6, height: 2 * r + 6, rx: 3, fill: 'rgba(11,87,208,.18)' }));
+        const attrs = { fill: on ? ACCENT : '#fff', stroke: on ? '#fff' : ACCENT, 'stroke-width': on ? 1.5 : 2 };
+        anchors.push(curve
+          ? sv('circle', Object.assign({ cx: p.x, cy: p.y, r }, attrs))
+          : sv('rect', Object.assign({ x: p.x - r, y: p.y - r, width: 2 * r, height: 2 * r, rx: 1.5 }, attrs)));
       });
 
       this.gFills.replaceChildren(...fills);
       this.gOutlines.replaceChildren(...outlines);
       this.gHandles.replaceChildren(...handles);
       this.gAnchors.replaceChildren(...anchors);
+      if (!this.drag) this.updateCornerUI();
+    }
+
+    // ── Corner rounding ──
+    // Works in page units so the radius means the same thing at any zoom;
+    // 381 page units = 1 px at Slides' 100%. A corner is a point with no
+    // handles between two straight segments. Rounding replaces it with two
+    // points joined by a cubic that approximates a circular arc: for a turn
+    // of φ, the tangent points sit R·tan(φ/2) from the corner and each
+    // handle is (4/3)·tan(φ/4)·R long. Each corner is capped at half its
+    // shorter side. A session keeps the unrounded geometry, so dragging the
+    // slider back to 0 restores it exactly.
+    roundableCorners(subsList, keys) {
+      const out = [];
+      subsList.forEach((subs, si) => {
+        const T = this.shapes[si].toPage;
+        subs.forEach((sp, pi) => {
+          const L = sp.nodes.length;
+          if (L < 3) return;
+          sp.nodes.forEach((n, ni) => {
+            if (keys && !keys.has(this.key(si, pi, ni))) return;
+            if (n.in || n.out) return;
+            const pI = ni > 0 ? ni - 1 : (sp.closed ? L - 1 : -1);
+            const nI = ni < L - 1 ? ni + 1 : (sp.closed ? 0 : -1);
+            if (pI < 0 || nI < 0) return;
+            const pp = sp.nodes[pI], nn = sp.nodes[nI];
+            if (pp.out || nn.in) return;
+            const P = SB.apply(T, n.x, n.y), A = SB.apply(T, pp.x, pp.y), B = SB.apply(T, nn.x, nn.y);
+            const l1 = Math.hypot(P.x - A.x, P.y - A.y), l2 = Math.hypot(B.x - P.x, B.y - P.y);
+            if (l1 < 1e-6 || l2 < 1e-6) return;
+            const u1 = { x: (P.x - A.x) / l1, y: (P.y - A.y) / l1 };
+            const u2 = { x: (B.x - P.x) / l2, y: (B.y - P.y) / l2 };
+            const phi = Math.acos(Math.max(-1, Math.min(1, u1.x * u2.x + u1.y * u2.y)));
+            if (phi < 0.05 || phi > Math.PI - 0.05) return;
+            out.push({ si, pi, ni, P, u1, u2, phi, rmax: (Math.min(l1, l2) / 2) / Math.tan(phi / 2) });
+          });
+        });
+      });
+      return out;
+    }
+
+    // Which corners the control would act on right now.
+    cornerScope() {
+      if (this.round) return { corners: this.round.corners, scoped: this.round.scoped };
+      let total = 0;
+      this.eachNode(() => { total++; });
+      if (total > 160) return null; // complex artwork: leave it alone
+      const subsList = this.shapes.map((sh) => sh.subs);
+      const all = this.roundableCorners(subsList, null);
+      const sel = this.sel.size ? all.filter((c) => this.sel.has(this.key(c.si, c.pi, c.ni))) : [];
+      if (sel.length) return { corners: sel, scoped: true };
+      if (all.length >= 3) return { corners: all, scoped: false };
+      return null;
+    }
+
+    beginRound() {
+      const sc = this.cornerScope();
+      if (!sc || !sc.corners.length) return false;
+      this.pushUndo();
+      this.round = { base: this.snapshot(), corners: sc.corners, scoped: sc.scoped, value: 0 };
+      this.sel.clear(); // point indices shift as corners split in two
+      return true;
+    }
+
+    endRound() {
+      if (!this.round) return;
+      this.round = null;
+      if (this.cornerRange) { this.cornerRange.value = '0'; this.cornerNum.value = '0'; }
+    }
+
+    setRound(px, fromNumber) {
+      if (!this.round && !this.beginRound()) return;
+      const r = this.round;
+      r.value = Math.max(0, px);
+      const R = r.value * 381;
+      const byKey = new Map(r.corners.map((c) => [this.key(c.si, c.pi, c.ni), c]));
+      const subsList = JSON.parse(r.base);
+      subsList.forEach((subs, si) => {
+        const inv = SB.matInv(this.shapes[si].toPage);
+        const loc = (p) => SB.apply(inv, p.x, p.y);
+        subs.forEach((sp, pi) => {
+          const nodes = [];
+          sp.nodes.forEach((n, ni) => {
+            const c = byKey.get(this.key(si, pi, ni));
+            const Re = c ? Math.min(R, c.rmax) : 0;
+            if (!c || Re <= 0) { nodes.push(n); return; }
+            const d = Re * Math.tan(c.phi / 2);
+            const h = (4 / 3) * Math.tan(c.phi / 4) * Re;
+            const a = { x: c.P.x - c.u1.x * d, y: c.P.y - c.u1.y * d };
+            const b = { x: c.P.x + c.u2.x * d, y: c.P.y + c.u2.y * d };
+            nodes.push(
+              Object.assign(loc(a), { in: null, out: loc({ x: a.x + c.u1.x * h, y: a.y + c.u1.y * h }), smooth: false }),
+              Object.assign(loc(b), { in: loc({ x: b.x - c.u2.x * h, y: b.y - c.u2.y * h }), out: null, smooth: false })
+            );
+          });
+          sp.nodes = nodes;
+        });
+      });
+      subsList.forEach((subs, si) => { this.shapes[si].subs = subs; });
+      this.dirty = true;
+      if (fromNumber) this.cornerRange.value = String(Math.min(r.value, Number(this.cornerRange.max)));
+      else this.cornerNum.value = String(Math.round(r.value));
+      this.render();
+    }
+
+    updateCornerUI() {
+      const btn = this.root.querySelector('[data-act="corners"]');
+      const sc = this.cornerScope();
+      btn.classList.toggle('hide', !sc);
+      btn.classList.toggle('on', !!sc && this.cornerOpen);
+      const show = !!sc && this.cornerOpen;
+      this.cornersPanel.classList.toggle('show', show);
+      if (!show) return;
+      const maxPx = Math.max(1, Math.ceil(Math.max(...sc.corners.map((c) => c.rmax)) / 381));
+      this.cornerRange.max = String(Math.min(maxPx, 999));
+      this.cornerScopeEl.textContent = sc.scoped
+        ? (sc.corners.length === 1 ? '1 corner' : sc.corners.length + ' corners')
+        : 'All corners';
+      const br = btn.getBoundingClientRect(), rr = this.rail.getBoundingClientRect();
+      this.cornersPanel.style.left = (rr.right + 8) + 'px';
+      this.cornersPanel.style.top = (br.top + br.height / 2 - 20) + 'px';
     }
 
     // ── Hit testing ──
@@ -1178,6 +1347,12 @@ console.log('[svg2slides] svg-editor.js loaded');
     // ── Keyboard (Figma / Illustrator conventions) ──
     onKey(e) {
       if (this.committing) { e.preventDefault(); return; }
+      const t0 = e.composedPath ? e.composedPath()[0] : e.target;
+      if (t0 && t0.tagName === 'INPUT') {
+        // Typing a radius: let the field have its keys. Enter/Escape leave it.
+        if (e.key === 'Enter' || e.key === 'Escape') { e.preventDefault(); t0.blur(); this.host.focus(); }
+        return;
+      }
       const mod = e.metaKey || e.ctrlKey;
       const k = e.key;
       const handled = () => { e.preventDefault(); };

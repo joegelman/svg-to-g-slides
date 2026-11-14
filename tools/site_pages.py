@@ -460,8 +460,8 @@ def whats_new_page(ctx):
     <p>Slides lets you recolour and resize a shape, but not reshape it. Version 1.2 of the Chrome extension adds a vector editor that opens right on the slide, so you can move the points and curves of any shape and put it back where it was.</p>
     {video}
     <div class="rel">Version 1.2.0 &middot; November 2026</div>
-    <h2>Edit as SVG</h2>
-    <p>Double-click a shape, then click <b>Edit as SVG</b>. The editor opens on top of the slide at the shape&rsquo;s exact size and position. Drag points and curve handles, add or remove points with the pen, and select several at once. Undo, redo and zoom work the way they do in Figma and Illustrator. Click <b>Done</b> and the shape updates in place, at the zoom you were editing at.</p>
+    <h2>Edit Shape</h2>
+    <p>Double-click a shape, then click <b>Edit Shape</b>. The editor opens on top of the slide at the shape&rsquo;s exact size and position. Drag points and curve handles, add or remove points with the pen, and select several at once. Undo, redo and zoom work the way they do in Figma and Illustrator. Click <b>Done</b> and the shape updates in place, at the zoom you were editing at.</p>
     <h2>Works on Slides&rsquo; own shapes</h2>
     <p>The editor also opens on shapes you didn&rsquo;t bring in with SVG to Slides: the shape menu, arrows, callouts, lines, text boxes and WordArt. It converts them into custom shapes first, and the button tells you what that costs:</p>
     <ul>
@@ -504,7 +504,7 @@ def whats_new_page(ctx):
 
 ## 1.2.0 (November 2026)
 
-- Edit as SVG: double-click a shape, then click Edit as SVG. A vector editor opens on the slide at the shape's exact size and position. Drag points and curve handles, add or remove points, multi-select, undo, redo, zoom. Done updates the shape in place.
+- Edit Shape: double-click a shape, then click Edit Shape. A vector editor opens on the slide at the shape's exact size and position. Drag points and curve handles, add or remove points, multi-select, undo, redo, zoom. Done updates the shape in place.
 - Works on Slides' own shapes, lines, text boxes and WordArt by converting them to custom shapes first. Adjustment handles, connection points, automatic 3D shading and editable WordArt text don't carry over. Text inside a shape stays editable. Cancel restores the original.
 - Click to insert: drop an SVG and click where it goes. It lands as native shapes with nothing to paste. Falls back to Cmd/Ctrl+V if Slides refuses the insert.
 - Straight-line SVG shapes land as Slides polylines, so Slides' own Edit points works on them.
