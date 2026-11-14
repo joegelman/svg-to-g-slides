@@ -227,6 +227,56 @@ console.log('[svg2slides] svg-editor.js loaded');
     return false;
   }
 
+  // ── Replace in place ──────────────────────────────────────────────────
+  // A payload's top-level units: each top-level shape, or a group together
+  // with everything inside it (and the text entries that belong to them).
+  function sizeSig(entries) {
+    return entries.filter((e) => e[0] === 3).map((e) => SB.getProp(e[4], 8) + 'x' + SB.getProp(e[4], 9)).sort().join(',');
+  }
+  function payloadUnits(resolved) {
+    const childIds = new Set();
+    const byId = new Map();
+    resolved.forEach((e) => {
+      if (e[0] === 2 || e[0] === 3) byId.set(e[1], e);
+      if (e[0] === 2) (e[2] || []).forEach((id) => childIds.add(id));
+    });
+    const collect = (id, acc) => {
+      acc.add(id);
+      const e = byId.get(id);
+      if (e && e[0] === 2) (e[2] || []).forEach((c) => collect(c, acc));
+      return acc;
+    };
+    return resolved.filter((e) => (e[0] === 2 || e[0] === 3) && !childIds.has(e[1])).map((top) => {
+      const ids = collect(top[1], new Set());
+      const entries = resolved.filter((e) => typeof e[1] === 'string' && ids.has(e[1]));
+      return { id: top[1], ids, entries, nShapes: entries.filter((e) => e[0] === 3).length, sig: sizeSig(entries) };
+    });
+  }
+  // Paste each unit separately, lowest original slot first, and walk it
+  // back down to that slot (a paste always lands on top). Everything below
+  // a slot is either untouched or already re-placed, so the recorded index
+  // is exactly where it belongs. Objects edited from inside a group come
+  // back just above that group.
+  async function pasteInPlace(resolved, slotFor) {
+    const items = payloadUnits(resolved).map((u) => ({ u, slot: slotFor(u) }));
+    items.sort((a, b) => (a.slot && a.slot.index >= 0 ? a.slot.index : 1e9) - (b.slot && b.slot.index >= 0 ? b.slot.index : 1e9));
+    for (const { u, slot } of items) {
+      SB.paste(u.entries);
+      const sel = await SB.waitForSelection((x) => x.filter((e) => e[0] === 3).length === u.nShapes && sizeSig(x) === u.sig);
+      if (!sel) return false;
+      if (!slot || slot.index < 0) continue;
+      const pasted = payloadUnits(sel)[0];
+      if (!pasted) continue;
+      let target = slot.index;
+      if (!slot.exact) {
+        const ai = SB.topLevelOrder().indexOf(slot.top);
+        if (ai >= 0) target = ai + 1;
+      }
+      if (!(await SB.moveToIndex(pasted.id, target))) console.warn('[svg2slides] could not restore stacking order for', pasted.id);
+    }
+    return true;
+  }
+
   // ── Convert a native object, then edit it ──────────────────────────────
   // Delete + paste the converted shapes in place (same mechanism as Done),
   // then open the editor on them. Cancel in the editor puts the original
@@ -248,21 +298,11 @@ console.log('[svg2slides] svg-editor.js loaded');
       if (!usable(original)) { console.warn('[svg2slides] selection changed — not converting'); return; }
       const conv = SB.convertSelection(original);
       if (!conv) { console.warn('[svg2slides] nothing convertible in selection'); return; }
-      const shapesOf = (r) => r.filter((e) => e[0] === 3);
-      const sigOf = (r) => shapesOf(r).map((e) => SB.getProp(e[4], 8) + 'x' + SB.getProp(e[4], 9)).sort().join(',');
-      const want = sigOf(conv.resolved), n = shapesOf(conv.resolved).length;
-      const oldIds = shapesOf(original).map((e) => e[1]);
-
-      if (!(await deleteSelected(oldIds))) { console.warn('[svg2slides] delete did not remove the original'); return; }
-      SB.paste(conv.resolved);
-      const pasted = await SB.waitForSelection((s) => shapesOf(s).length === n && sigOf(s) === want);
-      if (!pasted) {
-        console.warn('[svg2slides] converted paste not confirmed — restoring original');
-        SB.paste(original);
-        return;
-      }
+      // Nothing on the slide changes yet: the editor opens on the converted
+      // geometry while the originals stay put (hidden). Done swaps them in
+      // place; Cancel just closes.
       console.log('[svg2slides] converted', conv.converted);
-      openEditor(pasted, original);
+      openEditor(original, { preset: conv.resolved, srcOf: conv.srcOf, original });
     } finally {
       converting = false;
     }
@@ -305,19 +345,20 @@ console.log('[svg2slides] svg-editor.js loaded');
   }
 
   // ── Editor ─────────────────────────────────────────────────────────────
-  function openEditor(hint, restoreOnCancel = null) {
+  function openEditor(hint, opts = {}) {
     if (editor) return;
     // Re-read the live selection: what we edit must be exactly what Done
     // deletes. If Slides went into text editing (or its own point editing)
     // on the double-click, Escape returns to plain shape selection.
     const wanted = new Set(hint.filter((x) => x[0] === 3).map((x) => x[1]));
     const matches = (s) => s && s.some((x) => x[0] === 3 && wanted.has(x[1])) && s.filter((x) => x[0] === 3).every(SB.isEditableShape);
-    let resolved = SB.readSelection();
-    if (!matches(resolved)) {
+    let resolved = opts.preset || SB.readSelection();
+    if (!opts.preset && !matches(resolved)) {
       SB.pressKey('Escape');
       resolved = SB.readSelection();
     }
-    if (!matches(resolved)) { console.warn('[svg2slides] selection changed — not opening editor'); return; }
+    if (!opts.preset && !matches(resolved)) { console.warn('[svg2slides] selection changed — not opening editor'); return; }
+    const srcOf = opts.srcOf || {};
     const ctm = SB.pageCTM();
     if (!ctm) { console.warn('[svg2slides] no page CTM — cannot open editor'); return; }
     const shapes = [];
@@ -330,6 +371,7 @@ console.log('[svg2slides] svg-editor.js loaded');
       shapes.push({
         entry,
         id: entry[1],
+        src: srcOf[entry[1]] || entry[1], // the slide object this shape stands for
         subs,
         toPage: SB.localToPage(resolved, entry),
         fill: typeof fill === 'string' ? fill : '#9e9e9e',
@@ -343,8 +385,7 @@ console.log('[svg2slides] svg-editor.js loaded');
       return;
     }
     try {
-      editor = new Editor(resolved, shapes, ctm);
-      editor.restoreOnCancel = restoreOnCancel;
+      editor = new Editor(resolved, shapes, ctm, { original: opts.original || resolved, srcOf });
     } catch (err) {
       // Never leave a half-built overlay holding the page hostage.
       console.error('[svg2slides] editor failed to open', err);
@@ -365,8 +406,10 @@ console.log('[svg2slides] svg-editor.js loaded');
   }
 
   class Editor {
-    constructor(resolved, shapes, ctm) {
+    constructor(resolved, shapes, ctm, ctx = {}) {
       this.resolved = resolved;
+      this.original = ctx.original || resolved; // what is on the slide now
+      this.srcOf = ctx.srcOf || {};
       this.shapes = shapes;
       this.tool = 'direct';
       this.sel = new Set(); // "si:pi:ni"
@@ -384,8 +427,8 @@ console.log('[svg2slides] svg-editor.js loaded');
 
       // Hide the Slides originals while editing.
       this.hidden = [];
-      shapes.forEach((s) => {
-        const el = SB.elementFor(s.id);
+      [...new Set(shapes.map((s) => s.src))].forEach((src) => {
+        const el = SB.elementFor(src);
         if (el) { this.hidden.push([el, el.style.visibility]); el.dataset.svg2slidesHidden = el.style.visibility || '-'; el.style.visibility = 'hidden'; }
       });
 
@@ -435,12 +478,13 @@ console.log('[svg2slides] svg-editor.js loaded');
         const pageCTM = SB.pageCTM();
         if (!page || !pageCTM) return;
         const pageInv = SB.matInv(pageCTM);
-        const els = this.shapes.map((sh) => SB.elementFor(sh.id));
+        // The slide objects being edited (several converted pieces can
+        // share one), in paint order (document order = z-order).
+        const srcs = [...new Set(this.shapes.map((sh) => sh.src))];
+        const els = srcs.map((id) => SB.elementFor(id));
         if (els.some((e) => !e)) return;
-        // Paint order of the edited shapes (document order = z-order).
-        const order = els.map((e, i) => i).sort((a, b) => (els[a].compareDocumentPosition(els[b]) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1));
-        order.forEach((si, rank) => { this.zRank[si] = rank; });
-        const sorted = order.map((i) => els[i]);
+        const sorted = els.slice().sort((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1));
+        this.shapes.forEach((sh, si) => { this.zRank[si] = sorted.indexOf(els[srcs.indexOf(sh.src)]); });
         // gap k holds the objects painted after edited shape k and before
         // edited shape k + 1 (the last gap: everything above the topmost).
         const gaps = sorted.map(() => []);
@@ -1022,9 +1066,11 @@ console.log('[svg2slides] svg-editor.js loaded');
       // static copies of whatever sits between it and the next one.
       const rank = this.zRank || this.shapes.map((_, i) => i);
       const painted = [];
-      this.shapes.map((_, si) => si).sort((a, b) => rank[a] - rank[b]).forEach((si) => {
+      const byRank = this.shapes.map((_, si) => si).sort((a, b) => rank[a] - rank[b] || a - b);
+      byRank.forEach((si, i) => {
         painted.push(fills[si]);
-        const gap = this.coverGaps && this.coverGaps[rank[si]];
+        const last = i === byRank.length - 1 || rank[byRank[i + 1]] !== rank[si];
+        const gap = last && this.coverGaps && this.coverGaps[rank[si]];
         if (gap) painted.push(gap);
       });
       this.gFills.replaceChildren(...painted);
@@ -1589,6 +1635,7 @@ console.log('[svg2slides] svg-editor.js loaded');
     buildResolved() {
       const idMap = new Map();
       this.resolved.forEach((e) => { if ((e[0] === 2 || e[0] === 3) && typeof e[1] === 'string') idMap.set(e[1], SB.newId()); });
+      this.idBack = new Map([...idMap].map(([o, n]) => [n, o]));
       const byId = new Map(this.shapes.map((s) => [s.id, s]));
       const dropped = new Set();
       const out = [];
@@ -1652,15 +1699,11 @@ console.log('[svg2slides] svg-editor.js loaded');
       this.hidden.forEach(([el, v]) => { el.style.visibility = v || ''; delete el.dataset.svg2slidesHidden; });
     }
 
-    close(cancel = false) {
-      const original = cancel ? this.restoreOnCancel : null;
+    close() {
+      // Nothing on the slide has changed before Done (conversions happen in
+      // memory), so closing just restores what we hid.
       this.teardown();
       SB.focusTextbox();
-      // Cancel after a conversion: swap the original object back in.
-      if (original) {
-        const ids = this.shapes.map((sh) => sh.id);
-        deleteSelected(ids).then((ok) => { if (ok) SB.paste(original); });
-      }
     }
 
     async commit() {
@@ -1686,7 +1729,23 @@ console.log('[svg2slides] svg-editor.js loaded');
       const promptAt = this.rail.getBoundingClientRect();
       const nShapes = resolved.filter((e) => e[0] === 3).length;
       const sig = resolved.filter((e) => e[0] === 3).map((e) => SB.getProp(e[4], 8) + 'x' + SB.getProp(e[4], 9)).sort().join(',');
-      const oldIds = this.shapes.map((s) => s.id);
+      const oldIds = [...new Set(this.shapes.map((s) => s.src))];
+      // Where each slide object sits in the stacking order, before we touch
+      // anything: the replacements go back into the same slots.
+      const order0 = SB.topLevelOrder();
+      const oldUnits = payloadUnits(this.original).map((u) => {
+        const top = SB.topLevelIdOf(u.id);
+        return Object.assign(u, { slot: { top, exact: top === u.id, index: order0.indexOf(top) } });
+      });
+      const slotFor = (newUnit) => {
+        for (const nid of newUnit.ids) {
+          const rid = (this.idBack && this.idBack.get(nid)) || nid;
+          const oid = this.srcOf[rid] || rid;
+          const u = oldUnits.find((x) => x.ids.has(oid));
+          if (u) return u.slot;
+        }
+        return null;
+      };
 
       // Fallback first, while we're still inside the Done click/keypress:
       // put the edited shape on the OS clipboard so ⌘V works if the direct
@@ -1708,14 +1767,7 @@ console.log('[svg2slides] svg-editor.js loaded');
         return;
       }
       let ok = true;
-      if (nShapes) {
-        SB.paste(resolved);
-        ok = !!(await SB.waitForSelection((sel) => {
-          const shapes = sel.filter((e) => e[0] === 3);
-          if (shapes.length !== nShapes) return false;
-          return shapes.map((e) => SB.getProp(e[4], 8) + 'x' + SB.getProp(e[4], 9)).sort().join(',') === sig;
-        }));
-      }
+      if (nShapes) ok = await pasteInPlace(resolved, slotFor);
       if (handoff) await SB.matchSlidesView(handoff.pct, handoff.P, handoff.cx, handoff.cy);
       this.teardown(false);
       SB.focusTextbox();

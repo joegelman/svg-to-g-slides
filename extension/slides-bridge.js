@@ -267,6 +267,60 @@ const SB = (() => {
     return true;
   }
 
+  // ── Stacking order ────────────────────────────────────────────────────
+  // Top-level objects on the current slide, bottom to top (document order
+  // is paint order). A paste always lands on top, so after replacing a
+  // shape we walk it back down with Slides' own Arrange shortcuts, which
+  // accept synthetic keys (verified live, Nov 2026): Cmd/Ctrl+Up/Down one
+  // step, with Shift to front/back. They act on the current selection.
+  function topLevelOrder() {
+    const page = currentPageGroup();
+    if (!page) return [];
+    return [...page.querySelectorAll('g[id^="editor-"]')]
+      .filter((g) => !/-bg$|-paragraph$/.test(g.id) && g.parentNode.closest('g[id^="editor-"]') === page)
+      .map((g) => g.id.slice('editor-'.length));
+  }
+  function topLevelIdOf(id) {
+    const page = currentPageGroup();
+    let el = elementFor(id);
+    if (!page || !el) return null;
+    for (let p = el.parentNode && el.parentNode.closest('g[id^="editor-"]'); p && p !== page; p = p.parentNode && p.parentNode.closest('g[id^="editor-"]')) el = p;
+    return el.id.slice('editor-'.length);
+  }
+  const IS_MAC = /Mac|iPhone|iPad/.test(navigator.platform || '');
+  function pressArrange(dir) {
+    const tb = textbox();
+    if (!tb) return false;
+    const up = dir === 'forward' || dir === 'front';
+    const o = { key: up ? 'ArrowUp' : 'ArrowDown', code: up ? 'ArrowUp' : 'ArrowDown', keyCode: up ? 38 : 40, which: up ? 38 : 40,
+      metaKey: IS_MAC, ctrlKey: !IS_MAC, shiftKey: dir === 'front' || dir === 'back', bubbles: true, cancelable: true };
+    tb.dispatchEvent(new KeyboardEvent('keydown', o));
+    tb.dispatchEvent(new KeyboardEvent('keyup', o));
+    return true;
+  }
+  // Move the selected top-level object `id` to stacking index `target`
+  // (0 = bottom), taking the fewest key presses.
+  async function moveToIndex(id, target) {
+    focusTextbox();
+    let stuck = 0;
+    for (let guard = 0; guard < 300; guard++) {
+      const order = topLevelOrder();
+      const cur = order.indexOf(id), n = order.length;
+      if (cur < 0) return false;
+      const t = Math.max(0, Math.min(n - 1, target));
+      if (cur === t) return true;
+      if (t === 0) pressArrange('back');
+      else if (t === n - 1) pressArrange('front');
+      else if (guard === 0 && cur > t && t + 1 < cur - t) pressArrange('back'); // back, then step up t times
+      else if (guard === 0 && cur < t && (n - 1 - t) + 1 < t - cur) pressArrange('front');
+      else pressArrange(cur > t ? 'backward' : 'forward');
+      await sleep(30);
+      const after = topLevelOrder().indexOf(id);
+      if (after === cur) { if (++stuck > 3) return false; await sleep(80); } else stuck = 0;
+    }
+    return false;
+  }
+
   // The part of the slide canvas you can actually see, in client px.
   // #workspace is the whole zoomed page and at high Slides zoom runs far
   // off-screen; #workspace-container is the scrolling viewport around it.
@@ -645,6 +699,7 @@ const SB = (() => {
     if (!pageInv) return null;
     const replaced = new Map(); // old id → { id: new top id, carrier, shapes, group }
     const converted = [];
+    const srcOf = {}; // new shape/group id → id of the slide object it replaces
     for (const e of resolved) {
       const kind = convertibleKind(resolved, e);
       if (!kind) continue;
@@ -669,6 +724,8 @@ const SB = (() => {
       }
       const carrier = made.reduce((a, b) => (b.area > a.area ? b : a)).entry[1];
       const group = made.length > 1 ? [2, newId(), made.map((m) => m.entry[1]), [1, 0, 0, 1, 0, 0]] : null;
+      made.forEach((m) => { srcOf[m.entry[1]] = e[1]; });
+      if (group) srcOf[group[1]] = e[1];
       replaced.set(e[1], { id: group ? group[1] : made[0].entry[1], carrier, shapes: made.map((m) => m.entry), group });
       converted.push({ from: e[1], to: group ? group[1] : made[0].entry[1], kind });
     }
@@ -692,7 +749,7 @@ const SB = (() => {
         out.push(e);
       }
     }
-    return { resolved: out, converted };
+    return { resolved: out, converted, srcOf };
   }
 
   return {
@@ -700,6 +757,7 @@ const SB = (() => {
     readSelection, paste, pressKey, sleep, waitForSelection,
     getProp, setProp, newId, pathRecord, isEditableShape,
     matMul, matInv, apply, localToPage, pageCTM, elementFor, currentPageGroup, visibleWorkspaceRect,
+    topLevelOrder, topLevelIdOf, pressArrange, moveToIndex,
     ZOOM_MIN, ZOOM_MAX, zoomPctFromCTM, setSlidesZoom, scrollPagePointTo, matchSlidesView,
     decodePath, encodePath, normalizeSubs, typeFor, svgPathD,
     convertibleKind, convertSelection, KIND_NOTE,
