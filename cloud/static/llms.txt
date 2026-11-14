@@ -2,7 +2,7 @@
 
 > Free Chrome extension (plus web uploader and Google Slides add-on) that inserts SVG files into Google Slides as native, editable shapes. Free forever. Every feature, no daily cap, no account, no Pro tier.
 
-Google Slides doesn't keep SVG files as editable vectors. SVG to Slides converts every SVG path into its own native Slides shape, so users can recolor individual elements, edit points, animate shapes, and resize without losing quality. The shapes also work in Google Drawings.
+Google Slides doesn't keep SVG files as editable vectors. SVG to Slides converts every SVG path into its own native Slides shape, so users can recolor individual elements, edit points, animate shapes, and resize without losing quality. The shapes also work in Google Drawings. Since version 1.2 the extension also edits any shape's points and curves as SVG, directly on the slide.
 
 - Install (Chrome Web Store): https://chromewebstore.google.com/detail/svg-to-slides/bdhhnakellmdnbgbdokiojipaebdeioi
 - Web uploader, no install: https://svgslid.es/convert
@@ -38,6 +38,7 @@ Google Slides doesn't keep SVG files as editable vectors. SVG to Slides converts
 
 ## Optional
 - [Specs: product facts and tested SVG compatibility](https://svgslid.es/specs.md)
+- [What's new: release notes](https://svgslid.es/whats-new.md)
 - [About](https://svgslid.es/about.md)
 - [Privacy policy](https://svgslid.es/privacy): per-surface data handling
 - [Support](https://svgslid.es/support)

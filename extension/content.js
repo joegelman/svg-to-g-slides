@@ -243,7 +243,7 @@ function createGhost(file, startX, startY) {
     </style>
     <img src="${ghostObjectUrl}" alt="">
     <span class="badge">+</span>
-    <span class="label">Double Click to Place</span>
+    <span class="label">Click to Place</span>
   `;
   document.documentElement.appendChild(ghostEl);
   positionGhost(startX, startY);
@@ -452,13 +452,127 @@ function beginInsertFlow(files, startX, startY) {
       console.log('[svg2slides] activeElement 50ms after click 1 (post-dispatch):', describeElement(document.activeElement));
     }, 50);
 
-    // Arms the actual click-2 listener immediately (no functional delay) —
-    // only the cosmetic cursor transition below is deferred, so the brief
-    // 'grab' flash is actually visible rather than instantly overwritten.
-    armSecondClick(myGeneration, deltaXPt, deltaYPt);
-    setTimeout(() => setGlobalCursor('progress'), 150);
+    // v1.1: insert directly with a scripted paste (see slides-bridge.js) —
+    // no second click, no ⌘V. Placement is exact when the slide's page CTM
+    // is readable, otherwise the old estimate. If the bundle is already
+    // converted, it's also copied to the OS clipboard right here, inside
+    // this real click, so the old "⌘V to Confirm" step still works if the
+    // scripted paste is ever rejected.
+    const clickX = e.clientX, clickY = e.clientY;
+    const place = (b) => placeBundleAtClient(b, clickX, clickY) || shiftBundlePosition(b, deltaXPt, deltaYPt);
+    if (eagerBundle) {
+      const bundle = place(eagerBundle);
+      const copied = writeClipBundleLogged(bundle);
+      waitForMouseUp().then(() => directInsert(bundle, myGeneration, clickX, clickY, copied));
+    } else {
+      setTimeout(() => setGlobalCursor('progress'), 150);
+      waitForEagerBundle(myGeneration)
+        .then((b) => directInsert(place(b), myGeneration, clickX, clickY, false))
+        .catch((err) => {
+          if (myGeneration !== insertGeneration) return;
+          console.warn('[svg2slides] conversion failed:', err);
+          setGlobalCursor('');
+          removeGhost();
+          showErrorToast('Could not convert that SVG.');
+        });
+    }
   };
   document.addEventListener('mousedown', pendingMousedownHandler, true);
+}
+
+// ── v1.1 direct insert helpers ─────────────────────────────────────────
+
+// Re-centres the bundle on the click, in Slides' own page units, using the
+// slide's screen CTM. Returns null if the CTM can't be read.
+function placeBundleAtClient(bundle, clientX, clientY) {
+  const ctm = SB.pageCTM();
+  const inv = ctm && SB.matInv(ctm);
+  if (!inv) return null;
+  const p = SB.apply(inv, clientX, clientY);
+  const resolved = SB.unwrap(bundle[_CLIP_MIME]);
+  if (!resolved) return null;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  resolved.forEach((e) => {
+    if (e[0] !== 3) return;
+    const x = e[3][4], y = e[3][5];
+    const w = (SB.getProp(e[4], 8) || 0) * e[3][0], h = (SB.getProp(e[4], 9) || 0) * e[3][3];
+    minX = Math.min(minX, x); minY = Math.min(minY, y);
+    maxX = Math.max(maxX, x + w); maxY = Math.max(maxY, y + h);
+  });
+  if (!isFinite(minX)) return null;
+  const dx = Math.round(p.x - (minX + maxX) / 2);
+  const dy = Math.round(p.y - (minY + maxY) / 2);
+  resolved.forEach((e) => { if (e[0] === 3) { e[3][4] += dx; e[3][5] += dy; } });
+  return { [_CLIP_MIME]: SB.wrap(resolved) };
+}
+
+function waitForMouseUp() {
+  return new Promise((resolve) => {
+    const done = () => { document.removeEventListener('mouseup', done, true); setTimeout(resolve, 30); };
+    document.addEventListener('mouseup', done, true);
+    setTimeout(done, 1500);
+  });
+}
+
+function waitForEagerBundle(gen) {
+  return new Promise((resolve, reject) => {
+    const tick = () => {
+      if (gen !== insertGeneration) return reject(new Error('superseded'));
+      if (eagerError) return reject(eagerError);
+      if (eagerBundle) return resolve(eagerBundle);
+      setTimeout(tick, 50);
+    };
+    tick();
+  });
+}
+
+function shapeSignature(resolved) {
+  return resolved.filter((e) => e[0] === 3)
+    .map((e) => SB.getProp(e[4], 8) + 'x' + SB.getProp(e[4], 9)).sort().join(',');
+}
+
+async function directInsert(bundle, gen, x, y, copied) {
+  if (gen !== insertGeneration) return;
+  const resolved = SB.unwrap(bundle[_CLIP_MIME]);
+  const sig = shapeSignature(resolved);
+  SB.paste(resolved);
+  const ok = await SB.waitForSelection((sel) => shapeSignature(sel) === sig);
+  if (gen !== insertGeneration) return;
+  setGlobalCursor('');
+  removeGhost();
+  if (ok) {
+    console.log('[svg2slides] direct insert confirmed');
+    return;
+  }
+  console.warn('[svg2slides] direct insert not confirmed — falling back to ⌘V');
+  if (copied) {
+    showInsertTooltip(x, y);
+    armPasteDetection(SB.iframe());
+  } else {
+    armCopyClick(bundle, gen, x, y);
+  }
+}
+
+// Fallback when the scripted paste failed and nothing was copied yet (the
+// conversion finished after the placement click): one more click copies
+// inside a real gesture, then ⌘V.
+function armCopyClick(bundle, gen, x, y) {
+  showInsertTooltip(x, y);
+  if (insertTooltipEl) {
+    const style = insertTooltipEl.querySelector('style');
+    insertTooltipEl.textContent = '';
+    if (style) insertTooltipEl.appendChild(style);
+    insertTooltipEl.append('Click, then ' + pasteKeyLabel() + ' to Confirm');
+  }
+  const onClick = () => {
+    document.removeEventListener('mousedown', onClick, true);
+    if (gen !== insertGeneration) return;
+    if (writeClipBundleLogged(bundle)) {
+      showInsertTooltip(x, y);
+      armPasteDetection(SB.iframe());
+    }
+  };
+  document.addEventListener('mousedown', onClick, true);
 }
 
 function armSecondClick(myGeneration, deltaXPt, deltaYPt) {

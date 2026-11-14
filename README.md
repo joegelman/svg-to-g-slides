@@ -7,6 +7,27 @@ Convert SVG files to editable vector shapes in Google Slides.
 
 ---
 
+## CHROME EXTENSION (v1.2.0)
+
+The main product. [Chrome Web Store](https://chromewebstore.google.com/detail/svg-to-slides/bdhhnakellmdnbgbdokiojipaebdeioi) · release notes at [svgslid.es/whats-new](https://svgslid.es/whats-new)
+
+- **Insert:** drag `.svg` files onto an open Google Slides tab and click where they go. Conversion runs in the browser (Pyodide); the result is handed to Slides through a synthetic paste of its own clipboard format, so nothing needs pasting by hand. If Slides refuses, it falls back to a `⌘/Ctrl+V` prompt.
+- **Edit as SVG:** double-click any shape, then click *Edit as SVG*. A vector editor overlays the slide at the shape's exact size: drag points and handles, pen tool, multi-select, undo/redo, zoom. *Done* deletes the original and pastes the edited shape in place at the editor's zoom.
+- **Any shape:** presets, lines, text boxes and WordArt are converted first by reading the SVG Slides itself renders (`g#editor-<id>`) into custom shapes. Preset handles, connector glue, 3D shading and live WordArt text don't survive; *Cancel* restores the original.
+- **Permissions:** `storage` (one-time "what's new" card after an update) and one host permission for the converter fallback. No Google account access.
+
+| File | Role |
+|---|---|
+| `extension/content.js` | Drop handling, ghost preview, click-to-place, direct insert |
+| `extension/slides-bridge.js` | Clipboard round trip, selection, page geometry, path model, rendered-shape conversion |
+| `extension/svg-editor.js` | The Edit as SVG overlay editor |
+| `extension/background.js`, `whats-new.js` | One-time update card |
+| `extension/slides_clip.py`, `svg_to_slides.py` | Converter (copies of `cloud/slides_clip.py` and the root converter) |
+
+To test locally: `chrome://extensions` → Developer mode → Load unpacked → `extension/`. Keep `__pycache__` out of the folder or Chrome refuses to load it.
+
+---
+
 ## WEB APP
 
 **svgslid.es** — drop SVGs in a browser, get a Google Drive link back. No install, no OAuth, no API keys.

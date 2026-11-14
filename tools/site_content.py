@@ -58,14 +58,18 @@ PAGES = [
         "h1": "How to insert an SVG into Google Slides&trade;",
         "lede": "Drag the SVG file onto your slide. SVG to Slides converts every path into a native Google Slides shape you can select, recolour, and resize. Below: the extension, the online uploader, and the two manual workarounds.",
         "answer": "Google Slides doesn't support SVG files, so you can't upload one as an editable graphic. To insert an SVG into Google Slides, install the free SVG to Slides Chrome extension, open your presentation, and drag the .svg file onto a slide. Each path becomes its own native Slides shape.",
-        "img_alt": "Inserting an SVG into Google Slides: an SVG file dragged onto a slide with the SVG to Slides Chrome extension, placed, then pasted with Cmd + V",
+        "img_alt": "Inserting an SVG into Google Slides: an SVG file dragged onto a slide with the SVG to Slides Chrome extension, placed, clicked into place",
         "lottie": "svgslides_drop.json",
         "howto": [
             ("Install the free Chrome extension.", "Add SVG to Slides from the Chrome Web Store. No account required."),
             ("Open your presentation in Google Slides.", "Any existing or new deck."),
-            ("Drag the SVG file onto a slide.", "Click to place it, then press &#8984;/Ctrl + V. Its paths become editable shapes. Up to 25 SVG files per drop."),
+            ("Drag the SVG file onto a slide.", "Click where it goes. It lands there and its paths become editable shapes. Up to 25 SVG files per drop."),
         ],
         "sections": [
+            ("Reshape it after you insert it", [
+                "Double-click any shape and click <b>Edit as SVG</b>. A vector editor opens on the slide at the shape&rsquo;s exact size, so you can drag its points and curve handles, add or remove points, and undo as you go. Click <b>Done</b> and the shape updates in place.",
+                "It works on Slides&rsquo; own shapes, lines and WordArt too. <a href=\"/whats-new\">What&rsquo;s new in 1.2</a>.",
+            ]),
             ("Import an SVG without installing anything", [
                 "<b>Web uploader.</b> Upload one or more SVG files at <a href=\"/convert\">svgslid.es/convert</a> and get a Google Drive link to a Slides-ready file, one slide per SVG. Good for bulk conversion.",
                 "<b>Google Slides add-on.</b> Insert SVGs from a dialog inside Slides, without leaving the tab. <a href=\"/addon\">Get the add-on</a>.",
@@ -271,11 +275,12 @@ Google Slides doesn't support SVG files. Your options are to flatten them into P
 - **Edit individual elements.** Every SVG path becomes its own Slides shape. Recolour any element with the standard fill picker.
 - **Resize without losing quality.** From a small footer icon to a full-slide graphic, every edge stays sharp.
 - **Use SVGs in your themes.** Add converted graphics to theme layouts and reuse them across slides.
+- **Edit any shape as SVG.** Double-click a shape and move its points and curve handles right on the slide. Works on Slides' own shapes, lines and WordArt too. ({site}/whats-new)
 
 ## How it works
 1. Install the extension from the Chrome Web Store. No account required.
-2. Open Google Slides, in any existing or new presentation.
-3. Drag in your SVG. Its paths become editable shapes.
+2. Drag in your SVG and click where it goes. Its paths become editable shapes.
+3. Double-click any shape to edit its points as SVG.
 
 ## Limits
 - Gradients come through in the online converter; in the extension and add-on they currently collapse to a single solid colour.
@@ -296,6 +301,7 @@ HOME_FAQ_H2 = "SVG in Google Slides: common questions"
 HOME_FAQ = [
     ("Can you upload or import an SVG file into Google Slides?", "Not as an editable graphic. Google Slides doesn't support SVG files. Install SVG to Slides and drag the file onto a slide, or convert it online at <a href=\"/convert\">svgslid.es/convert</a>. Every path arrives as a native Slides shape."),
     ("How is this different from Microsoft PowerPoint?", "PowerPoint can insert an SVG file and convert it to shapes. Google Slides can't. SVG to Slides gives Slides the same result: vector graphics you can select, recolour, and resize."),
+    ("Can you edit the points of a shape in Google Slides?", "Only for lines and polylines you draw yourself. With SVG to Slides, double-click any shape, including Slides&rsquo; own shapes and WordArt, and click Edit as SVG to move its points and curves in place. <a href=\"/whats-new\">See how</a>."),
     ("Can I add SVG icons to Google Slides?", "Yes. Drag up to 25 SVG icons onto a slide at once. Each one becomes editable shapes with no background box, so you can recolour it to match your theme."),
     ("Do the shapes stay sharp when I resize them?", "Yes. They're vector graphics, so a small footer icon and a full-slide graphic both keep crisp edges."),
     ("Can I use SVG logos in my Google Slides theme?", "Yes. Add converted logos and icons to your theme layouts and reuse them across slides. The shapes also work in Google Drawings."),

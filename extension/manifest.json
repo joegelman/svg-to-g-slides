@@ -1,25 +1,49 @@
 {
   "manifest_version": 3,
   "name": "SVG to Slides",
-  "version": "1.0.1",
-  "description": "Drag and drop an SVG onto a Google Slides tab to insert it as an editable vector shape.",
+  "version": "1.2.0",
+  "description": "Drop SVGs into Google Slides as editable vector shapes, and edit any shape's points and curves as SVG.",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
   },
-  "host_permissions": ["https://svg-to-slides-jwxfsrfexq-uc.a.run.app/*"],
+  "permissions": [
+    "storage"
+  ],
+  "host_permissions": [
+    "https://svg-to-slides-jwxfsrfexq-uc.a.run.app/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
   "content_scripts": [
     {
-      "matches": ["https://docs.google.com/presentation/d/*/edit*"],
-      "js": ["pyodide/pyodide.js", "shared.js", "pyodide-bridge.js", "content.js"],
+      "matches": [
+        "https://docs.google.com/presentation/d/*/edit*"
+      ],
+      "js": [
+        "pyodide/pyodide.js",
+        "shared.js",
+        "pyodide-bridge.js",
+        "slides-bridge.js",
+        "content.js",
+        "svg-editor.js",
+        "whats-new.js"
+      ],
       "run_at": "document_idle"
     }
   ],
   "web_accessible_resources": [
     {
-      "resources": ["pyodide/*", "svg_to_slides.py", "slides_clip.py"],
-      "matches": ["https://docs.google.com/*"]
+      "resources": [
+        "pyodide/*",
+        "svg_to_slides.py",
+        "slides_clip.py"
+      ],
+      "matches": [
+        "https://docs.google.com/*"
+      ]
     }
   ],
   "content_security_policy": {

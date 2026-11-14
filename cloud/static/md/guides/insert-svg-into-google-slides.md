@@ -10,7 +10,11 @@ _Free forever. Every feature, no daily cap, no account, no Pro tier._
 ## How to do it
 1. **Install the free Chrome extension.** Add SVG to Slides from the Chrome Web Store. No account required.
 2. **Open your presentation in Google Slides.** Any existing or new deck.
-3. **Drag the SVG file onto a slide.** Click to place it, then press ⌘/Ctrl + V. Its paths become editable shapes. Up to 25 SVG files per drop.
+3. **Drag the SVG file onto a slide.** Click where it goes. It lands there and its paths become editable shapes. Up to 25 SVG files per drop.
+
+## Reshape it after you insert it
+- Double-click any shape and click Edit as SVG. A vector editor opens on the slide at the shape’s exact size, so you can drag its points and curve handles, add or remove points, and undo as you go. Click Done and the shape updates in place.
+- It works on Slides’ own shapes, lines and WordArt too. What’s new in 1.2.
 
 ## Import an SVG without installing anything
 - Web uploader. Upload one or more SVG files at svgslid.es/convert and get a Google Drive link to a Slides-ready file, one slide per SVG. Good for bulk conversion.

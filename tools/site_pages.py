@@ -412,6 +412,116 @@ ABOUT_CSS = """
 """
 
 
+
+# ---------------------------------------------------------- what's new
+WHATS_NEW_CSS = """
+.wn .rel{font:600 13px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin:2.4em 0 .2em}
+.wn h2{margin-top:.2em}
+.wn .clip{margin:24px 0 8px;border-radius:14px;overflow:hidden;border:1px solid var(--rule);background:#fff}
+.wn .clip video{display:block;width:100%;height:auto}
+.wn .cap{font-size:14px;color:var(--mute);margin:0 0 1.4em}
+.wn table{width:100%;border-collapse:collapse;font-size:15px;margin:8px 0 1.4em}
+.wn th,.wn td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
+.wn th{font:600 13px var(--display);color:var(--mute)}
+.wn kbd{font:500 13px/1 ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--tint);border-radius:6px;padding:3px 6px;white-space:nowrap}
+.wn ul{padding-left:1.2em}.wn li{margin:0 0 .5em}
+"""
+
+EDITOR_KEYS = [
+    ("Select points", "<kbd>A</kbd> or <kbd>V</kbd>, then click, Shift-click or drag a box"),
+    ("Pen: add or remove points", "<kbd>P</kbd>, then click a segment to add, a point to remove"),
+    ("Smooth or corner point", "Double-click the point"),
+    ("Constrain to 45&deg;", "Hold <kbd>Shift</kbd> while dragging"),
+    ("Break a curve handle", "Hold <kbd>Option</kbd> / <kbd>Alt</kbd> while dragging it"),
+    ("Nudge", "Arrow keys, <kbd>Shift</kbd> for 10&times;"),
+    ("Select all, delete", "<kbd>&#8984;A</kbd>, <kbd>Delete</kbd>"),
+    ("Undo, redo", "<kbd>&#8984;Z</kbd>, <kbd>&#8679;&#8984;Z</kbd>"),
+    ("Zoom", "Pinch, <kbd>&#8984;+</kbd> / <kbd>&#8984;&minus;</kbd>, <kbd>&#8984;0</kbd> for 100%"),
+    ("Pan", "Hold <kbd>Space</kbd> and drag, or scroll"),
+    ("Done", "<kbd>Enter</kbd>, or <kbd>Esc</kbd> with nothing selected"),
+]
+
+
+def whats_new_page(ctx):
+    clip = ROOT / "cloud" / "static" / "whats-new" / "edit-as-svg.mp4"
+    video = ""
+    if clip.exists():
+        video = ('<div class="clip"><video src="/static/whats-new/edit-as-svg.mp4" poster="/static/whats-new/edit-as-svg.jpg" '
+                 'autoplay muted loop playsinline preload="metadata" aria-label="Double-clicking a star in Google Slides, '
+                 'dragging its points in the SVG editor, then clicking Done"></video></div>'
+                 '<p class="cap">Double-click, drag the points, Done. Recorded in Google Slides.</p>')
+    keys = "".join(f"<tr><td>{a}</td><td>{b}</td></tr>" for a, b in EDITOR_KEYS)
+    body = f"""  <div class="wrap"><p class="crumb"><a href="/">SVG to Slides</a> &rsaquo; What&rsquo;s new</p></div>
+  <section class="wrap phero">
+    <div class="kick">What&rsquo;s new</div>
+    <h1>Edit any shape in Google Slides&trade; as SVG.</h1>
+  </section>
+  <article class="about wn">
+    <p>Slides lets you recolour and resize a shape, but not reshape it. Version 1.2 of the Chrome extension adds a vector editor that opens right on the slide, so you can move the points and curves of any shape and put it back where it was.</p>
+    {video}
+    <div class="rel">Version 1.2.0 &middot; November 2026</div>
+    <h2>Edit as SVG</h2>
+    <p>Double-click a shape, then click <b>Edit as SVG</b>. The editor opens on top of the slide at the shape&rsquo;s exact size and position. Drag points and curve handles, add or remove points with the pen, and select several at once. Undo, redo and zoom work the way they do in Figma and Illustrator. Click <b>Done</b> and the shape updates in place, at the zoom you were editing at.</p>
+    <h2>Works on Slides&rsquo; own shapes</h2>
+    <p>The editor also opens on shapes you didn&rsquo;t bring in with SVG to Slides: the shape menu, arrows, callouts, lines, text boxes and WordArt. It converts them into custom shapes first, and the button tells you what that costs:</p>
+    <ul>
+      <li>Shapes lose their adjustment handles (the small yellow diamonds).</li>
+      <li>Lines lose their connection points, and arrowheads become separate shapes.</li>
+      <li>3D shapes like the cube and can keep their shading as flat colours.</li>
+      <li>WordArt becomes outlined letters, so you can reshape them but not retype them.</li>
+    </ul>
+    <p>Text inside a shape stays editable. Cancel puts the original back.</p>
+    <h2>Click to insert</h2>
+    <p>Drop an SVG onto a slide and click where it goes. It lands there as native shapes, with nothing to paste. If Slides ever turns the insert down, the extension asks you to press &#8984;/Ctrl + V instead.</p>
+    <h2>Smaller fixes</h2>
+    <ul>
+      <li>SVG shapes made only of straight lines now land as Slides polylines, so Slides&rsquo; own <b>Edit points</b> works on them too.</li>
+      <li>Placement and the editor now measure the slide you have open. Before, visiting another slide first could throw both off.</li>
+    </ul>
+    <h2>Editor shortcuts</h2>
+    <table><thead><tr><th>Action</th><th>How</th></tr></thead><tbody>{keys}</tbody></table>
+    <h2>Getting the update</h2>
+    <p>Chrome updates extensions on its own, usually within a few hours. To check your version, open <b>chrome://extensions</b> and find SVG to Slides. The first time you open Slides after the update, a short note in the corner points out what changed. It shows once.</p>
+    <p>The update adds one Chrome permission, <b>storage</b>, used only to remember that you have seen that note. The extension still asks for no access to your Google account.</p>
+    <div class="rel">Version 1.0.1 &middot; July 2026</div>
+    <p>Removed an unused permission flagged in Chrome Web Store review.</p>
+    <div class="rel">Version 1.0.0 &middot; July 2026</div>
+    <p>First release. Drag SVG files onto a Google Slides tab and they land as native, editable shapes, converted inside your browser.</p>
+  </article>
+  <div class="wrap"><hr class="rule" style="margin-top:56px"></div>
+  <section class="wrap close">
+    <h2>Bring your SVGs into Google Slides&trade;.</h2>
+    <div class="ctas"><a class="btn btn-primary" href="{cws('whats-new', 'close')}" data-cta="close"><img src="/static/chrome-glyph.svg" alt="">Add to Chrome, free</a><a class="btn btn-ghost" href="/guides/insert-svg-into-google-slides">Read the guide</a></div>
+  </section>"""
+    ld = [{"@context": "https://schema.org", "@type": "WebPage", "name": "What's new in SVG to Slides", "url": C.SITE + "/whats-new",
+           "about": {"@id": C.SITE + "/#app"}, "dateModified": "2026-11-14"},
+          ctx["crumbs"]([("What's new", "/whats-new")])]
+    doc = shell(title="What's New: Edit Any Shape in Google Slides as SVG | SVG to Slides",
+                desc="SVG to Slides 1.2 adds a vector editor inside Google Slides. Double-click any shape to move its points and curves, including Slides' own shapes, lines and WordArt.",
+                path="/whats-new", body=body, md="/whats-new.md", extra_css=ABOUT_CSS + WHATS_NEW_CSS, campaign="whats-new",
+                ld_block=ctx["ld_block"](ld), **ctx["common"])
+    md = f"""# What's new in SVG to Slides
+
+## 1.2.0 (November 2026)
+
+- Edit as SVG: double-click a shape, then click Edit as SVG. A vector editor opens on the slide at the shape's exact size and position. Drag points and curve handles, add or remove points, multi-select, undo, redo, zoom. Done updates the shape in place.
+- Works on Slides' own shapes, lines, text boxes and WordArt by converting them to custom shapes first. Adjustment handles, connection points, automatic 3D shading and editable WordArt text don't carry over. Text inside a shape stays editable. Cancel restores the original.
+- Click to insert: drop an SVG and click where it goes. It lands as native shapes with nothing to paste. Falls back to Cmd/Ctrl+V if Slides refuses the insert.
+- Straight-line SVG shapes land as Slides polylines, so Slides' own Edit points works on them.
+- Placement and the editor measure the slide you have open.
+- Adds the Chrome "storage" permission, used only to show the update note once. Still no access to your Google account.
+
+## 1.0.1 (July 2026)
+Removed an unused permission flagged in Chrome Web Store review.
+
+## 1.0.0 (July 2026)
+First release: drag SVG files onto a Google Slides tab and they land as native, editable shapes.
+
+Get it: {C.CWS}
+"""
+    return doc, md
+
+
 # ---------------------------------------------------------- add-on page
 ADDON_CSS = """
 .tool.demo{padding:0;overflow:hidden}
@@ -507,7 +617,8 @@ def about_page(ctx):
     <p>Product marketing runs on decks, one-pagers and docs, and most of them are built in Google Workspace. Slides has no way to import an SVG. Paste one and it flattens into an image. Where there should be crisp icons and logos, there are crunchy PNGs.</p>
     <p>The great graphic designers of the last century built their work on crisp, clean marks. Everyday business documents deserve the same, without the long way through EMF conversion, Google Drawings and copy-paste every time.</p>
     <h2>How it works</h2>
-    <p>When you copy a shape in Slides, Google writes it to the clipboard in its own internal format. SVG to Slides writes that same format from your SVG&rsquo;s paths. You paste, and Slides treats the result as if you had drawn it yourself. The Chrome extension does the whole conversion inside your browser, so your file usually never leaves your device.</p>
+    <p>When you copy a shape in Slides, Google writes it to the clipboard in its own internal format. SVG to Slides writes that same format from your SVG&rsquo;s paths and hands it to Slides, which treats the result as if you had drawn it yourself. The Chrome extension does the whole conversion inside your browser, so your file usually never leaves your device.</p>
+    <p>Since version 1.2 the extension also edits shapes. Double-click any shape and a vector editor opens on the slide, so you can move its points and curves. <a href="/whats-new">What&rsquo;s new</a>.</p>
     <h2>Who builds it</h2>
     <p>SVG to Slides is designed and built by Joe Gelman, a copywriter and competitive strategist. It&rsquo;s an independent side project, kept free on purpose.</p>
     <h2>Get in touch</h2>
@@ -537,7 +648,7 @@ SVG to Slides turns SVG files into native, editable shapes inside Google Slides.
 Slides has no way to import an SVG; pasted SVGs flatten into images. Where there should be crisp icons and logos, there are crunchy PNGs.
 
 ## How it works
-SVG to Slides writes Google Slides' own clipboard shape format from your SVG's paths. You paste, and Slides treats the result as native shapes. The extension converts inside your browser.
+SVG to Slides writes Google Slides' own clipboard shape format from your SVG's paths and hands it to Slides, which treats the result as native shapes. The extension converts inside your browser. Since 1.2 it also edits shapes: double-click any shape to move its points and curves ({C.SITE}/whats-new).
 
 ## Who builds it
 Joe Gelman, independently. Contact: joe@glmn.co

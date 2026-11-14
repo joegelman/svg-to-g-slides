@@ -60,12 +60,12 @@
   "2026-10-13"
  ],
  "url:/": [
-  "84b96f2cd0356e62",
+  "9ea251f406ae0e69",
   "2026-11-14"
  ],
  "url:/about": [
-  "0e916157a28fb11c",
-  "2026-11-10"
+  "f2febaacebfb4c8c",
+  "2026-11-14"
  ],
  "url:/blog": [
   "a3b3d2adfd409363",
@@ -144,7 +144,7 @@
   "2026-11-10"
  ],
  "url:/guides": [
-  "456ca22e4760a7ea",
+  "0e1be4cde7650e2c",
   "2026-11-14"
  ],
  "url:/guides/does-google-slides-support-svg": [
@@ -152,8 +152,8 @@
   "2026-11-10"
  ],
  "url:/guides/insert-svg-into-google-slides": [
-  "8800cea3a0ebff08",
-  "2026-11-10"
+  "d0c56fd26084f673",
+  "2026-11-14"
  ],
  "url:/guides/recolor-svg-in-google-slides": [
   "4cbb360f6da11db2",
@@ -172,12 +172,12 @@
   "2026-11-10"
  ],
  "url:/privacy": [
-  "48463f23dd7f47c1",
-  "2026-11-10"
+  "732143ab6c66cf77",
+  "2026-11-14"
  ],
  "url:/specs": [
-  "246abbb5d4d6572b",
-  "2026-11-10"
+  "34790420fb56003d",
+  "2026-11-14"
  ],
  "url:/support": [
   "93a49d71c48b7400",
@@ -186,5 +186,9 @@
  "url:/terms": [
   "8737adf7085c6f8e",
   "2026-11-10"
+ ],
+ "url:/whats-new": [
+  "102b4c0775251129",
+  "2026-11-14"
  ]
 }

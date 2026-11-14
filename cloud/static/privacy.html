@@ -83,8 +83,9 @@
   <p><strong>Chrome extension:</strong></p>
   <ul>
     <li>The SVG file(s) you drag onto an open Google Slides tab.</li>
+    <li>When you use <strong>Edit as SVG</strong>, the shapes you selected on the open slide: their outline geometry, fill and stroke, read from the page in your browser so the editor can draw them. This never leaves your browser.</li>
     <li>No Google account data of any kind, and <strong>no Google OAuth scope is requested</strong> — the extension cannot access your Drive, your presentations via the Slides API, or any other Google data.</li>
-    <li>Two narrow Chrome permissions only: <code>activeTab</code> (lets the extension's script run on the Slides tab you're actively using — a browser permission, not a Google one) and a single, specific host permission to reach the svgslid.es backend described below.</li>
+    <li>Two narrow Chrome permissions only: <code>storage</code> (keeps one local flag so the &ldquo;what&rsquo;s new&rdquo; note after an update shows once; it holds no personal data and is never sent anywhere) and a single, specific host permission to reach the svgslid.es backend described below. The extension runs only on Google Slides editor pages. These are browser permissions, not Google ones.</li>
   </ul>
 
   <h2>Data usage</h2>
@@ -103,7 +104,7 @@
     <li>Apart from the website tags described in <a href="#website-analytics">Website analytics &amp; advertising</a>, the only data transmitted to a third party is the SVG/PPTX file content sent to Google Cloud Run (our hosting provider) and Google Drive (for the web app's output storage) — both are Google infrastructure, not an external third party. See <a href="#third-party-services">Third-party services</a> below.</li>
     <li>The web app's output PPTX is shared via Drive's "anyone with the link" viewer permission so you can access it without signing in, plus a direct share to your email if you provided one. It is not made discoverable or indexed, and no one else is given access by us.</li>
     <li>The add-on never creates, shares, or touches any Drive file — the converted result is written only to your device's own clipboard, which never leaves your browser except for the SVG-to-shape-data conversion request described above.</li>
-    <li>The Chrome extension behaves the same as the add-on here: the converted result is written directly to your device's own clipboard. It never creates, shares, or touches any Drive file, and never calls any Google API.</li>
+    <li>The Chrome extension hands the converted result to the open Slides tab in your browser, the same way a paste does, and falls back to your device's own clipboard if Slides refuses. Edits made with Edit as SVG are applied the same way. It never creates, shares, or touches any Drive file, and never calls any Google API.</li>
   </ul>
 
   <h2>Data storage &amp; protection</h2>

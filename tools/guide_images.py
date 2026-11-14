@@ -178,7 +178,7 @@ def insert():
     cursor(im, 694, 394, 2.0)
     # paste pill
     d = ImageDraw.Draw(im)
-    txt = "⌘ + V to confirm"
+    txt = "Click to Place"
     ft = f(26, "ExtraBold")
     tw = d.textlength(txt, font=ft) / S
     d.rounded_rectangle(sc(600 - tw / 2 - 26, 438, 600 + tw / 2 + 26, 486), 24 * S, fill=INK)

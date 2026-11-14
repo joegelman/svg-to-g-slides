@@ -845,6 +845,9 @@ def main():
     about, about_md = P.about_page(ctx)
     (STATIC / "about.html").write_text(about)
     (MD / "about.md").write_text(about_md)
+    wn, wn_md = P.whats_new_page(ctx)
+    (STATIC / "whats-new.html").write_text(wn)
+    (MD / "whats-new.md").write_text(wn_md)
     import site_specs
     specs, specs_md = site_specs.specs_page(ctx)
     (STATIC / "specs.html").write_text(specs)
@@ -883,7 +886,7 @@ def main():
     # 5. sitemap
     urls = [("/", "1.0"), ("/convert", "0.8"), ("/google-slides-addon", "0.8"), ("/guides", "0.9")] + [(f"/guides/{p['slug']}", "0.8") for p in C.PAGES] + \
            [("/blog", "0.7")] + [(f"/blog/{p['slug']}", "0.7") for p in B.POSTS] + \
-           [("/specs", "0.7"), ("/about", "0.5"), ("/support", "0.4"), ("/privacy", "0.2"), ("/terms", "0.2")]
+           [("/specs", "0.7"), ("/whats-new", "0.6"), ("/about", "0.5"), ("/support", "0.4"), ("/privacy", "0.2"), ("/terms", "0.2")]
     urls.insert(urls.index(("/about", "0.5")), ("/features", "0.4"))
     def page_file(u):
         if u == "/":
@@ -917,7 +920,7 @@ def main():
     llms = [
         "# SVG to Slides", "",
         "> Free Chrome extension (plus web uploader and Google Slides add-on) that inserts SVG files into Google Slides as native, editable shapes. " + C.FREE_LINE, "",
-        "Google Slides doesn't keep SVG files as editable vectors. SVG to Slides converts every SVG path into its own native Slides shape, so users can recolor individual elements, edit points, animate shapes, and resize without losing quality. The shapes also work in Google Drawings.", "",
+        "Google Slides doesn't keep SVG files as editable vectors. SVG to Slides converts every SVG path into its own native Slides shape, so users can recolor individual elements, edit points, animate shapes, and resize without losing quality. The shapes also work in Google Drawings. Since version 1.2 the extension also edits any shape's points and curves as SVG, directly on the slide.", "",
         f"- Install (Chrome Web Store): {C.CWS}",
         f"- Web uploader, no install: {C.SITE}/convert", "",
         "## Docs",
@@ -930,6 +933,7 @@ def main():
              "## Blog"] + [f"- [{p['h1']}]({C.SITE}/blog/{p['slug']}.md): {plain(p['dek'])}" for p in B.POSTS] + ["",
              "## Optional",
              f"- [Specs: product facts and tested SVG compatibility]({C.SITE}/specs.md)",
+             f"- [What's new: release notes]({C.SITE}/whats-new.md)",
              f"- [About]({C.SITE}/about.md)",
              f"- [Privacy policy]({C.SITE}/privacy): per-surface data handling",
              f"- [Support]({C.SITE}/support)",
@@ -938,7 +942,7 @@ def main():
     full = [(MD / "index.md").read_text(), (MD / "convert.md").read_text()]
     full += [(MD / "guides" / f"{p['slug']}.md").read_text() for p in C.PAGES]
     full += [(MD / "blog" / f"{p['slug']}.md").read_text() for p in B.POSTS]
-    full += [(MD / "about.md").read_text()]
+    full += [(MD / "whats-new.md").read_text(), (MD / "about.md").read_text()]
     (STATIC / "llms-full.txt").write_text("\n\n---\n\n".join(full))
 
     # 8. 404

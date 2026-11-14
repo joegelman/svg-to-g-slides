@@ -69,6 +69,35 @@ _FIT_FRACTION = 0.85
 
 _OP_MOVE, _OP_LINE, _OP_CUBIC, _OP_CLOSE = 0, 1, 3, 5
 
+# Object type in slot 3 of a shape entry. Captured from native copies
+# (2026-11): 1 = plain custom shape (what we always emitted), 138 = polyline
+# tool, 154 = curve tool (stores clicked points only), 30 = donut preset.
+# Pasting our paths as 138 unlocks right-click > "Edit points": verified with
+# straight segments, cubic Beziers, and multi-subpath shapes with holes.
+_TYPE_CUSTOM = 1
+_TYPE_POLYLINE = 138
+
+# Point-edit limits found by drag tests (2026-11):
+# - Type 138 is straight lines only. Cubics render correctly on paste, but
+#   the first point drag rewrites the whole path as one Line run, turning
+#   every Bezier control point into a corner vertex.
+# - Type 154 (curve tool) ignores Cubic opcodes and draws its own spline
+#   through every coordinate, control points included; a 4-cubic circle
+#   pastes as a lumpy squircle. Slides' editor has no Bezier-handle model.
+# - Multi-subpath shapes (holes, separate pieces) get merged into one
+#   subpath on the first drag, bridging outlines with stray edges.
+# - A closing Line back to the subpath's start point leaves two coincident
+#   anchors; dragging one tears the corner. _drop_closing_duplicates()
+#   removes it (Close draws that edge anyway).
+# So only single-subpath, line-only shapes become 138; everything else
+# stays _TYPE_CUSTOM.
+#
+# EDITABLE_POINTS turns this off entirely. Shapes with more anchors than
+# EDITABLE_MAX_ANCHORS stay plain custom shapes so edit mode isn't buried
+# in points. None = no cap.
+EDITABLE_POINTS = True
+EDITABLE_MAX_ANCHORS = 150
+
 
 def path_to_clip_geometry(d, xfm, vb_x, vb_y, vb_w, vb_h):
     """Mirror of svg_to_slides.make_a_path(): same local-COORD-space walk of
@@ -259,13 +288,71 @@ def _build_shape_entry(obj_id, path_metadata, flat_coords, w, h, x, y, fill_hex)
     # The [1, 1, ...] prefix on the path record is required — present in
     # every real capture (including the proven-working reference) and
     # missing from earlier versions of this encoder.
+    shape_type = _shape_type(path_metadata)
+    if shape_type == _TYPE_POLYLINE:
+        path_metadata, flat_coords = _drop_closing_duplicates(path_metadata, flat_coords)
     props = [
         8, w, 9, h,
         12, [[1, 1, path_metadata, flat_coords, [], 0]],
         14, 1, 15, f'#{fill_hex}',
         18, 0, 23, 0,
     ]
-    return [3, obj_id, 1, [1, 0, 0, 1, x, y], props]
+    return [3, obj_id, shape_type, [1, 0, 0, 1, x, y], props]
+
+
+def _drop_closing_duplicates(path_metadata, flat_coords):
+    """Remove a final Line point that lands back on its subpath's start
+    when a Close follows; leaves cubic closing segments alone."""
+    runs = [[op, cnt] for op, cnt in zip(path_metadata[::2], path_metadata[1::2])]
+    starts, i = [], 0
+    for op, cnt in runs:
+        starts.append(i)
+        i += cnt
+    drop = set()  # coord indices to remove
+    sub_start = None
+    for k, (op, cnt) in enumerate(runs):
+        if op == _OP_MOVE:
+            sub_start = (flat_coords[starts[k]], flat_coords[starts[k] + 1])
+        elif op == _OP_CLOSE and k > 0 and sub_start is not None:
+            prev_op, prev_cnt = runs[k - 1]
+            if prev_op == _OP_LINE and prev_cnt >= 2:
+                j = starts[k - 1] + prev_cnt - 2
+                if (flat_coords[j], flat_coords[j + 1]) == sub_start:
+                    drop.update((j, j + 1))
+                    runs[k - 1][1] -= 2
+    if not drop:
+        return path_metadata, flat_coords
+    coords = [v for idx, v in enumerate(flat_coords) if idx not in drop]
+    meta = []
+    for op, cnt in runs:
+        if op == _OP_LINE and cnt == 0:
+            continue
+        meta += [op, cnt]
+    return meta, coords
+
+
+def _anchor_count(path_metadata):
+    """On-curve points: one per Move/Line point, one per Cubic segment."""
+    n = 0
+    for op, count in zip(path_metadata[::2], path_metadata[1::2]):
+        if op in (_OP_MOVE, _OP_LINE):
+            n += count // 2
+        elif op == _OP_CUBIC:
+            n += count // 6
+    return n
+
+
+def _shape_type(path_metadata):
+    if not EDITABLE_POINTS:
+        return _TYPE_CUSTOM
+    ops = path_metadata[::2]
+    if ops.count(_OP_MOVE) > 1:
+        return _TYPE_CUSTOM
+    if any(op not in (_OP_MOVE, _OP_LINE, _OP_CLOSE) for op in ops):
+        return _TYPE_CUSTOM
+    if EDITABLE_MAX_ANCHORS is not None and _anchor_count(path_metadata) > EDITABLE_MAX_ANCHORS:
+        return _TYPE_CUSTOM
+    return _TYPE_POLYLINE
 
 
 def _build_group_entry(child_ids):
