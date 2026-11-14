@@ -320,8 +320,31 @@ console.log('[svg2slides] svg-editor.js loaded');
       });
     }
     if (!shapes.length) return;
-    editor = new Editor(resolved, shapes, ctm);
-    editor.restoreOnCancel = restoreOnCancel;
+    const vis = SB.visibleWorkspaceRect();
+    if (vis.right - vis.left < 160 || vis.bottom - vis.top < 120) {
+      console.warn('[svg2slides] canvas too small or off-screen — not opening editor', vis);
+      return;
+    }
+    try {
+      editor = new Editor(resolved, shapes, ctm);
+      editor.restoreOnCancel = restoreOnCancel;
+    } catch (err) {
+      // Never leave a half-built overlay holding the page hostage.
+      console.error('[svg2slides] editor failed to open', err);
+      emergencyRestore();
+      editor = null;
+    }
+  }
+
+  // Undo everything the editor may have done to the page: our overlays go,
+  // anything we hid comes back.
+  function emergencyRestore() {
+    ['svg2slides-editor', 'svg2slides-zoom-layer'].forEach((id) => { const n = document.getElementById(id); if (n) n.remove(); });
+    document.querySelectorAll('[data-svg2slides-hidden]').forEach((n) => {
+      n.style.visibility = n.dataset.svg2slidesHidden === '-' ? '' : n.dataset.svg2slidesHidden;
+      delete n.dataset.svg2slidesHidden;
+    });
+    SB.focusTextbox();
   }
 
   class Editor {
@@ -346,7 +369,7 @@ console.log('[svg2slides] svg-editor.js loaded');
       this.hidden = [];
       shapes.forEach((s) => {
         const el = SB.elementFor(s.id);
-        if (el) { this.hidden.push([el, el.style.visibility]); el.style.visibility = 'hidden'; }
+        if (el) { this.hidden.push([el, el.style.visibility]); el.dataset.svg2slidesHidden = el.style.visibility || '-'; el.style.visibility = 'hidden'; }
       });
 
       this.hideSlidesChrome();
@@ -385,9 +408,11 @@ console.log('[svg2slides] svg-editor.js loaded');
     findPageSvg() {
       const page = SB.currentPageGroup();
       this.pageSvg = page ? page.ownerSVGElement : null;
-      const ws = document.getElementById('workspace') || (this.pageSvg && this.pageSvg.parentElement);
-      const r = ws ? ws.getBoundingClientRect() : { left: 0, top: 0, right: innerWidth, bottom: innerHeight };
-      this.wsRect = { left: r.left, top: r.top, right: r.right, bottom: r.bottom };
+      // The visible canvas, not #workspace: at high Slides zoom #workspace
+      // is the whole page and starts far off-screen, which once clipped the
+      // editor to a sliver and hid it.
+      const ws = document.getElementById('workspace-container') || document.getElementById('workspace') || (this.pageSvg && this.pageSvg.parentElement);
+      this.wsRect = SB.visibleWorkspaceRect();
       let bgc = '';
       for (let n = ws; n && n.nodeType === 1; n = n.parentElement) {
         const c = getComputedStyle(n).backgroundColor;
@@ -716,7 +741,7 @@ console.log('[svg2slides] svg-editor.js loaded');
     // of the page group. Hide it while editing so only our handles show.
     hideSlidesChrome() {
       this.chrome = [];
-      const hide = (c) => { this.chrome.push([c, c.style.visibility]); c.style.visibility = 'hidden'; };
+      const hide = (c) => { this.chrome.push([c, c.style.visibility]); c.dataset.svg2slidesHidden = c.style.visibility || '-'; c.style.visibility = 'hidden'; };
       const page = SB.currentPageGroup();
       if (!page) return;
       // Selection box + handles live in a separate <svg> layer that is a
@@ -735,7 +760,7 @@ console.log('[svg2slides] svg-editor.js loaded');
       });
     }
     restoreSlidesChrome() {
-      (this.chrome || []).forEach(([c, v]) => { c.style.visibility = v || ''; });
+      (this.chrome || []).forEach(([c, v]) => { c.style.visibility = v || ''; delete c.dataset.svg2slidesHidden; });
       this.chrome = [];
     }
 
@@ -1260,7 +1285,7 @@ console.log('[svg2slides] svg-editor.js loaded');
     }
 
     restoreOriginals() {
-      this.hidden.forEach(([el, v]) => { el.style.visibility = v || ''; });
+      this.hidden.forEach(([el, v]) => { el.style.visibility = v || ''; delete el.dataset.svg2slidesHidden; });
     }
 
     close(cancel = false) {

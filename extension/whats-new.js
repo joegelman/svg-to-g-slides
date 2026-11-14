@@ -15,8 +15,8 @@
   }
 
   function show(version) {
-    const ws = document.getElementById('workspace') || document.body;
-    const r = ws.getBoundingClientRect();
+    const r = (typeof SB !== 'undefined' && SB.visibleWorkspaceRect) ? SB.visibleWorkspaceRect()
+      : { left: 0, top: 0, right: innerWidth, bottom: innerHeight };
     const host = el('div', { id: 'svg2slides-whats-new' });
     const root = host.attachShadow({ mode: 'open' });
     const style = document.createElement('style');

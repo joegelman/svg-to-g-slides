@@ -259,8 +259,33 @@ const SB = (() => {
     z.dispatchEvent(new KeyboardEvent('keypress', o));
     z.dispatchEvent(new KeyboardEvent('keyup', o));
     await sleep(450);
+    // Focusing the box opens Slides' zoom menu; Escape closes it and keeps
+    // the value just applied (verified live).
+    z.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, which: 27, bubbles: true, cancelable: true }));
+    await sleep(50);
     z.blur();
     return true;
+  }
+
+  // The part of the slide canvas you can actually see, in client px.
+  // #workspace is the whole zoomed page and at high Slides zoom runs far
+  // off-screen; #workspace-container is the scrolling viewport around it.
+  // Clamp to the window and leave out scrollbars.
+  function visibleWorkspaceRect() {
+    const c = document.getElementById('workspace-container');
+    let r;
+    if (c) {
+      const b = c.getBoundingClientRect();
+      const left = b.left + c.clientLeft, top = b.top + c.clientTop;
+      r = { left, top, right: left + c.clientWidth, bottom: top + c.clientHeight };
+    } else {
+      const w = document.getElementById('workspace');
+      const b = w ? w.getBoundingClientRect() : { left: 0, top: 0, right: innerWidth, bottom: innerHeight };
+      r = { left: b.left, top: b.top, right: b.right, bottom: b.bottom };
+    }
+    r.left = Math.max(0, r.left); r.top = Math.max(0, r.top);
+    r.right = Math.min(innerWidth, r.right); r.bottom = Math.min(innerHeight, r.bottom);
+    return r;
   }
 
   // Scroll the workspace so page point P lands on client point (cx, cy).
@@ -674,7 +699,7 @@ const SB = (() => {
     MIME, iframe, textbox, focusTextbox, wrap, unwrap,
     readSelection, paste, pressKey, sleep, waitForSelection,
     getProp, setProp, newId, pathRecord, isEditableShape,
-    matMul, matInv, apply, localToPage, pageCTM, elementFor, currentPageGroup,
+    matMul, matInv, apply, localToPage, pageCTM, elementFor, currentPageGroup, visibleWorkspaceRect,
     ZOOM_MIN, ZOOM_MAX, zoomPctFromCTM, setSlidesZoom, scrollPagePointTo, matchSlidesView,
     decodePath, encodePath, normalizeSubs, typeFor, svgPathD,
     convertibleKind, convertSelection, KIND_NOTE,
