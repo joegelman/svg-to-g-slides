@@ -9,6 +9,7 @@ WB_BEFORE = "https://web.archive.org/web/20261005194616/https://support.google.c
 WB_AFTER = "https://web.archive.org/web/20261012192940/https://support.google.com/docs/answer/1663349?hl=enGoogle:"
 WB_INDEX = "https://web.archive.org/web/2026*/https://support.google.com/docs/answer/1663349*"
 LINE_2019 = "https://workspaceupdates.googleblog.com/2019/09/line-spacing-docs-slides.html"
+MERAKI = "https://merakitheory.com/google-slides-letter-spacing"
 
 POSTS = [
     {
@@ -32,6 +33,7 @@ POSTS = [
             "Docs&rsquo; help center already documents it. The Docs editor doesn&rsquo;t show it yet.",
         ],
         "body": f"""
+<p><b>Hat tip:</b> <a href="{MERAKI}">Meraki Theory</a>, a presentation design agency, wrote about letter spacing in Google Slides first, on Oct 18. Their guide includes a workaround tool for accounts that don&rsquo;t have the control yet.</p>
 <h2 id="tracking">Tracking, not leading</h2>
 <p>Three spacing ideas get mixed up constantly, so let&rsquo;s pin them down.</p>
 <ul>
@@ -86,6 +88,7 @@ POSTS = [
 <p><b>Our read:</b> strong signal, not a promise. We haven&rsquo;t found a Workspace Updates announcement yet. We&rsquo;ll update this post when Docs gets the button.</p>
 """,
         "sources": [
+            ("How to Change Letter Spacing in Google Slides (Meraki Theory, Oct 18, 2026)", MERAKI),
             ("Change how paragraphs & fonts look (Google Docs Editors Help)", HELP),
             ("Wayback Machine capture, Oct 5, 2026 (no letter spacing)", WB_BEFORE),
             ("Wayback Machine capture, Oct 12, 2026 (letter spacing present)", WB_AFTER),
@@ -96,6 +99,8 @@ POSTS = [
 *Nov 7, 2026 · svgslid.es blog*
 
 Tracking has landed in Google Slides. Here's what it is, how to use it well, and why Docs looks next.
+
+Hat tip: Meraki Theory, a presentation design agency, wrote about letter spacing in Google Slides first, on Oct 18, 2026 ({MERAKI}). Their guide includes a workaround tool for accounts without the control.
 
 ## TL;DR
 - Slides now has **letter spacing**, which type designers call **tracking**.

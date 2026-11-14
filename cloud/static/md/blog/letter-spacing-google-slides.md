@@ -4,6 +4,8 @@
 
 Tracking has landed in Google Slides. Here's what it is, how to use it well, and why Docs looks next.
 
+Hat tip: Meraki Theory, a presentation design agency, wrote about letter spacing in Google Slides first, on Oct 18, 2026 (https://merakitheory.com/google-slides-letter-spacing). Their guide includes a workaround tool for accounts without the control.
+
 ## TL;DR
 - Slides now has **letter spacing**, which type designers call **tracking**.
 - Toolbar: the **|A|** button next to line spacing. Menu: **Format › Text › Letter spacing**.
