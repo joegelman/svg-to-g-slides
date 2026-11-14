@@ -416,7 +416,7 @@ console.log('[svg2slides] svg-editor.js loaded');
         s.Minv = SB.matInv(s.M);
       });
       this.updateZoomLayer();
-      if (this.gCover) this.gCover.setAttribute('transform', 'matrix(' + this.ctm.join(' ') + ')');
+      if (this.coverGaps) this.updateCoverTransforms();
       if (this.zoomLabel) this.zoomLabel.textContent = Math.round(v.s * 100) + '%';
     }
 
@@ -428,54 +428,73 @@ console.log('[svg2slides] svg-editor.js loaded');
     // see them) so internal clip paths and gradients still resolve; defs
     // they borrow from elsewhere on the page are copied alongside.
     buildCover() {
+      this.coverGaps = [];
+      this.zRank = this.shapes.map((_, i) => i);
       try {
         const page = SB.currentPageGroup();
         const pageCTM = SB.pageCTM();
         if (!page || !pageCTM) return;
         const pageInv = SB.matInv(pageCTM);
-        const edited = this.shapes.map((sh) => SB.elementFor(sh.id)).filter(Boolean);
-        if (!edited.length) return;
-        // Topmost edited element in paint (document) order.
-        const top = edited.reduce((a, b) => (a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING ? b : a));
-        const above = [];
+        const els = this.shapes.map((sh) => SB.elementFor(sh.id));
+        if (els.some((e) => !e)) return;
+        // Paint order of the edited shapes (document order = z-order).
+        const order = els.map((e, i) => i).sort((a, b) => (els[a].compareDocumentPosition(els[b]) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1));
+        order.forEach((si, rank) => { this.zRank[si] = rank; });
+        const sorted = order.map((i) => els[i]);
+        // gap k holds the objects painted after edited shape k and before
+        // edited shape k + 1 (the last gap: everything above the topmost).
+        const gaps = sorted.map(() => []);
+        const taken = [];
         for (const g of page.querySelectorAll('g[id^="editor-"]')) {
           if (/-bg$|-paragraph$/.test(g.id)) continue;
-          if (!(top.compareDocumentPosition(g) & Node.DOCUMENT_POSITION_FOLLOWING)) continue;
-          if (edited.some((e) => e.contains(g) || g.contains(e))) continue;
-          if (above.some((t) => t.contains(g))) continue;
-          if (getComputedStyle(g).visibility === 'hidden' || getComputedStyle(g).display === 'none') continue;
-          above.push(g);
+          if (els.some((e) => e.contains(g) || g.contains(e))) continue;
+          if (taken.some((t) => t.contains(g))) continue;
+          let k = -1;
+          sorted.forEach((e, r) => { if (e.compareDocumentPosition(g) & Node.DOCUMENT_POSITION_FOLLOWING) k = r; });
+          if (k < 0) continue; // below every edited shape: the real slide shows it
+          const cs = getComputedStyle(g);
+          if (cs.visibility === 'hidden' || cs.display === 'none') continue;
+          taken.push(g);
+          gaps[k].push(g);
         }
-        if (!above.length) return;
         const refs = new Set();
-        above.forEach((g) => {
-          const parent = g.parentNode && g.parentNode.getScreenCTM ? g.parentNode.getScreenCTM() : null;
-          const rel = parent ? SB.matMul(pageInv, [parent.a, parent.b, parent.c, parent.d, parent.e, parent.f]) : [1, 0, 0, 1, 0, 0];
-          const wrap = sv('g', { transform: 'matrix(' + rel.join(' ') + ')' });
-          const copy = g.cloneNode(true);
-          inlineComputedStyles(g, copy);
-          copy.style.visibility = 'visible';
-          wrap.append(copy);
-          this.gCover.append(wrap);
-          [copy, ...copy.querySelectorAll('*')].forEach((n) => {
-            for (const a of ['clip-path', 'mask', 'fill', 'stroke', 'filter', 'href', 'xlink:href']) {
-              const v = n.getAttribute(a);
-              const m = v && /^url\(["']?#([^"')]+)["']?\)$/.exec(v);
-              if (m) refs.add(m[1]);
-              else if (v && (a === 'href' || a === 'xlink:href') && v[0] === '#') refs.add(v.slice(1));
-            }
+        const gapEls = gaps.map((list) => {
+          const gap = sv('g', { class: 'cover', 'pointer-events': 'none' });
+          list.forEach((g) => {
+            const parent = g.parentNode && g.parentNode.getScreenCTM ? g.parentNode.getScreenCTM() : null;
+            const rel = parent ? SB.matMul(pageInv, [parent.a, parent.b, parent.c, parent.d, parent.e, parent.f]) : [1, 0, 0, 1, 0, 0];
+            const wrap = sv('g', { transform: 'matrix(' + rel.join(' ') + ')' });
+            const copy = g.cloneNode(true);
+            inlineComputedStyles(g, copy);
+            copy.style.visibility = 'visible';
+            wrap.append(copy);
+            gap.append(wrap);
+            [copy, ...copy.querySelectorAll('*')].forEach((n) => {
+              for (const a of ['clip-path', 'mask', 'fill', 'stroke', 'filter', 'href', 'xlink:href']) {
+                const v = n.getAttribute(a);
+                const m = v && /^url\(["']?#([^"')]+)["']?\)$/.exec(v);
+                if (m) refs.add(m[1]);
+                else if (v && (a === 'href' || a === 'xlink:href') && v[0] === '#') refs.add(v.slice(1));
+              }
+            });
           });
+          return gap;
         });
         refs.forEach((id) => {
-          if (this.gCover.querySelector('#' + CSS.escape(id))) return;
+          if (gapEls.some((gp) => gp.querySelector('#' + CSS.escape(id)))) return;
           const src = document.getElementById(id);
           if (src) this.gDefs.append(src.cloneNode(true));
         });
-        this.gCover.setAttribute('transform', 'matrix(' + this.ctm.join(' ') + ')');
+        this.coverGaps = gapEls;
+        this.updateCoverTransforms();
       } catch (err) {
-        console.warn('[svg2slides] could not copy shapes above the edited one', err);
-        if (this.gCover) this.gCover.replaceChildren();
+        console.warn('[svg2slides] could not copy shapes stacked with the edited ones', err);
+        this.coverGaps = [];
       }
+    }
+
+    updateCoverTransforms() {
+      (this.coverGaps || []).forEach((gp) => gp.setAttribute('transform', 'matrix(' + this.ctm.join(' ') + ')'));
     }
 
     // ── Zoom / pan ──
@@ -681,7 +700,7 @@ console.log('[svg2slides] svg-editor.js loaded');
           .anchors, .handles, .cornerh { filter: drop-shadow(0 0 1px rgba(0,0,0,.35)) drop-shadow(0 1px 2px rgba(0,0,0,.18)); }`));
 
       const svg = sv('svg', { class: 'stage' });
-      ['defs', 'fills', 'cover', 'outlines', 'handles', 'anchors', 'cornerh'].forEach((c) => svg.append(sv(c === 'defs' ? 'defs' : 'g', { class: c })));
+      ['defs', 'fills', 'outlines', 'handles', 'anchors', 'cornerh'].forEach((c) => svg.append(sv(c === 'defs' ? 'defs' : 'g', { class: c })));
       svg.append(
         sv('rect', { class: 'marquee', fill: 'rgba(11,87,208,.08)', stroke: ACCENT, 'stroke-width': 1, visibility: 'hidden' }),
         sv('circle', { class: 'pen-ghost', r: 4, fill: ACCENT, visibility: 'hidden' })
@@ -752,8 +771,6 @@ console.log('[svg2slides] svg-editor.js loaded');
       this.gOutlines = svg.querySelector('.outlines');
       this.gHandles = svg.querySelector('.handles');
       this.gAnchors = svg.querySelector('.anchors');
-      this.gCover = svg.querySelector('.cover');
-      this.gCover.setAttribute('pointer-events', 'none');
       this.gDefs = svg.querySelector('defs');
       this.gCorners = svg.querySelector('.cornerh');
       this.marquee = svg.querySelector('.marquee');
@@ -1001,7 +1018,16 @@ console.log('[svg2slides] svg-editor.js loaded');
           : sv('rect', Object.assign({ x: p.x - r, y: p.y - r, width: 2 * r, height: 2 * r, rx: 1.5 }, attrs)));
       });
 
-      this.gFills.replaceChildren(...fills);
+      // Interleave in Slides' stacking order: each edited shape, then the
+      // static copies of whatever sits between it and the next one.
+      const rank = this.zRank || this.shapes.map((_, i) => i);
+      const painted = [];
+      this.shapes.map((_, si) => si).sort((a, b) => rank[a] - rank[b]).forEach((si) => {
+        painted.push(fills[si]);
+        const gap = this.coverGaps && this.coverGaps[rank[si]];
+        if (gap) painted.push(gap);
+      });
+      this.gFills.replaceChildren(...painted);
       this.gOutlines.replaceChildren(...outlines);
       this.gHandles.replaceChildren(...handles);
       this.gAnchors.replaceChildren(...anchors);
@@ -1202,7 +1228,7 @@ console.log('[svg2slides] svg-editor.js loaded');
       return best;
     }
     hitShape(x, y) {
-      const paths = this.gFills.querySelectorAll('path');
+      const paths = this.gFills.querySelectorAll(':scope > path[data-si]');
       for (let i = paths.length - 1; i >= 0; i--) {
         const p = paths[i];
         try {
