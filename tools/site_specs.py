@@ -31,7 +31,7 @@ FACTS = [
     ("Editing", "Chrome extension: double-click any shape and click Edit Shape to move its points and curve handles on the slide, or round its corners by dragging or typing a radius. Works on Slides' own shapes, lines and WordArt by converting them to custom shapes first. SVG shapes made only of straight lines also support Slides' own Edit points."),
     ("Also works in", "Google Drawings"),
     ("Current versions", 'Chrome extension 1.2.0 (<a href="/whats-new">what&rsquo;s new</a>)'),
-    ("Source code", f'<a href="{C.GITHUB}">github.com/joegelman/svg-to-g-slides</a> (MIT)'),
+    ("Source code", f'<a href="{C.GITHUB}">github.com/joegelman/svg-to-g-slides</a> (source-available, PolyForm Strict 1.0.0)'),
     ("Built by", 'Joe Gelman. Contact: <a href="mailto:joe@glmn.co">joe@glmn.co</a>'),
 ]
 

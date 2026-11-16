@@ -137,4 +137,4 @@ macOS TCC blocks launchd from reading `~/Documents`, `~/Desktop`, and `~/Library
 
 ## LICENSE
 
-MIT
+Source-available under the [PolyForm Strict License 1.0.0](LICENSE.md): noncommercial use only, no redistribution or modification. Third-party components keep their own licenses.
