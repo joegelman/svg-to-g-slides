@@ -1,4 +1,232 @@
 {
+ "doc:a-z-index": [
+  "2c8109ca1f96172a",
+  "2026-11-20"
+ ],
+ "doc:add-on": [
+  "e2e006d235ddfa62",
+  "2026-11-20"
+ ],
+ "doc:align-distribute": [
+  "404d03a8ec948008",
+  "2026-11-20"
+ ],
+ "doc:combine-shapes": [
+  "2c11a3f3976c435b",
+  "2026-11-20"
+ ],
+ "doc:command-palette": [
+  "90ec2cd51363f2b3",
+  "2026-11-20"
+ ],
+ "doc:commands": [
+  "f7f14abd95a7b663",
+  "2026-11-20"
+ ],
+ "doc:conventions": [
+  "5a443b14bbee4081",
+  "2026-11-20"
+ ],
+ "doc:convert-slides-shapes": [
+  "75b3a773bbfdd6df",
+  "2026-11-20"
+ ],
+ "doc:edit-points-and-polylines": [
+  "21f5f407d5c97730",
+  "2026-11-20"
+ ],
+ "doc:edit-shape": [
+  "a227a54e6610c753",
+  "2026-11-20"
+ ],
+ "doc:fill-stroke": [
+  "345af012051eb211",
+  "2026-11-20"
+ ],
+ "doc:glossary": [
+  "9cf9cef7037d6f1d",
+  "2026-11-20"
+ ],
+ "doc:how-conversion-works": [
+  "cea6a282f6aa7abd",
+  "2026-11-20"
+ ],
+ "doc:how-shapes-reach-the-slide": [
+  "9bdc961444d2de99",
+  "2026-11-20"
+ ],
+ "doc:index": [
+  "6b637b9388630a8c",
+  "2026-11-20"
+ ],
+ "doc:insert-svg": [
+  "15901fd915efaf14",
+  "2026-11-20"
+ ],
+ "doc:install": [
+  "93bd933aa90263a0",
+  "2026-11-20"
+ ],
+ "doc:kb": [
+  "14186e99c387b8f6",
+  "2026-11-20"
+ ],
+ "doc:kb/cannot-mask-image": [
+  "3e0edc6035a5947d",
+  "2026-11-20"
+ ],
+ "doc:kb/colours-arrive-black": [
+  "86e2ba0d8b21fb68",
+  "2026-11-20"
+ ],
+ "doc:kb/edit-points-missing": [
+  "9095ace165f25cee",
+  "2026-11-20"
+ ],
+ "doc:kb/gradient-becomes-solid-colour": [
+  "700cc5fb26aa0e9f",
+  "2026-11-20"
+ ],
+ "doc:kb/layer-names-missing": [
+  "14d39c7181066d8e",
+  "2026-11-20"
+ ],
+ "doc:kb/line-icon-inserts-nothing": [
+  "802294c217613e18",
+  "2026-11-20"
+ ],
+ "doc:kb/more-than-25-files": [
+  "732709b1e18ad7d6",
+  "2026-11-20"
+ ],
+ "doc:kb/object-greyed-with-m": [
+  "03f956564e4c0fdc",
+  "2026-11-20"
+ ],
+ "doc:kb/outline-text-font": [
+  "71637b7920110643",
+  "2026-11-20"
+ ],
+ "doc:kb/press-command-v-prompt": [
+  "46ee17a9d26f589d",
+  "2026-11-20"
+ ],
+ "doc:kb/shapes-land-away-from-pointer": [
+  "27cf7ab31e3dff7b",
+  "2026-11-20"
+ ],
+ "doc:kb/svg-becomes-a-flat-image": [
+  "66a4847bd094b819",
+  "2026-11-20"
+ ],
+ "doc:kb/text-missing-after-insert": [
+  "a6d2b415c49eafd6",
+  "2026-11-20"
+ ],
+ "doc:kb/toolbar-does-not-appear": [
+  "8353821d2e6e9dcf",
+  "2026-11-20"
+ ],
+ "doc:kb/undo-takes-several-presses": [
+  "fbafd05adcb14d07",
+  "2026-11-20"
+ ],
+ "doc:kb/web-uploader-link-expired": [
+  "29c8c1ca3a691199",
+  "2026-11-20"
+ ],
+ "doc:kb/which-version": [
+  "4d275cfe16d74be3",
+  "2026-11-20"
+ ],
+ "doc:keyboard-shortcuts": [
+  "266af4efc7f85179",
+  "2026-11-20"
+ ],
+ "doc:layers": [
+  "11124c7dc37f3e9c",
+  "2026-11-20"
+ ],
+ "doc:limits": [
+  "7edcd288cabdd636",
+  "2026-11-20"
+ ],
+ "doc:mask-image": [
+  "150c6adb9c928678",
+  "2026-11-20"
+ ],
+ "doc:outline-stroke-text": [
+  "72fce182c705bad6",
+  "2026-11-20"
+ ],
+ "doc:overview": [
+  "d4384d685124da50",
+  "2026-11-20"
+ ],
+ "doc:pen": [
+  "6dbfc0c1564ca5f9",
+  "2026-11-20"
+ ],
+ "doc:permissions-privacy": [
+  "513bdb173a48a9ae",
+  "2026-11-20"
+ ],
+ "doc:point-precision": [
+  "51004e63ab6111c8",
+  "2026-11-20"
+ ],
+ "doc:quick-start": [
+  "3ad1302b113e8c2a",
+  "2026-11-20"
+ ],
+ "doc:release-notes": [
+  "c339d77be456ea01",
+  "2026-11-20"
+ ],
+ "doc:release-notes/1-0": [
+  "3e738cfc9bc70515",
+  "2026-11-20"
+ ],
+ "doc:release-notes/1-2-0": [
+  "a6e66ddd83f709fc",
+  "2026-11-20"
+ ],
+ "doc:release-notes/1-3-0": [
+  "222414a1c18a8aff",
+  "2026-11-20"
+ ],
+ "doc:round-corners": [
+  "5ee52304c2f750df",
+  "2026-11-20"
+ ],
+ "doc:snapping": [
+  "d691f813164247bd",
+  "2026-11-20"
+ ],
+ "doc:svg-compatibility": [
+  "b929f70beb819e5b",
+  "2026-11-20"
+ ],
+ "doc:theme-objects": [
+  "1b8ea4238aa048b8",
+  "2026-11-20"
+ ],
+ "doc:toolbar": [
+  "cf4231c9be070f5b",
+  "2026-11-20"
+ ],
+ "doc:undo-and-still-copy": [
+  "5b557e5bc6203a97",
+  "2026-11-20"
+ ],
+ "doc:undo-redo": [
+  "cf40f943ecca9caf",
+  "2026-11-20"
+ ],
+ "doc:web-uploader": [
+  "fa7305325cc5cb4d",
+  "2026-11-20"
+ ],
  "post:apps-script-for-gtm-part-1": [
   "4f9faa023433f97d",
   "2026-11-14"
@@ -32,7 +260,7 @@
   "2026-11-14"
  ],
  "post:letter-spacing-google-slides-pdf-export": [
-  "74cc79cdad816dae",
+  "b56a32358cc5677d",
   "2026-11-14"
  ],
  "post:localize-one-pager-google-slides": [
@@ -60,135 +288,363 @@
   "2026-10-13"
  ],
  "url:/": [
-  "2557e39f877b9aca",
+  "c2479815a5f34b9a",
   "2026-11-14"
  ],
  "url:/about": [
-  "f2febaacebfb4c8c",
+  "57b83775a2645e33",
   "2026-11-14"
  ],
  "url:/blog": [
-  "a3b3d2adfd409363",
+  "d8a1c006c040c8c1",
   "2026-11-14"
  ],
  "url:/blog/apps-script-for-gtm-part-1": [
-  "1995c1ae74b6a7ff",
+  "2d2d1d9e8e583642",
   "2026-11-14"
  ],
  "url:/blog/audit-gemini-whole-deck-edits-google-slides": [
-  "ffd6f8311b779261",
+  "69f13fe1ba809477",
   "2026-11-10"
  ],
  "url:/blog/competitor-matrix-google-sheets-gemini-citations": [
-  "eb034f3759ef9fb1",
+  "c40737a35cda6feb",
   "2026-11-10"
  ],
  "url:/blog/customer-proof-points-expiry-google-sheets": [
-  "aeb6c7360da1ad7b",
+  "5f96b9828b1c9a35",
   "2026-11-10"
  ],
  "url:/blog/gemini-skills-messaging-recipes": [
-  "a83b9b0006e8a269",
+  "8a738a3190990a61",
   "2026-11-10"
  ],
  "url:/blog/google-meet-notes-screenshots-slide-objections": [
-  "bd0f3efb5347cc9f",
+  "f4f46b2bf2be547e",
   "2026-11-10"
  ],
  "url:/blog/google-slides-collateral-messaging-sheet-gemini": [
-  "edb5254123626618",
+  "d3646942f03feace",
   "2026-11-10"
  ],
  "url:/blog/letter-spacing-google-slides": [
-  "d6bfe2010e5ab716",
+  "16273d35eca603cc",
   "2026-11-14"
  ],
  "url:/blog/letter-spacing-google-slides-pdf-export": [
-  "fcf36503fa14d038",
+  "546f54c7d2c7399f",
   "2026-11-14"
  ],
  "url:/blog/localize-one-pager-google-slides": [
-  "fdf3f47911ac2bc9",
+  "d419e71dcf88d9c8",
   "2026-11-10"
  ],
  "url:/blog/messaging-workshop-brand-style-sheet-google-sheets": [
-  "460d5896e0b03aaf",
+  "13fe0331a9ae43e3",
   "2026-11-10"
  ],
  "url:/blog/native-ui-mockups-google-slides": [
-  "48dd01b2df1a618e",
+  "f0958bb12c921c36",
   "2026-11-14"
  ],
  "url:/blog/on-brand-charts-google-slides": [
-  "322074ea8414befe",
+  "a644a720966a0d57",
   "2026-11-10"
  ],
  "url:/blog/sales-enablement-quiz-google-forms": [
-  "051fcc8b58f38f9c",
+  "94392b0c36e5d1ec",
   "2026-11-10"
  ],
  "url:/blog/workspace-studio-shared-files-messaging-flow": [
-  "617c0c5f0306957a",
+  "b3449ca6652b6446",
   "2026-11-10"
  ],
  "url:/convert": [
-  "45f45e4a120f67c1",
+  "45470f53c13ea1b4",
   "2026-11-10"
  ],
+ "url:/docs": [
+  "0fab71add6f71ecb",
+  "2026-11-20"
+ ],
+ "url:/docs/a-z-index": [
+  "47d5f3ed06366e29",
+  "2026-11-20"
+ ],
+ "url:/docs/add-on": [
+  "cbb512b277d7ecd0",
+  "2026-11-20"
+ ],
+ "url:/docs/align-distribute": [
+  "41954d0f973719d3",
+  "2026-11-20"
+ ],
+ "url:/docs/combine-shapes": [
+  "df256a03b7303185",
+  "2026-11-20"
+ ],
+ "url:/docs/command-palette": [
+  "f822b6cbff0809c4",
+  "2026-11-20"
+ ],
+ "url:/docs/commands": [
+  "15f30ecc449e1a0a",
+  "2026-11-20"
+ ],
+ "url:/docs/conventions": [
+  "c56e8bd41bf75280",
+  "2026-11-20"
+ ],
+ "url:/docs/convert-slides-shapes": [
+  "b411d822389b0f2a",
+  "2026-11-20"
+ ],
+ "url:/docs/edit-points-and-polylines": [
+  "7a98f21435822a46",
+  "2026-11-20"
+ ],
+ "url:/docs/edit-shape": [
+  "0ec2292b30389857",
+  "2026-11-20"
+ ],
+ "url:/docs/fill-stroke": [
+  "fb2a579ead8e0af5",
+  "2026-11-20"
+ ],
+ "url:/docs/glossary": [
+  "c3662147eac359bb",
+  "2026-11-20"
+ ],
+ "url:/docs/how-conversion-works": [
+  "981f9589e6348616",
+  "2026-11-20"
+ ],
+ "url:/docs/how-shapes-reach-the-slide": [
+  "07ff167cc5abd888",
+  "2026-11-20"
+ ],
+ "url:/docs/insert-svg": [
+  "0e2f2236f7bf20fb",
+  "2026-11-20"
+ ],
+ "url:/docs/install": [
+  "a6353f4847f52a9c",
+  "2026-11-20"
+ ],
+ "url:/docs/kb": [
+  "985824143d251c7c",
+  "2026-11-20"
+ ],
+ "url:/docs/kb/cannot-mask-image": [
+  "2f059584b1024cd8",
+  "2026-11-20"
+ ],
+ "url:/docs/kb/colours-arrive-black": [
+  "02f50029278e014c",
+  "2026-11-20"
+ ],
+ "url:/docs/kb/edit-points-missing": [
+  "fb0c2663c3d633e9",
+  "2026-11-20"
+ ],
+ "url:/docs/kb/gradient-becomes-solid-colour": [
+  "58ba865e44d3a8b7",
+  "2026-11-20"
+ ],
+ "url:/docs/kb/layer-names-missing": [
+  "c5d3b9cd62aad0e6",
+  "2026-11-20"
+ ],
+ "url:/docs/kb/line-icon-inserts-nothing": [
+  "3b6b4bd7105adec6",
+  "2026-11-20"
+ ],
+ "url:/docs/kb/more-than-25-files": [
+  "bf09bf620902e666",
+  "2026-11-20"
+ ],
+ "url:/docs/kb/object-greyed-with-m": [
+  "39685eea1f529599",
+  "2026-11-20"
+ ],
+ "url:/docs/kb/outline-text-font": [
+  "75c13e16ae23b2f0",
+  "2026-11-20"
+ ],
+ "url:/docs/kb/press-command-v-prompt": [
+  "54212606d9a4aef0",
+  "2026-11-20"
+ ],
+ "url:/docs/kb/shapes-land-away-from-pointer": [
+  "907172a36cd66819",
+  "2026-11-20"
+ ],
+ "url:/docs/kb/svg-becomes-a-flat-image": [
+  "03aea6ab8ec048c4",
+  "2026-11-20"
+ ],
+ "url:/docs/kb/text-missing-after-insert": [
+  "4318a9709d0ac492",
+  "2026-11-20"
+ ],
+ "url:/docs/kb/toolbar-does-not-appear": [
+  "fbb5e9ad81e7ebb3",
+  "2026-11-20"
+ ],
+ "url:/docs/kb/undo-takes-several-presses": [
+  "8a537d72e8464a0a",
+  "2026-11-20"
+ ],
+ "url:/docs/kb/web-uploader-link-expired": [
+  "33210fda366278da",
+  "2026-11-20"
+ ],
+ "url:/docs/kb/which-version": [
+  "b17c7a6c0a5c77f2",
+  "2026-11-20"
+ ],
+ "url:/docs/keyboard-shortcuts": [
+  "a73fac7f4bff0939",
+  "2026-11-20"
+ ],
+ "url:/docs/layers": [
+  "882eacf68948915b",
+  "2026-11-20"
+ ],
+ "url:/docs/limits": [
+  "fb5d0f2599529158",
+  "2026-11-20"
+ ],
+ "url:/docs/mask-image": [
+  "cc0b4be9a258a446",
+  "2026-11-20"
+ ],
+ "url:/docs/outline-stroke-text": [
+  "fbaf136180cf7858",
+  "2026-11-20"
+ ],
+ "url:/docs/overview": [
+  "d60e562c72238541",
+  "2026-11-20"
+ ],
+ "url:/docs/pen": [
+  "f0a08e5f8f4ae61b",
+  "2026-11-20"
+ ],
+ "url:/docs/permissions-privacy": [
+  "e4acc3602f0047a0",
+  "2026-11-20"
+ ],
+ "url:/docs/point-precision": [
+  "29efca1827f7bd74",
+  "2026-11-20"
+ ],
+ "url:/docs/quick-start": [
+  "274ccbacff15a1f4",
+  "2026-11-20"
+ ],
+ "url:/docs/release-notes": [
+  "3632c2c30fd8aceb",
+  "2026-11-20"
+ ],
+ "url:/docs/release-notes/1-0": [
+  "ac4a665d1bf17afd",
+  "2026-11-20"
+ ],
+ "url:/docs/release-notes/1-2-0": [
+  "a67ea8c711ac2cd9",
+  "2026-11-20"
+ ],
+ "url:/docs/release-notes/1-3-0": [
+  "0a0a2cf375759ecf",
+  "2026-11-20"
+ ],
+ "url:/docs/round-corners": [
+  "29c840b69394852e",
+  "2026-11-20"
+ ],
+ "url:/docs/snapping": [
+  "53ced01dd1f2da50",
+  "2026-11-20"
+ ],
+ "url:/docs/svg-compatibility": [
+  "345a2b351417b1ef",
+  "2026-11-20"
+ ],
+ "url:/docs/theme-objects": [
+  "1a00df7e3da94521",
+  "2026-11-20"
+ ],
+ "url:/docs/toolbar": [
+  "7d0ed5faceea9c11",
+  "2026-11-20"
+ ],
+ "url:/docs/undo-and-still-copy": [
+  "4f49f7960a82f0f0",
+  "2026-11-20"
+ ],
+ "url:/docs/undo-redo": [
+  "3de44fe4e1d8953a",
+  "2026-11-20"
+ ],
+ "url:/docs/web-uploader": [
+  "f0e4da6e480e3e9f",
+  "2026-11-20"
+ ],
  "url:/features": [
-  "3de0c05cc0014e93",
+  "423f07edfb0dcd49",
   "2026-11-10"
  ],
  "url:/google-slides-addon": [
-  "af159f71690b8cbd",
+  "9d509bf025ed29bd",
   "2026-11-10"
  ],
  "url:/guides": [
-  "0e1be4cde7650e2c",
+  "f1a4d74b60828640",
   "2026-11-14"
  ],
  "url:/guides/does-google-slides-support-svg": [
-  "7e3dae73ab690e1d",
+  "6969711475da7d46",
   "2026-11-10"
  ],
  "url:/guides/insert-svg-into-google-slides": [
-  "f237e245adf538ee",
+  "31702a45a67da06b",
   "2026-11-14"
  ],
  "url:/guides/recolor-svg-in-google-slides": [
-  "4cbb360f6da11db2",
+  "c9dedb688d3dfe1e",
   "2026-11-10"
  ],
  "url:/guides/svg-logos-icons-google-slides": [
-  "dd2fb4e5f3e3c458",
+  "f2eb6af9401d9581",
   "2026-11-10"
  ],
  "url:/guides/svg-to-google-slides-converter": [
-  "2b99ac14433394e9",
+  "f237f92b203721f5",
   "2026-11-10"
  ],
  "url:/guides/svg-vs-png-google-slides": [
-  "403dab14a7c13dc5",
+  "111fbc82a9ca79d9",
   "2026-11-10"
  ],
  "url:/privacy": [
-  "732143ab6c66cf77",
+  "4774f8d7c395fc3c",
   "2026-11-14"
  ],
  "url:/specs": [
-  "8cbcaac4424ea3b6",
+  "2fb3b813588298f3",
   "2026-11-16"
  ],
  "url:/support": [
-  "93a49d71c48b7400",
-  "2026-11-10"
+  "016eca9ba9faa8c1",
+  "2026-11-20"
  ],
  "url:/terms": [
-  "8737adf7085c6f8e",
+  "e1437e1bcc926b40",
   "2026-11-10"
  ],
  "url:/whats-new": [
-  "a80108f80d451b5c",
+  "4bbfdacaf4160987",
   "2026-11-14"
  ]
 }

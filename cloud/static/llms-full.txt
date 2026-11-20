@@ -1504,3 +1504,3330 @@ SVG to Slides writes Google Slides' own clipboard shape format from your SVG's p
 
 ## Who builds it
 Joe Gelman, independently. Contact: joe@glmn.co
+
+
+---
+
+# What SVG to Slides does
+
+Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.3.0; SVG to Slides Web Uploader; SVG to Slides Workspace Add-on for Google Slides.
+
+Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
+
+Google Slides has no SVG import. An SVG placed on a slide is flattened into a picture. SVG to Slides converts each path of the SVG into a native Slides shape, so the result can be selected, recoloured, resized and reshaped like a shape drawn in Slides.
+
+## The three products
+
+| Product | How you use it | Where conversion runs | What you get |
+|---|---|---|---|
+| **Chrome extension** | Drag .svg files onto an open Slides tab and click where they go. | In your browser. | Native shapes on the slide you have open. See [Inserting SVG files](https://svgslid.es/docs/insert-svg.md). |
+| **Web Uploader** | Upload files on a web page. No install. | On the svgslid.es server. | A Google Drive link to a file with one slide per SVG. See [Web Uploader](https://svgslid.es/docs/web-uploader.md). |
+| **Workspace Add-on** | Pick files in a dialog inside Slides, copy, paste. | On the svgslid.es server. | Native shapes on the current slide. See [Workspace Add-on](https://svgslid.es/docs/add-on.md). |
+
+The shapes are ordinary Slides objects. They take the standard fill picker, resize without loss of quality, work in themes, and work in Google Drawings.
+
+## What the extension adds on the slide
+
+From version 1.2.0 the extension edits shapes as well as importing them. Version 1.3.0 adds a toolbar and the tools below.
+
+| Tool | What it is for | Topic |
+|---|---|---|
+| Edit Shape | Move the points and curves of any shape. | [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md) |
+| Round corners | Drag or type a corner radius. | [Rounding corners](https://svgslid.es/docs/round-corners.md) |
+| Pen | Draw new shapes point by point. | [Drawing with the pen](https://svgslid.es/docs/pen.md) |
+| Snapping | Snap points to other points, pixels or a grid. | [Snapping](https://svgslid.es/docs/snapping.md) |
+| Mask | Cut a picture to any shape. | [Masking an image](https://svgslid.es/docs/mask-image.md) |
+| Combine | Union, subtract, intersect, exclude. | [Combining shapes](https://svgslid.es/docs/combine-shapes.md) |
+| Align and distribute | Instant, images included. | [Aligning and distributing](https://svgslid.es/docs/align-distribute.md) |
+| Layers | List, rename, hide and restack objects. | [The Layers panel](https://svgslid.es/docs/layers.md) |
+| Outline | Turn strokes and text into shapes. | [Outlining strokes and text](https://svgslid.es/docs/outline-stroke-text.md) |
+| Command palette | Every command and its shortcut. | [The command palette](https://svgslid.es/docs/command-palette.md) |
+
+## Price and account
+
+SVG to Slides is free. There is no account, no daily cap and no paid tier. The extension asks for no access to your Google account. See [Permissions and data](https://svgslid.es/docs/permissions-privacy.md).
+
+## What does not convert
+
+Some SVG features have no Slides equivalent or are not handled yet. Clip paths, masks, pattern fills, filters and transparency are examples. The tested list is in [SVG feature support](https://svgslid.es/docs/svg-compatibility.md).
+
+## See also
+
+- [Installing and updating](https://svgslid.es/docs/install.md)
+- [Quick start](https://svgslid.es/docs/quick-start.md)
+- [How conversion works](https://svgslid.es/docs/how-conversion-works.md)
+- [Specs: product facts](https://svgslid.es/specs#facts)
+- [Guide: Does Google Slides support SVG?](https://svgslid.es/guides/does-google-slides-support-svg)
+
+Source: https://svgslid.es/docs/overview (SVG to Slides Documentation, Getting Started). Last reviewed November 20, 2026.
+
+
+---
+
+# Installing and updating the extension
+
+Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.3.0.
+
+Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
+
+The extension installs from the Chrome Web Store and needs no account. It runs only on Google Slides editor pages. Chrome updates it automatically.
+
+## Requirements
+
+| Item | Requirement |
+|---|---|
+| Browser | Google Chrome on a desktop computer. |
+| Page | A Google Slides presentation open for editing. The extension does not run on other pages. |
+| Account | None. |
+| Chrome permissions | Version 1.3.0: storage. Earlier versions: see [Permissions and data](https://svgslid.es/docs/permissions-privacy.md#by-version). |
+
+**To install the extension**
+
+1. Open [svgslid.es/chrome](https://svgslid.es/chrome). It leads to the SVG to Slides page in the Chrome Web Store.
+2. Click **Add to Chrome**.
+3. Open a Google Slides presentation. If one was already open, reload its tab.
+
+In version 1.3.0 a round button appears at the left edge of the slide canvas. That button is the toolbar, closed. See [The toolbar](https://svgslid.es/docs/toolbar.md).
+
+## Checking your version
+
+**To see which version is installed**
+
+1. In Chrome's address bar, type `chrome://extensions` and press Enter.
+2. Find **SVG to Slides**. The version number is shown beside the name.
+
+Each topic in this library states the versions it applies to. If a tool described here is missing, compare your version with the topic's box.
+
+## How updates arrive
+
+Chrome updates extensions on its own, usually within a few hours of a new version being published in the Chrome Web Store. You do not need to do anything.
+
+The first time you open Slides after an update, a short note in the corner of the page names what changed and links to the release post. It appears once. New installations do not see it.
+
+> **Note:** An update can change the permissions the extension holds. Version 1.3.0 removes one. See [Version 1.3.0](https://svgslid.es/docs/release-notes/1-3-0.md#packaging).
+
+## See also
+
+- [Quick start](https://svgslid.es/docs/quick-start.md)
+- [The toolbar](https://svgslid.es/docs/toolbar.md)
+- [Version history](https://svgslid.es/docs/release-notes.md)
+- [HOWTO: Find which version of the extension is installed](https://svgslid.es/docs/kb/which-version.md)
+- [Permissions and data](https://svgslid.es/docs/permissions-privacy.md)
+
+Source: https://svgslid.es/docs/install (SVG to Slides Documentation, Getting Started). Last reviewed November 20, 2026.
+
+
+---
+
+# Quick start: your first SVG
+
+Applies to: SVG to Slides Chrome extension, versions 1.2.0 and 1.3.0.
+
+Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
+
+Drag an .svg file onto a slide, click where it goes, and it lands as native shapes. This topic walks through the first insert and the three things most people do next.
+
+**To put an SVG on a slide**
+
+1. Open your presentation in Google Chrome with the extension installed.
+2. Drag an .svg file from a folder on your computer onto the slide. A faint preview follows the pointer with the label **Click to Place**.
+3. Click where the graphic should go. It lands there as shapes, selected.
+
+![A Google Slides slide with a faint palm icon under the pointer and a pill reading Click to Place](https://svgslid.es/static/docs/img/insert-click-to-place.jpg)
+Figure 1. The file has been dropped. The preview follows the pointer until you click.
+
+## What to do next
+
+| To do this | Do this |
+|---|---|
+| Change a colour | Select a shape and use Slides' fill picker. Each path of the SVG is its own shape, so parts recolour separately. |
+| Resize | Drag a selection handle. The shapes are vectors, so edges stay sharp at any size. |
+| Work on one part | Shapes from one file arrive grouped. Double-click to reach a shape inside the group. In version 1.3.0 you can also hold Command and click it. See [The Layers panel](https://svgslid.es/docs/layers.md#direct-select). |
+| Change the outline | Double-click a shape and click **Edit Shape**. See [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md). |
+| Open the tools | In version 1.3.0, click the round button at the left of the slide, or press Option+\. See [The toolbar](https://svgslid.es/docs/toolbar.md). |
+
+> **Tip:** To bring in many files, select up to 25 and drag them together. See [Inserting SVG files](https://svgslid.es/docs/insert-svg.md#several).
+
+## See also
+
+- [Inserting SVG files](https://svgslid.es/docs/insert-svg.md)
+- [The toolbar](https://svgslid.es/docs/toolbar.md)
+- [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md)
+- [SVG feature support](https://svgslid.es/docs/svg-compatibility.md)
+- [Guide: Recolor SVGs in Google Slides](https://svgslid.es/guides/recolor-svg-in-google-slides)
+
+Source: https://svgslid.es/docs/quick-start (SVG to Slides Documentation, Getting Started). Last reviewed November 20, 2026.
+
+
+---
+
+# Document conventions
+
+Applies to: All SVG to Slides documentation.
+
+This library uses a small set of conventions for keys, interface names, versions and notes. Keys are given for Mac. The Windows key follows a fixed rule.
+
+## Keys
+
+Keys are printed in capitals and joined with a plus sign. Option+Shift+P means hold OPTION and SHIFT and press P. A phrase such as "Command-click" means hold the key and click.
+
+Key combinations are given for Mac. On Windows, use the key in the second column. Point at any key combination in a topic to see the Windows form.
+
+| Mac | Windows |
+|---|---|
+| Command | Ctrl |
+| Option | Alt |
+| Shift | Shift |
+| Delete | Backspace |
+| Command+Control+K | Ctrl+Alt+K |
+
+The full list, with both columns, is in [Keyboard shortcuts](https://svgslid.es/docs/keyboard-shortcuts.md).
+
+## Typography
+
+| Convention | Used for |
+|---|---|
+| **Bold** | Names you see on screen: buttons, menus, panel titles. |
+| *Italic* | A value you supply. |
+| `Monospace` | File names, addresses, SVG code and text you type. |
+| CAPITALS in a box | Keys. |
+
+Spelling follows the product: colour, centre.
+
+## Versions
+
+Each topic opens with a box headed "The information in this topic applies to". If the box names version 1.3.0 only, the tool is not present in earlier versions. To find your version, see [Installing and updating](https://svgslid.es/docs/install.md#check-version).
+
+## Procedures
+
+A procedure starts with a line that begins "To", followed by numbered steps. Do the steps in order. A step that has a result says what you should see.
+
+## Notes
+
+| Label | Meaning |
+|---|---|
+| Note | Information that qualifies the text around it. |
+| Tip | A faster or easier way. |
+| Important | Something that affects the result if you miss it. |
+| Caution | A step that loses work or cannot be reversed. |
+
+## Figures
+
+Screen pictures show the extension's own interface running over a sample deck, the Vacay.com pitch deck. Numbered yellow markers on a figure match the numbered list under it.
+
+Figures labelled *Illustration* are frames from the release animations. They show the result on the slide and draw the toolbar in simplified form.
+
+## Knowledge Base articles
+
+Knowledge Base articles are numbered Q100101 and up. The first word of the title gives the kind of article.
+
+| Prefix | Kind of article |
+|---|---|
+| PRB | A problem and its cause. The behaviour may be by design. |
+| FIX | A problem that a later version corrects. |
+| INFO | Background on how something behaves. |
+| HOWTO | A procedure. |
+
+## See also
+
+- [Keyboard shortcuts](https://svgslid.es/docs/keyboard-shortcuts.md)
+- [All articles](https://svgslid.es/docs/kb.md)
+- [Glossary](https://svgslid.es/docs/glossary.md)
+- [Index](https://svgslid.es/docs/a-z-index.md)
+
+Source: https://svgslid.es/docs/conventions (SVG to Slides Documentation, Getting Started). Last reviewed November 20, 2026.
+
+
+---
+
+# Inserting SVG files
+
+Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.3.0. Click to place: version 1.2.0 and later. Pasting SVG code: version 1.3.0..
+
+Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
+
+Drag one or more .svg files from your computer onto an open Google Slides tab, then click where they go. Every path lands as its own native shape. Paths from one file arrive as a group.
+
+**To insert an SVG file**
+
+1. Open the presentation in Google Chrome.
+2. Drag the .svg file from a folder or the desktop onto the slide. A faint preview of the file follows the pointer, with a green plus badge and the label **Click to Place**.
+3. Click the point where the graphic should be centred.
+
+The shapes appear at that point, selected. Nothing needs pasting.
+
+![A slide with a faint palm icon under the pointer, a green plus badge and a grey pill reading Click to Place](https://svgslid.es/static/docs/img/insert-click-to-place.jpg)
+Figure 1. After the drop. The preview follows the pointer until you click.
+
+## Size and position
+
+The graphic is fitted to about a fifth of the slide and centred on the point you click. Resize it afterwards with Slides' selection handles.
+
+From version 1.3.0 a graphic keeps all of its detail however small it lands, so it can be enlarged later without loss. See [Point precision](https://svgslid.es/docs/point-precision.md).
+
+## Several files at once
+
+Select up to 25 .svg files and drag them together. They land on the current slide in a grid, each file as its own group.
+
+If the drop holds more than 25 .svg files, nothing is inserted and a message says so. Use the [Web Uploader](https://svgslid.es/docs/web-uploader.md) for larger batches. See [PRB: Nothing is inserted when more than 25 files are dropped](https://svgslid.es/docs/kb/more-than-25-files.md).
+
+## Pasting SVG code
+
+In version 1.3.0, SVG markup copied as text can be pasted onto the slide. Copy the code, click the slide and press Command+V. The same preview appears, and you click to place it.
+
+## Cancelling
+
+Press Esc before you click. The preview disappears and nothing is inserted.
+
+## Files that are not SVG
+
+A drop that holds no .svg file is left to Slides, which handles it as it always does.
+
+## If the extension asks you to press COMMAND+V
+
+The extension hands the shapes to Slides the way a paste does. If Slides does not accept them, the extension shows a prompt to press Command+V. Press it and the shapes land. See [INFO: The extension asks you to press COMMAND+V](https://svgslid.es/docs/kb/press-command-v-prompt.md).
+
+> **Note:** In versions 1.0.0 and 1.0.1 every insert ended with Command+V. The click has inserted directly since version 1.2.0.
+
+## What converts
+
+Paths, basic shapes, arcs, transforms and cut-outs convert. A gradient arrives as its first colour. Text, clip paths, masks, patterns and filters do not convert in the extension. The full table is in [SVG feature support](https://svgslid.es/docs/svg-compatibility.md).
+
+## See also
+
+- [Quick start](https://svgslid.es/docs/quick-start.md)
+- [SVG feature support](https://svgslid.es/docs/svg-compatibility.md)
+- [Web Uploader](https://svgslid.es/docs/web-uploader.md)
+- [How shapes reach the slide](https://svgslid.es/docs/how-shapes-reach-the-slide.md)
+- [PRB: An SVG placed in Google Slides becomes a flat image](https://svgslid.es/docs/kb/svg-becomes-a-flat-image.md)
+- [Guide: How to insert an SVG into Google Slides](https://svgslid.es/guides/insert-svg-into-google-slides)
+
+Source: https://svgslid.es/docs/insert-svg (SVG to Slides Documentation, User's Guide). Last reviewed November 20, 2026.
+
+
+---
+
+# The toolbar
+
+Applies to: SVG to Slides Chrome extension, version 1.3.0.
+
+Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
+
+The toolbar sits at the left edge of the slide canvas. Closed, it is one round button. Click the button or press Option+\ to open it. It holds every tool the extension adds to Slides.
+
+## The toolbar, closed
+
+![The left edge of a Google Slides canvas with one round yellow SVG button beside the slide](https://svgslid.es/static/docs/img/toolbar-closed.jpg)
+Figure 1. The toolbar when closed.
+1. The svgslid.es button. Click it, or press Option+\, to open the toolbar.
+
+The toolbar starts closed. Once you open or close it, the extension remembers the state on this computer.
+
+## The toolbar, open
+
+![The open toolbar: a two-column strip of icon buttons at the left of the slide, with numbered markers](https://svgslid.es/static/docs/img/toolbar-open.jpg)
+Figure 2. The toolbar when open, with the logo selected. Buttons that do not apply to the selection are dimmed.
+1. svgslid.es button. Closes the toolbar.
+2. **Layers**. Opens the [Layers panel](https://svgslid.es/docs/layers.md).
+3. **Edit Shape**. Opens the [point editor](https://svgslid.es/docs/edit-shape.md) on the selection.
+4. **Pen**. [Draws a new shape](https://svgslid.es/docs/pen.md).
+5. **Commands**. Opens the [command palette](https://svgslid.es/docs/command-palette.md).
+6. **Arrange**. Bring forward, send backward, front, back.
+7. **Align and distribute**. See [Aligning and distributing](https://svgslid.es/docs/align-distribute.md).
+8. **Combine**. Union, subtract, intersect, exclude. See [Combining shapes](https://svgslid.es/docs/combine-shapes.md).
+9. **Group**, **Ungroup** and **Mask image with shape**. See [Masking an image](https://svgslid.es/docs/mask-image.md).
+10. **Outline stroke** and **Outline text**. See [Outlining strokes and text](https://svgslid.es/docs/outline-stroke-text.md).
+11. **Fill colour** and **Stroke colour**.
+12. Stroke weight in pixels. Type a value. 0 means no stroke.
+13. **Stroke position** and **Stroke on / off**. See [Fill, stroke and exact values](https://svgslid.es/docs/fill-stroke.md).
+
+| Section | Buttons | Shortcuts |
+|---|---|---|
+| Top | svgslid.es button, Layers, Edit Shape, Pen, Commands | Option+\, Option+1, double-click, Option+Shift+P, Command+\ |
+| Place | Arrange, Align and distribute | See [Keyboard shortcuts](https://svgslid.es/docs/keyboard-shortcuts.md#arrange) |
+| Combine | Union, Subtract, Intersect, Exclude | Option+Shift+U, Option+Shift+S, Option+Shift+I, Option+Shift+E |
+| Group | Group, Ungroup, Mask image with shape | Command+Option+G, Shift+Command+Option+G, Option+Shift+K |
+| Outline | Outline stroke, Outline text | Option+Command+O, Option+Command+T |
+| Paint | Fill colour, Stroke colour, weight, Stroke position, Stroke on / off | Option+Shift+F, Option+Shift+L, Option+Shift+[ and Option+Shift+], Option+Shift+/ |
+
+## Tooltips
+
+Point at any button, pop-out item or field to see its name and shortcut.
+
+![The pointer over the Pen button with a dark tooltip reading Pen: draw a shape anywhere, Option Shift P](https://svgslid.es/static/docs/img/toolbar-tooltip.jpg)
+Figure 3. A tooltip. Every control has one.
+
+## Pop-out menus
+
+Buttons with a small mark in the corner open a row of commands beside the toolbar. Arrange, Align and distribute, and Stroke position work this way.
+
+![The Align and distribute button open, showing eight align and distribute buttons in a row, with a tooltip on Align centres horizontally](https://svgslid.es/static/docs/img/align-flyout.jpg)
+Figure 4. The Align and distribute pop-out, with three objects selected.
+
+## Dimmed buttons
+
+A button is dimmed when its command does not apply to what is selected. Outline text, for example, is dimmed unless the selection has text. Clicking a dimmed command shows a short message that says what to select.
+
+## Short screens
+
+When the canvas is too short for the whole toolbar, the Combine buttons fold into one pop-out button, then the Outline buttons do the same.
+
+## While a command runs
+
+While the extension carries out a command the toolbar ignores clicks and the pointer shows the progress cursor. This lasts a moment.
+
+## When the toolbar is hidden
+
+The toolbar is hidden while Edit Shape is open, because the editor has its own toolbar in the same place. It is also hidden in full-screen view.
+
+## See also
+
+- [Keyboard shortcuts](https://svgslid.es/docs/keyboard-shortcuts.md)
+- [Command reference](https://svgslid.es/docs/commands.md)
+- [The command palette](https://svgslid.es/docs/command-palette.md)
+- [The Layers panel](https://svgslid.es/docs/layers.md)
+- [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md)
+
+Source: https://svgslid.es/docs/toolbar (SVG to Slides Documentation, User's Guide). Last reviewed November 20, 2026.
+
+
+---
+
+# Edit Shape: points and curves
+
+Applies to: SVG to Slides Chrome extension, versions 1.2.0 and 1.3.0. The box, exact values and the two-column editor toolbar: version 1.3.0..
+
+Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
+
+Edit Shape opens a vector editor on the slide at the shape's exact size and position. Drag points and curve handles, add or remove points, then click **Done**. The shape updates in place and returns to its place in the stack.
+
+**To edit a shape's points**
+
+1. Double-click the shape, then click **Edit Shape**. In version 1.3.0 you can also select the shape and click **Edit Shape** on the toolbar.
+2. Drag a point to move it. Click a point to see its curve handles, and drag a handle to change the curve.
+3. Click **Done**, or press Enter.
+
+![The Edit Shape editor open on a palm tree icon. Every point of the outline is marked, a box with handles surrounds the shape, and the editor toolbar is at the left.](https://svgslid.es/static/docs/img/edit-shape.jpg)
+Figure 1. Edit Shape open on a palm icon, version 1.3.0. Round marks are smooth points and square marks are corner points.
+1. **Select** tool. V
+2. **Pen** tool. Adds and removes points, and draws. P
+3. **Snapping**. See [Snapping](https://svgslid.es/docs/snapping.md).
+4. The same command groups as the main toolbar: Arrange, Align, Combine, Group, Outline, fill and stroke.
+5. Undo and redo, point by point.
+6. Zoom. Click to return to 100%.
+7. **Cancel**. Discards the edit.
+8. **Done**. Applies the edit.
+9. Size pill: width, height and rotate-by. On shapes with corners it also shows the corner radius.
+10. The hint line names the keys for the current tool.
+
+## Points and handles
+
+| To do this | Do this |
+|---|---|
+| Move a point | Drag it. Hold Shift to keep to 45° steps. |
+| Change a curve | Click the point, then drag one of its handles. |
+| Move one handle only | Hold Option while dragging the handle. |
+| Switch a point between smooth and corner | Double-click the point. |
+| Add a point | Press P, then click the outline where the point should be. |
+| Remove a point | Press P, then click the point. |
+| Select several points | Shift-click each one, or drag a box around them. |
+| Select every point of a shape | Click the shape. |
+| Select all points | Command+A |
+| Nudge | Arrow keys. Hold Shift for ten times the step. |
+| Delete the selected points | Delete |
+| Undo, redo | Command+Z, Shift+Command+Z |
+| Zoom | Pinch, or Command+Plus and Command+Minus. Command+0 returns to 100%. |
+| Pan | Hold Spacebar and drag, or scroll. |
+
+![A palm tree outline with one point selected and its two curve handles extended, the pointer on a handle](https://svgslid.es/static/docs/img/edit-points-1-2.jpg)
+Figure 2. A selected point and its two handles. Recorded in Google Slides with version 1.2.0, whose editor toolbar had one column.
+
+## The box
+
+In version 1.3.0 a box surrounds the selection inside the editor. Dragging it transforms the shape while its points stay editable.
+
+| Drag | Result |
+|---|---|
+| A corner | Scale. Shift keeps the proportions. Option scales from the centre. |
+| An edge | Stretch in one direction. Option stretches from the centre. |
+| Command + an edge | Skew. Shift snaps to 15°. |
+| Command + a corner, or just outside a corner | Rotate. Shift snaps to 15°. |
+
+## Typing exact values
+
+The pill under the shape holds the width and height in pixels, a rotate-by field and, on shapes with corners, the corner radius. Type a value and press Enter. Hold Option and drag across any number to change it by dragging. Add Shift for steps of ten.
+
+## Commands inside the editor
+
+The editor's toolbar repeats the command groups of the main toolbar. Inside the editor a command acts on the shapes that have selected points, or on every shape in the editor when no point is selected. Combine, group, ungroup, outline, fill and stroke are held in the editor and applied when you click **Done**.
+
+## Done and Cancel
+
+**Done** replaces the shape on the slide with the edited one, in the same place in the stack. Shapes above it stay visible while you edit, so you can line points up against them. In version 1.3.0 the whole session is one undo step. See [Undo and redo](https://svgslid.es/docs/undo-redo.md).
+
+**Cancel** discards the edit. Esc clears the selection first. With nothing selected, Esc applies the edit the same as **Done**.
+
+> **Important:** **Done** puts a new object in place of the original. Animations and links attached to the original do not carry over. A shape edited from inside a group comes back just above that group.
+
+## What can be edited
+
+Edit Shape opens directly on shapes inserted by SVG to Slides. On Slides' own shapes, lines, text boxes and WordArt it converts the object first. See [Editing Slides' own shapes](https://svgslid.es/docs/convert-slides-shapes.md). Images, video and charts cannot be edited as shapes.
+
+## See also
+
+- [Rounding corners](https://svgslid.es/docs/round-corners.md)
+- [Drawing with the pen](https://svgslid.es/docs/pen.md)
+- [Snapping](https://svgslid.es/docs/snapping.md)
+- [Editing Slides' own shapes](https://svgslid.es/docs/convert-slides-shapes.md)
+- [Undo and redo](https://svgslid.es/docs/undo-redo.md)
+- [Keyboard shortcuts](https://svgslid.es/docs/keyboard-shortcuts.md#editor)
+- [Edit points and polylines](https://svgslid.es/docs/edit-points-and-polylines.md)
+
+Source: https://svgslid.es/docs/edit-shape (SVG to Slides Documentation, User's Guide). Last reviewed November 20, 2026.
+
+
+---
+
+# Rounding corners
+
+Applies to: SVG to Slides Chrome extension, versions 1.2.0 and 1.3.0.
+
+In Edit Shape, shapes with corners show a small circle just inside each corner. Drag a circle toward the middle of the shape to round the corner, or type a radius in pixels.
+
+**To round the corners of a shape**
+
+1. Open the shape in Edit Shape. See [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md).
+2. Drag one of the small circles inside a corner toward the middle of the shape. A pill under the shape shows the radius in pixels.
+3. To set an exact radius, type a value in the pill and press Enter.
+4. Click **Done**.
+
+![Three cards on a slide in Edit Shape, each with rounded corners and a circle inside every corner. A pill under them reads 25 px, All corners.](https://svgslid.es/static/docs/img/round-corners-1-2.jpg)
+Figure 1. Three cards, twelve corners, one radius. Recorded in Google Slides with version 1.2.0.
+
+## Which corners change
+
+| Selection in the editor | Corners that round |
+|---|---|
+| The whole shape, or nothing | Every corner of the shape. |
+| Several shapes | Every corner of every shape, together. |
+| One point or a few points | Those corners only. |
+
+Hold Shift while dragging to change the radius in steps of 10 pixels.
+
+## Several shapes at once
+
+**To give several shapes the same radius**
+
+1. Select the shapes on the slide.
+2. Open Edit Shape.
+3. Type the radius in the pill and press Enter.
+4. Click **Done**.
+
+## See also
+
+- [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md)
+- [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md#exact-values)
+- [Editing Slides' own shapes](https://svgslid.es/docs/convert-slides-shapes.md)
+
+Source: https://svgslid.es/docs/round-corners (SVG to Slides Documentation, User's Guide). Last reviewed November 20, 2026.
+
+
+---
+
+# Drawing with the pen
+
+Applies to: SVG to Slides Chrome extension, version 1.3.0.
+
+Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
+
+The pen draws new shapes point by point, anywhere on the slide. Press Option+Shift+P or click **Pen** on the toolbar. Click for a corner, drag for a curve, and click the first point to close the shape.
+
+**To draw a shape**
+
+1. With nothing selected, press Option+Shift+P or click **Pen** on the toolbar. An empty editor opens over the slide.
+2. Click to place a corner point. To make a curve, press, drag and release.
+3. Click the first point to close the shape. A ring appears on the first point when the pointer is over it. To leave the path open, press Enter or Esc.
+4. Click **Done**. The new shapes are placed on the slide, on top.
+
+![The pen editor over a slide with a grid showing. A speech-bubble outline is half drawn, with a dashed line from the last point to the pointer and a pink mark where it will snap.](https://svgslid.es/static/docs/img/pen-drawing.jpg)
+Figure 1. Seven points placed with the grid on. The dashed segment follows the pointer and the pink mark shows where the next point will snap.
+
+## Pen keys
+
+| To do this | Do this |
+|---|---|
+| Place a corner point | Click. |
+| Place a smooth point | Press, drag, release. |
+| Make a sharp turn after a curve | Hold Option while dragging to break the handles. |
+| Keep to 45° steps | Hold Shift. |
+| Close the shape | Click the first point. |
+| Leave the path open | Enter or Esc |
+| Remove the last point | Delete |
+| Undo one point | Command+Z |
+| Carry on an open path | Click its end point. |
+| Add a point to a path | Click a segment. |
+| Remove a point from a path | Click the point. |
+| Switch to the Select tool | V |
+
+## What you get
+
+Each path becomes a new shape. The first shape you draw has a 2 pixel dark stroke and no fill. Each later shape starts with the paint of the last one drawn. Set a fill or stroke from the editor's toolbar before you click **Done**, or afterwards on the slide.
+
+**Done** places all the new shapes in one undo step.
+
+## Pen with shapes selected
+
+If shapes are selected when you press Option+Shift+P, the editor opens on those shapes and the pen can both edit them and draw new ones beside them.
+
+## Limits
+
+The pen draws point by point. There is no freehand mode.
+
+## See also
+
+- [Snapping](https://svgslid.es/docs/snapping.md)
+- [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md)
+- [Fill, stroke and exact values](https://svgslid.es/docs/fill-stroke.md)
+- [Combining shapes](https://svgslid.es/docs/combine-shapes.md)
+- [Keyboard shortcuts](https://svgslid.es/docs/keyboard-shortcuts.md#editor)
+
+Source: https://svgslid.es/docs/pen (SVG to Slides Documentation, User's Guide). Last reviewed November 20, 2026.
+
+
+---
+
+# Snapping
+
+Applies to: SVG to Slides Chrome extension, version 1.3.0.
+
+Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
+
+Snapping pulls pen points and dragged points onto other points, the slide's edges and centre, whole pixels, or a grid. The magnet button in the editor's toolbar sets it. Points and pixels are on to start.
+
+![The Snapping pop-out beside the editor toolbar with three toggle buttons and a grid size field reading 10 px](https://svgslid.es/static/docs/img/snapping-menu.jpg)
+Figure 1. The Snapping pop-out.
+1. **Snap to points**, the lines through them, and the slide's edges and centre.
+2. **Snap to whole pixels**.
+3. **Snap to the grid**. Turning it on shows the grid.
+4. Grid size in pixels.
+
+## Snap to points
+
+A point being placed or dragged snaps to other points, to the horizontal and vertical lines through them, and to the slide's edges and centre. Pink guides and a pink cross show what caught it. A point wins over the grid and pixels when it is within 6 screen pixels.
+
+## Snap to whole pixels
+
+Positions are rounded to whole pixels.
+
+## Snap to the grid
+
+The grid starts at the slide's top-left corner. The size is 10 pixels to start. Type a size in the field to change it, which also turns the grid on. Press Command+' to show or hide the grid. The grid is not drawn when its lines would be less than 6 pixels apart on screen.
+
+## What snaps
+
+- Pen points and their handles, and the dashed preview segment.
+- Dragged points. The point you grab snaps and the rest of the selection follows.
+- Dragged handles.
+
+## Turning snapping off for one move
+
+Hold Command while placing or dragging to ignore snapping. Shift still keeps a move to 45° steps.
+
+## Where the settings are kept
+
+Snapping settings are kept on this computer. They are not part of the presentation.
+
+## See also
+
+- [Drawing with the pen](https://svgslid.es/docs/pen.md)
+- [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md)
+- [Keyboard shortcuts](https://svgslid.es/docs/keyboard-shortcuts.md#editor)
+- [Permissions and data](https://svgslid.es/docs/permissions-privacy.md#storage)
+
+Source: https://svgslid.es/docs/snapping (SVG to Slides Documentation, User's Guide). Last reviewed November 20, 2026.
+
+
+---
+
+# Masking an image with a shape
+
+Applies to: SVG to Slides Chrome extension, version 1.3.0.
+
+Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
+
+Put a shape over a picture, select both, and press Option+Shift+K. The shape cuts out the picture under it. Any shape or group of shapes can be the mask, and the picture stays exactly where it was.
+
+**To mask an image with a shape**
+
+1. Place the shape over the picture, where the picture should show through.
+2. Select the picture and the shape. Click one, then Shift-click the other.
+3. Press Option+Shift+K, or click **Mask image with shape** in the Group section of the toolbar.
+
+The picture is cut to the shape. It is neither stretched nor re-cropped, and the result takes the picture's place in the stack. The change is one undo step.
+
+![Two views of a slide. On the left a yellow arch sits over a beach photograph. On the right the photograph shows only inside the arch.](https://svgslid.es/static/docs/img/mask-before-after.jpg)
+Figure 1. Before and after. An arch over a photograph, then the photograph cut to the arch. *Illustration.*
+
+## Editing the mask afterwards
+
+Open the masked picture in [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md) and move its points. The picture holds still while the outline changes. The editor draws the shape grey while you edit, and the picture returns when you click **Done**.
+
+## Requirements and limits
+
+| Condition | Result |
+|---|---|
+| The mask is a group of shapes | Works. The group counts as one mask. |
+| The mask is text | Outline the text first with Option+Command+T. See [Outlining strokes and text](https://svgslid.es/docs/outline-stroke-text.md). |
+| The image is rotated | Not supported yet. Straighten the image first. |
+| The shape is very thin | The extension reports that the shape is too thin to mask with. |
+| More or fewer than two objects are selected | Select one image and one shape, or one image and one group. |
+
+See [PRB: Mask image with shape shows a message and does not mask](https://svgslid.es/docs/kb/cannot-mask-image.md) for the messages and what each one means.
+
+## See also
+
+- [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md)
+- [Outlining strokes and text](https://svgslid.es/docs/outline-stroke-text.md)
+- [Combining shapes](https://svgslid.es/docs/combine-shapes.md)
+- [Undo and redo](https://svgslid.es/docs/undo-redo.md)
+- [PRB: Mask image with shape shows a message and does not mask](https://svgslid.es/docs/kb/cannot-mask-image.md)
+
+Source: https://svgslid.es/docs/mask-image (SVG to Slides Documentation, User's Guide). Last reviewed November 20, 2026.
+
+
+---
+
+# Combining shapes
+
+Applies to: SVG to Slides Chrome extension, version 1.3.0.
+
+Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
+
+Union, Subtract, Intersect and Exclude make one shape from two or more. They work on the slide and inside Edit Shape, and each is one undo step.
+
+## The four commands
+
+| Command | Result | Shortcut |
+|---|---|---|
+| **Union** | One shape covering everything the selected shapes cover. | Option+Shift+U |
+| **Subtract** | The bottom shape with the shapes above it cut out. | Option+Shift+S |
+| **Intersect** | Only the area where the shapes overlap. | Option+Shift+I |
+| **Exclude** | Everything except the area where the shapes overlap. | Option+Shift+E |
+
+**To combine shapes**
+
+1. Select two or more shapes.
+2. Click the command in the Combine section of the toolbar, or press its shortcut.
+
+![Two views of a slide. On the left, three overlapping circles and a rounded bar. On the right, a single cloud shape.](https://svgslid.es/static/docs/img/combine-before-after.jpg)
+Figure 1. Before and after Union. Four shapes become one cloud. *Illustration.*
+
+Press Command+Z once to split them again. See [Undo and redo](https://svgslid.es/docs/undo-redo.md).
+
+## Inside Edit Shape
+
+The same four buttons are on the editor's toolbar. There they act on the shapes that have selected points, or on every shape in the editor, and the result is applied when you click **Done**.
+
+## Limits
+
+- Gradients, pattern fills, transparency and shadows are not carried into the result.
+- Images, video and charts cannot be combined.
+- The shapes need a fill or an outline.
+- Intersect needs shapes that overlap. If a command would leave nothing, the extension says so and changes nothing.
+
+## See also
+
+- [Masking an image](https://svgslid.es/docs/mask-image.md)
+- [Outlining strokes and text](https://svgslid.es/docs/outline-stroke-text.md)
+- [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md)
+- [Undo and redo](https://svgslid.es/docs/undo-redo.md)
+- [Limits and known issues](https://svgslid.es/docs/limits.md)
+
+Source: https://svgslid.es/docs/combine-shapes (SVG to Slides Documentation, User's Guide). Last reviewed November 20, 2026.
+
+
+---
+
+# Aligning and distributing
+
+Applies to: SVG to Slides Chrome extension, version 1.3.0.
+
+Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
+
+The align and distribute commands move objects in one step, straight to the result, and leave images intact. One object on its own, an image included, aligns to the slide's edges.
+
+## Commands
+
+| Command | Shortcut | Needs |
+|---|---|---|
+| Align left | Option+A | One object or more |
+| Align centres horizontally | Option+H | One object or more |
+| Align right | Option+D | One object or more |
+| Align top | Option+W | One object or more |
+| Align middles vertically | Option+V | One object or more |
+| Align bottom | Option+S | One object or more |
+| Distribute horizontal spacing | Option+Shift+H | Three objects or more |
+| Distribute vertical spacing | Option+Shift+V | Three objects or more |
+
+**To align objects**
+
+1. Select the objects.
+2. Click **Align and distribute** on the toolbar and choose a command, or press its shortcut.
+
+![The Align and distribute pop-out with eight buttons and a tooltip reading Align centres horizontally, Option H](https://svgslid.es/static/docs/img/align-flyout.jpg)
+Figure 1. The pop-out, with a title, a date and a logo selected.
+
+With two or more objects selected, the objects align to each other.
+
+## One object aligns to the slide
+
+With one object selected, the align commands use the slide. Left, right, top and bottom move the object to that edge of the slide. Centre and middle centre it on the page.
+
+This works for images. The extension places a 1 pixel helper at the corner of the slide it needs, runs Slides' own Align, and removes the helper, all in one undo step. Nothing extra is left in the presentation.
+
+![Two views of the left half of a slide. A small photograph sits in the middle on the left view and in the bottom-left corner on the right view.](https://svgslid.es/static/docs/img/align-edge-before-after.jpg)
+Figure 2. A single photograph before and after Align left and Align bottom. *Illustration.*
+
+## How the commands run
+
+The extension runs Slides' own Align, Distribute and Center on page commands behind a still copy of the slide. You see the objects move once. Because the objects are moved by Slides and not deleted and pasted, images stay intact. See [Multi-step changes and undo](https://svgslid.es/docs/undo-and-still-copy.md).
+
+## See also
+
+- [The toolbar](https://svgslid.es/docs/toolbar.md#pop-outs)
+- [The Layers panel](https://svgslid.es/docs/layers.md)
+- [Undo and redo](https://svgslid.es/docs/undo-redo.md)
+- [Multi-step changes and undo](https://svgslid.es/docs/undo-and-still-copy.md)
+- [Keyboard shortcuts](https://svgslid.es/docs/keyboard-shortcuts.md#align)
+
+Source: https://svgslid.es/docs/align-distribute (SVG to Slides Documentation, User's Guide). Last reviewed November 20, 2026.
+
+
+---
+
+# The Layers panel
+
+Applies to: SVG to Slides Chrome extension, version 1.3.0.
+
+Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
+
+Press Option+1 to list every object on the current slide, front first. Click a row to select the object. Drag rows to restack, double-click to rename, and use the eye to hide an object while you work.
+
+![The Layers panel docked at the left of Google Slides, listing two text layers, a group named Vacay logo with two shapes inside, an image named Beach photo, and two greyed theme objects marked M](https://svgslid.es/static/docs/img/layers-panel.jpg)
+Figure 1. The Layers panel on the cover slide of the sample deck.
+1. Close. Slides' filmstrip returns.
+2. A text layer. It is named by its words until you rename it.
+3. A group. The arrow folds it open and closed.
+4. The objects inside the group.
+5. The eye hides an object in your view.
+6. A theme object, greyed and marked **M**. See [Theme objects](https://svgslid.es/docs/theme-objects.md).
+7. The **Layers** button on the toolbar.
+8. A reminder of the rules.
+
+The panel docks over Slides' filmstrip and shows the slide you have open. Close the panel to get the filmstrip back.
+
+## Working with rows
+
+| To do this | Do this |
+|---|---|
+| Select an object | Click its row. This works for objects inside groups too. |
+| Add to the selection | Shift-click a row. |
+| Restack | Drag a row up or down. Only top-level rows can be dragged. |
+| Rename | Double-click the name and type. Enter keeps the name. Esc cancels. Clicking elsewhere keeps it. |
+| Open or close a group | Click the arrow beside it. Selecting an object inside a group opens the groups around it. |
+| Hide or show | Click the eye. |
+
+## Hiding
+
+The eye hides an object in your view of the editor so that you can reach what is behind it. The object stays in the presentation. Other people still see it, and it still appears in the slideshow and in exports. Hiding lasts until you click the eye again or reload the page.
+
+## Small objects
+
+An object smaller than 6 pixels on screen is hard to click. The first click on its row says so. A second click within 5 seconds zooms in on the object and selects it.
+
+## Selecting on the slide inside groups
+
+Hold Command and click an object on the slide to select the innermost object under the pointer, however deep it is in groups. Shift+Command-click adds to the selection. While Command is held, an outline shows what a click would pick.
+
+## What is kept on this computer
+
+Layer names are kept on the computer you used. They are not saved in the presentation and do not appear for other people or on another computer. Hiding is not kept at all: it applies to the page you have open. See [PRB: Layer names are missing on another computer](https://svgslid.es/docs/kb/layer-names-missing.md).
+
+## See also
+
+- [Theme objects](https://svgslid.es/docs/theme-objects.md)
+- [The toolbar](https://svgslid.es/docs/toolbar.md)
+- [Aligning and distributing](https://svgslid.es/docs/align-distribute.md)
+- [PRB: Layer names are missing on another computer](https://svgslid.es/docs/kb/layer-names-missing.md)
+- [INFO: An object in Layers is greyed and marked M](https://svgslid.es/docs/kb/object-greyed-with-m.md)
+
+Source: https://svgslid.es/docs/layers (SVG to Slides Documentation, User's Guide). Last reviewed November 20, 2026.
+
+
+---
+
+# Theme objects and the theme builder
+
+Applies to: SVG to Slides Chrome extension, version 1.3.0.
+
+Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
+
+Objects that come from the slide's layout or master are drawn on the slide but cannot be changed there. The Layers panel greys them and marks them **M**. A second click opens Slides' theme builder on the layout or master that holds the object.
+
+## What a theme object is
+
+A logo in the corner of every slide, a footer line, a background shape: these usually live on a layout or on the master, and Slides draws them on each slide that uses that layout. On the slide they look like any other object, but a click does not select them.
+
+## How they are marked
+
+In the [Layers panel](https://svgslid.es/docs/layers.md), theme objects are listed at the bottom, greyed, with an **M** badge. With Command held over the slide, a theme object gets a dashed amber outline in place of the blue one.
+
+**To edit a theme object**
+
+1. Click its row in the Layers panel. A message explains that the object belongs to the theme, and the row turns amber.
+2. Click the row again within 5 seconds. Slides' theme builder opens on the layout or master that holds the object, with the object selected.
+3. Make the change.
+4. Press Option+Shift+M to go back to the slide.
+
+A Command-click on a theme object on the slide follows the same two steps.
+
+## The theme builder shortcut
+
+Option+Shift+M opens the theme builder from any slide and returns from it. It is the same view that Slides opens from **View › Theme builder**.
+
+> **Note:** A change made in the theme builder affects every slide that uses that layout or master.
+
+## See also
+
+- [The Layers panel](https://svgslid.es/docs/layers.md)
+- [INFO: An object in Layers is greyed and marked M](https://svgslid.es/docs/kb/object-greyed-with-m.md)
+- [Keyboard shortcuts](https://svgslid.es/docs/keyboard-shortcuts.md#anytime)
+
+Source: https://svgslid.es/docs/theme-objects (SVG to Slides Documentation, User's Guide). Last reviewed November 20, 2026.
+
+
+---
+
+# Outlining strokes and text
+
+Applies to: SVG to Slides Chrome extension, version 1.3.0.
+
+Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
+
+**Outline stroke** turns lines and borders into filled shapes. **Outline text** turns text into shapes whose points you can edit. On the computer that outlined it, the same command puts the text back.
+
+## Outline stroke
+
+**To turn a stroke into a shape**
+
+1. Select a shape or line that has a stroke.
+2. Press Option+Command+O, or click **Outline stroke** on the toolbar.
+
+The stroke becomes a filled shape in the stroke's colour, as wide as the stroke was. A shape that had both a fill and a stroke becomes two shapes: the fill, and the outline that was its stroke. Use it when a border has to be reshaped, combined or used as a mask like any other shape.
+
+## Outline text
+
+**To turn text into shapes**
+
+1. Select the text box or the shape that holds the text.
+2. Press Option+Command+T, or click **Outline text** on the toolbar.
+
+The text becomes filled shapes in the form of its letters. A shape that held the text stays as it was, without the text. The letter shapes can then be reshaped in [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md), combined, or used as a mask.
+
+## Restoring text
+
+Select the outlined text and press Option+Command+T again, or choose **Restore outlined text** from the [The command palette](https://svgslid.es/docs/command-palette.md). The original text returns as live text, at the place and size the outlines have now.
+
+> **Important:** Text can be restored only on the computer that outlined it. The extension keeps the original text on that computer. The presentation does not hold it.
+
+## Fonts
+
+To outline text the extension needs the font's letter shapes.
+
+| Font | Where the letter shapes come from |
+|---|---|
+| A Google font | The extension downloads the font from Google Fonts. The request names the font family, weight and style. It carries nothing from your presentation. |
+| A font installed on your computer | Chrome asks for permission to read your fonts. Allow it to continue. |
+| A system font that cannot be downloaded | The extension uses a font with the same letter widths and shows a note naming it. |
+
+If no source works, the extension reports that it could not get the font. See [PRB: Outline text reports that it could not get the font](https://svgslid.es/docs/kb/outline-text-font.md).
+
+## Stroke position
+
+**Stroke position** on the toolbar sets whether a closed shape's stroke sits inside the outline, centred on it, or outside it. Slides always centres a stroke, so the extension moves the outline by half the stroke weight to get the other two.
+
+The extension remembers the original outline on this computer, so **Centre stroke** returns to it.
+
+## Limits
+
+- Gradients, pattern fills, transparency and shadows are not carried into outlined shapes.
+- Images, video and charts cannot be outlined.
+- Outlined-text memory and stroke-position memory are kept on the computer you used.
+
+## See also
+
+- [Fill, stroke and exact values](https://svgslid.es/docs/fill-stroke.md)
+- [Combining shapes](https://svgslid.es/docs/combine-shapes.md)
+- [Masking an image](https://svgslid.es/docs/mask-image.md)
+- [PRB: Outline text reports that it could not get the font](https://svgslid.es/docs/kb/outline-text-font.md)
+- [Permissions and data](https://svgslid.es/docs/permissions-privacy.md#network)
+
+Source: https://svgslid.es/docs/outline-stroke-text (SVG to Slides Documentation, User's Guide). Last reviewed November 20, 2026.
+
+
+---
+
+# Fill, stroke and exact values
+
+Applies to: SVG to Slides Chrome extension, version 1.3.0.
+
+Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
+
+The Paint section of the toolbar sets fill colour, stroke colour, stroke weight in pixels and stroke position. Numbers can be typed or changed by dragging.
+
+## Colours
+
+| Command | Shortcut | What happens |
+|---|---|---|
+| **Fill colour** | Option+Shift+F | Opens Slides' own fill colour menu for the selection. |
+| **Stroke colour** | Option+Shift+L | Opens Slides' own border colour menu for the selection. |
+
+The bar under each button shows the current colour of the selection.
+
+## Stroke weight
+
+| Control | Shortcut | What it does |
+|---|---|---|
+| Weight field |  | Type a weight in pixels and press Enter. 0 removes the stroke. |
+| Thinner stroke | Option+Shift+[ | Steps down through Slides' weights: 24, 16, 12, 8, 4, 3, 2, 1 pixels. |
+| Thicker stroke | Option+Shift+] | Steps up through the same weights. |
+| **Stroke on / off** | Option+Shift+/ | Removes the stroke or puts it back. |
+| **Stroke position** |  | Inside, centre or outside. See [Outlining strokes and text](https://svgslid.es/docs/outline-stroke-text.md#position). |
+
+## Changing a number by dragging
+
+Hold Option and drag left or right across a number field to change the value. Add Shift for steps of ten. This works on the weight field and on every field in the Edit Shape pill.
+
+## Rotate and resize
+
+The toolbar has no rotate or resize buttons. Outside Edit Shape, use Slides' own shortcuts. Inside Edit Shape, use [the box](https://svgslid.es/docs/edit-shape.md#smart-box).
+
+| Command | Shortcut |
+|---|---|
+| Rotate 15° left or right | Option+Left Arrow, Option+Right Arrow |
+| Rotate 1° left or right | Option+Shift+Left Arrow, Option+Shift+Right Arrow |
+| Make larger | Command+Control+K |
+| Make smaller | Command+Control+J |
+
+## See also
+
+- [The toolbar](https://svgslid.es/docs/toolbar.md)
+- [Outlining strokes and text](https://svgslid.es/docs/outline-stroke-text.md)
+- [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md#exact-values)
+- [Keyboard shortcuts](https://svgslid.es/docs/keyboard-shortcuts.md#paint)
+
+Source: https://svgslid.es/docs/fill-stroke (SVG to Slides Documentation, User's Guide). Last reviewed November 20, 2026.
+
+
+---
+
+# The command palette
+
+Applies to: SVG to Slides Chrome extension, version 1.3.0.
+
+Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
+
+Press Command+\ to open a searchable list of every command with its shortcut. Type a few letters, move with the arrow keys and press Enter to run the command.
+
+**To run a command by name**
+
+1. Press Command+\, or click **Commands** on the toolbar.
+2. Type part of the command's name. The list narrows as you type.
+3. Press Up Arrow or Down Arrow to move, and Enter to run the command.
+
+Press Esc, or Command+\ again, to close the palette without running anything.
+
+![The command palette open over a slide: a search field reading Type a command and a list grouped under Shape tools, Outline, Arrange, and Align and distribute, each command with its shortcut at the right](https://svgslid.es/static/docs/img/command-palette.jpg)
+Figure 1. The command palette. Shortcuts are listed at the right of each command.
+
+## What the palette lists
+
+Commands are grouped: Shape tools, Outline, Arrange, Align and distribute, Combine, Group, Fill and stroke, Transform and stroke. The full list with descriptions is in [Command reference](https://svgslid.es/docs/commands.md).
+
+Commands that need a selection are dimmed while nothing is selected. The Pen, the Layers panel, the toolbar and the theme builder can be opened at any time.
+
+## See also
+
+- [Command reference](https://svgslid.es/docs/commands.md)
+- [Keyboard shortcuts](https://svgslid.es/docs/keyboard-shortcuts.md)
+- [The toolbar](https://svgslid.es/docs/toolbar.md)
+
+Source: https://svgslid.es/docs/command-palette (SVG to Slides Documentation, User's Guide). Last reviewed November 20, 2026.
+
+
+---
+
+# Undo and redo
+
+Applies to: SVG to Slides Chrome extension, version 1.3.0.
+
+Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
+
+One press of Command+Z undoes a whole change made by the extension, even when the change took several steps inside Slides. Shift+Command+Z or Command+Y redoes it in one press.
+
+## Changes that undo in one press
+
+- Union, Subtract, Intersect and Exclude.
+- Mask image with shape.
+- Outline stroke, Outline text and Restore outlined text.
+- Stroke position, a typed stroke weight, Thinner stroke and Thicker stroke.
+- Restacking in the Layers panel.
+- Aligning one object to a slide edge.
+- A whole Edit Shape or pen session, from opening the editor to **Done**.
+
+Align and distribute with several objects are a single Slides step to begin with.
+
+## How to undo and redo
+
+| To do this | Press |
+|---|---|
+| Undo the extension's last change | Command+Z |
+| Redo it | Shift+Command+Z or Command+Y |
+
+Slides' own **Undo** and **Redo** buttons do the same. You can undo and redo back and forth through a chain of the extension's changes, one press each.
+
+## When Slides' own undo takes over
+
+The one-press undo applies while the slide is as the extension left it. If you change the slide yourself after one of the extension's changes, Slides' own undo takes over from there, and a change that took several steps then takes several presses to undo. See [PRB: COMMAND+Z undoes only part of a combine or outline](https://svgslid.es/docs/kb/undo-takes-several-presses.md).
+
+While you are typing in a text box, Command+Z is always Slides' own.
+
+## Inside Edit Shape
+
+Inside the editor, Command+Z undoes one edit at a time: one moved point, one pen point. After **Done**, the whole session is one step on the slide.
+
+## See also
+
+- [Multi-step changes and undo](https://svgslid.es/docs/undo-and-still-copy.md)
+- [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md#done)
+- [PRB: COMMAND+Z undoes only part of a combine or outline](https://svgslid.es/docs/kb/undo-takes-several-presses.md)
+
+Source: https://svgslid.es/docs/undo-redo (SVG to Slides Documentation, User's Guide). Last reviewed November 20, 2026.
+
+
+---
+
+# Editing Slides' own shapes
+
+Applies to: SVG to Slides Chrome extension, versions 1.2.0 and 1.3.0.
+
+Edit Shape also opens on objects you did not bring in as SVG: shapes from Slides' shape menu, arrows, callouts, lines, text boxes and WordArt. It converts the object into custom shapes first, and tells you what that costs before you start.
+
+## How it works
+
+Double-click the object. Slides does what it always does: it starts text editing or steps into the group. The **Edit Shape** button also appears, with a note of the cost in grey beside it, for example "text becomes outlines". Click the button to convert the object and open the editor.
+
+The result looks the same as the original. It is a drawing made of custom shapes and is no longer the original preset, line or WordArt.
+
+## What each object becomes
+
+| Object | After conversion | What is lost |
+|---|---|---|
+| A shape-menu shape with one outline: arrow, callout, star, rounded rectangle | One shape | Adjustment handles, the small yellow diamonds. |
+| A shaded shape: cube, can | A group. A cube becomes 4 shapes, a can 3. | Automatic shading. The shades are kept as flat colours. |
+| A line or connector with ends | A group: the stroke and each arrowhead | Connection points. Arrowheads become separate shapes. |
+| A shape with text in it | One shape, text kept |  |
+| A text box | One shape with no fill and no stroke, text kept |  |
+| WordArt | A group of letter outlines | The text. The letters can be reshaped but not retyped. |
+
+Text inside a shape stays editable after conversion.
+
+## Cancel and Done
+
+**Cancel** puts the original object back. **Done** keeps the converted shapes.
+
+> **Caution:** After **Done** the conversion is one-way. To get the original back, undo.
+
+## Not handled
+
+- Gradient and pattern fills, fill transparency, dash styles and shadows are not carried over.
+- Images, video and charts cannot be converted.
+
+## See also
+
+- [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md)
+- [Rounding corners](https://svgslid.es/docs/round-corners.md)
+- [Outlining strokes and text](https://svgslid.es/docs/outline-stroke-text.md)
+- [Edit points and polylines](https://svgslid.es/docs/edit-points-and-polylines.md)
+
+Source: https://svgslid.es/docs/convert-slides-shapes (SVG to Slides Documentation, User's Guide). Last reviewed November 20, 2026.
+
+
+---
+
+# Web Uploader
+
+Applies to: SVG to Slides Web Uploader.
+
+The Web Uploader converts SVG files on a web page, with nothing to install. Upload one file or a batch and get a Google Drive link to a file with one slide per SVG, every path a native shape.
+
+**To convert SVG files online**
+
+1. Open [svgslid.es/convert](https://svgslid.es/convert).
+2. Drop your .svg files on the upload area, or click it to browse. Each file becomes one slide.
+3. Optional: type a Google account address. The file is then shared straight to that account.
+4. Click **Convert**. A link to the file in Google Drive appears.
+
+![The Web Uploader page with a dashed upload area reading Drop SVG files here or click to browse, an optional Google account field and a Convert button](https://svgslid.es/static/docs/img/web-uploader.jpg)
+Figure 1. The Web Uploader.
+
+## Keeping the file
+
+Links stay active for 7 days. After that the file is deleted.
+
+**To keep a converted file**
+
+1. Open the link.
+2. In Google Drive, choose **File › Make a copy**.
+
+The copy belongs to your account and does not expire.
+
+## How it differs from the extension
+
+|  | Web Uploader | Chrome extension |
+|---|---|---|
+| Where the result goes | A new file, one slide per SVG | The slide you have open |
+| Gradients | Kept as gradients | First colour only |
+| SVG text | Outlined into shapes. Not editable as text. | Not converted |
+| Line icons that set the stroke on the whole SVG | Converted. Strokes become filled outline shapes. | Not converted |
+| Where conversion runs | On the svgslid.es server | In your browser |
+| Batch size | A batch | Up to 25 files per drop |
+
+Clip paths, masks, patterns, filters and transparency do not come through on either. See [SVG feature support](https://svgslid.es/docs/svg-compatibility.md).
+
+## What happens to your files
+
+Uploaded SVG files are held only while the request runs and are deleted when it finishes. The converted file is stored in Google Drive for 7 days and shared by link. See [Permissions and data](https://svgslid.es/docs/permissions-privacy.md#web-uploader).
+
+## See also
+
+- [Workspace Add-on](https://svgslid.es/docs/add-on.md)
+- [SVG feature support](https://svgslid.es/docs/svg-compatibility.md)
+- [Permissions and data](https://svgslid.es/docs/permissions-privacy.md)
+- [PRB: A Web Uploader link stops working after 7 days](https://svgslid.es/docs/kb/web-uploader-link-expired.md)
+- [Guide: SVG to Google Slides converter](https://svgslid.es/guides/svg-to-google-slides-converter)
+
+Source: https://svgslid.es/docs/web-uploader (SVG to Slides Documentation, Web Uploader and Add-on). Last reviewed November 20, 2026.
+
+
+---
+
+# Workspace Add-on
+
+Applies to: SVG to Slides Workspace Add-on for Google Slides.
+
+The add-on inserts SVG files from a dialog inside Google Slides. Pick your files, copy, and paste. Every path lands as a native shape on the slide you have open.
+
+**To insert SVG files with the add-on**
+
+1. In Google Slides, choose **Insert SVGs** from the **Extensions** menu, or click the add-on's icon in the side panel.
+2. Pick your .svg files. They convert as you select them.
+3. Click **Copy**, or press Enter.
+4. Press Command+V. The shapes land on the slide you have open.
+
+![The add-on dialog titled Insert SVGs with four shape thumbnails, the line Ready, click below or press Enter to copy, and a Copy button](https://svgslid.es/static/docs/img/add-on-dialog.jpg)
+Figure 1. The add-on dialog. *Illustration.*
+
+## Good to know
+
+- Select more than one file and they land side by side on the current slide.
+- A gradient comes through as its first colour. For full gradients use the [Web Uploader](https://svgslid.es/docs/web-uploader.md).
+- The add-on is installed from the Google Workspace Marketplace: [svgslid.es/addon](https://svgslid.es/addon).
+
+## What the add-on can access
+
+| Access | Used for |
+|---|---|
+| The current presentation's page size | Sizing the inserted shapes to fit the slide. |
+| Showing a dialog | The **Insert SVGs** dialog. |
+| Calling the svgslid.es converter | Converting the files you select. |
+
+The add-on has no access to Google Drive and does not read or change the content of your presentation through Google's API. The shapes are written to your clipboard and you paste them. See [Permissions and data](https://svgslid.es/docs/permissions-privacy.md#add-on).
+
+## See also
+
+- [Web Uploader](https://svgslid.es/docs/web-uploader.md)
+- [Inserting SVG files](https://svgslid.es/docs/insert-svg.md)
+- [How shapes reach the slide](https://svgslid.es/docs/how-shapes-reach-the-slide.md)
+- [Permissions and data](https://svgslid.es/docs/permissions-privacy.md)
+
+Source: https://svgslid.es/docs/add-on (SVG to Slides Documentation, Web Uploader and Add-on). Last reviewed November 20, 2026.
+
+
+---
+
+# Keyboard shortcuts
+
+Applies to: SVG to Slides Chrome extension, version 1.3.0. Editor keys also apply to version 1.2.0 unless they name a 1.3.0 tool..
+
+Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
+
+All shortcuts, with the Mac and Windows keys side by side. The extension's own shortcuts work while objects are selected and you are not typing in a text box. Five of them work at any time.
+
+> **Note:** The extension's shortcuts are off while the cursor is in a text box, so that typing Option+Shift characters still works. Click the slide or an object first.
+
+## Tools and panels
+
+These work whether or not anything is selected.
+
+| Command | Mac | Windows |
+|---|---|---|
+| Show or hide the toolbar | Option+\ | Alt+\ |
+| Command palette | Command+\ | Ctrl+\ |
+| Show or hide Layers | Option+1 | Alt+1 |
+| Pen | Option+Shift+P | Alt+Shift+P |
+| Theme builder, and back | Option+Shift+M | Alt+Shift+M |
+| Edit Shape | Double-click, then Edit Shape | Double-click, then Edit Shape |
+| Select inside a group | Command-click | Ctrl-click |
+| Undo one of the extension's changes | Command+Z | Ctrl+Z |
+| Redo it | Shift+Command+Z | Ctrl+Shift+Z |
+
+## Align and distribute
+
+With objects selected. Not while typing in a text box.
+
+| Command | Mac | Windows |
+|---|---|---|
+| Align left | Option+A | Alt+A |
+| Align centres horizontally | Option+H | Alt+H |
+| Align right | Option+D | Alt+D |
+| Align top | Option+W | Alt+W |
+| Align middles vertically | Option+V | Alt+V |
+| Align bottom | Option+S | Alt+S |
+| Distribute horizontal spacing | Option+Shift+H | Alt+Shift+H |
+| Distribute vertical spacing | Option+Shift+V | Alt+Shift+V |
+
+## Combine
+
+With two or more shapes selected.
+
+| Command | Mac | Windows |
+|---|---|---|
+| Union | Option+Shift+U | Alt+Shift+U |
+| Subtract | Option+Shift+S | Alt+Shift+S |
+| Intersect | Option+Shift+I | Alt+Shift+I |
+| Exclude | Option+Shift+E | Alt+Shift+E |
+
+## Group and mask
+
+| Command | Mac | Windows |
+|---|---|---|
+| Group | Command+Option+G | Ctrl+Alt+G |
+| Ungroup | Shift+Command+Option+G | Ctrl+Alt+Shift+G |
+| Mask image with shape | Option+Shift+K | Alt+Shift+K |
+
+## Outline
+
+| Command | Mac | Windows |
+|---|---|---|
+| Outline stroke | Option+Command+O | Ctrl+Alt+O |
+| Outline text | Option+Command+T | Ctrl+Alt+T |
+| Restore outlined text | Option+Command+T | Ctrl+Alt+T |
+
+## Fill and stroke
+
+| Command | Mac | Windows |
+|---|---|---|
+| Fill colour | Option+Shift+F | Alt+Shift+F |
+| Stroke colour | Option+Shift+L | Alt+Shift+L |
+| Stroke on / off | Option+Shift+/ | Alt+Shift+/ |
+| Thinner stroke | Option+Shift+[ | Alt+Shift+[ |
+| Thicker stroke | Option+Shift+] | Alt+Shift+] |
+
+## Arrange, rotate and resize
+
+These are Google Slides' own shortcuts. The toolbar and the command palette list them, and Slides carries them out.
+
+| Command | Mac | Windows |
+|---|---|---|
+| Bring to front | Shift+Command+Up Arrow | Ctrl+Shift+Up Arrow |
+| Bring forward | Command+Up Arrow | Ctrl+Up Arrow |
+| Send backward | Command+Down Arrow | Ctrl+Down Arrow |
+| Send to back | Shift+Command+Down Arrow | Ctrl+Shift+Down Arrow |
+| Rotate 15° left or right | Option+Left Arrow | Alt+Left Arrow |
+| Rotate 1° left or right | Option+Shift+Left Arrow | Alt+Shift+Left Arrow |
+| Make larger | Command+Control+K | Ctrl+Alt+K |
+| Make smaller | Command+Control+J | Ctrl+Alt+J |
+
+## In Edit Shape and the pen
+
+On Windows use Ctrl for Command, Alt for Option and Backspace for Delete.
+
+| Action | Keys |
+|---|---|
+| Select tool | V |
+| Pen tool | P |
+| Move a point or handle in 45° steps | Hold Shift while dragging |
+| Move one curve handle on its own | Hold Option while dragging it |
+| Switch a point between smooth and corner | Double-click the point |
+| Select all points | Command+A |
+| Delete selected points. In the pen, remove the last point. | Delete |
+| Nudge | Arrow keys. Shift for ten times the step. |
+| Undo, redo | Command+Z, Shift+Command+Z |
+| Zoom in, zoom out, 100% | Command+Plus, Command+Minus, Command+0. Or pinch. |
+| Pan | Hold Spacebar and drag, or scroll |
+| Show or hide the grid | Command+' |
+| Ignore snapping for one move | Hold Command |
+| Change a number by dragging | Hold Option and drag across the field. Shift for steps of ten. |
+| Round corners in 10 pixel steps | Hold Shift while dragging a corner circle |
+| Scale in proportion, or from the centre | Shift, Option while dragging the box |
+| Skew | Command and drag an edge of the box |
+| Rotate | Command and drag a corner of the box |
+| Pen: close the shape | Click the first point |
+| Pen: leave the path open | Enter or Esc |
+| Done | Enter, or Esc with nothing selected |
+
+## Where the keys come from
+
+Align and distribute use the keys Figma uses. Rotate, resize, arrange, group and ungroup are Google Slides' own shortcuts. The rest are the extension's.
+
+## See also
+
+- [Command reference](https://svgslid.es/docs/commands.md)
+- [The command palette](https://svgslid.es/docs/command-palette.md)
+- [The toolbar](https://svgslid.es/docs/toolbar.md)
+- [Document conventions](https://svgslid.es/docs/conventions.md#keys)
+
+Source: https://svgslid.es/docs/keyboard-shortcuts (SVG to Slides Documentation, Reference). Last reviewed November 20, 2026.
+
+
+---
+
+# Command reference
+
+Applies to: SVG to Slides Chrome extension, version 1.3.0.
+
+Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
+
+Every command the toolbar and the command palette offer, by group, with what each one needs selected.
+
+## Tools and panels
+
+| Command | What it does | Needs selected | Shortcut (Mac) |
+|---|---|---|---|
+| Show or hide the toolbar | Opens or closes the toolbar. | Nothing | Option+\ |
+| Command palette | Lists every command with its shortcut. | Nothing | Command+\ |
+| Show or hide Layers | Opens or closes the Layers panel. | Nothing | Option+1 |
+| Pen | Draws new shapes, or opens the editor on the selection with the pen active. | Nothing | Option+Shift+P |
+| Theme builder, and back | Opens Slides' theme builder on the slide's layout, or returns to the slide. | Nothing | Option+Shift+M |
+| Edit Shape | Opens the point editor on the selection. Double-click a shape, then click Edit Shape. | A shape |  |
+| Select inside a group | Command-click selects the innermost object under the pointer. Shift+Command-click adds. | Nothing |  |
+| Undo one of the extension's changes | Undoes a multi-step change in one press. | Right after the change | Command+Z |
+| Redo it | Redoes it in one press. Command+Y does the same. | Right after an undo | Shift+Command+Z |
+
+## Align and distribute
+
+| Command | What it does | Needs selected | Shortcut (Mac) |
+|---|---|---|---|
+| Align left | Aligns left edges. One object: to the slide's left edge. | One object or more | Option+A |
+| Align centres horizontally | Aligns centres on a vertical line. One object: centres it on the page. | One object or more | Option+H |
+| Align right | Aligns right edges. One object: to the slide's right edge. | One object or more | Option+D |
+| Align top | Aligns top edges. One object: to the slide's top edge. | One object or more | Option+W |
+| Align middles vertically | Aligns middles on a horizontal line. One object: centres it on the page. | One object or more | Option+V |
+| Align bottom | Aligns bottom edges. One object: to the slide's bottom edge. | One object or more | Option+S |
+| Distribute horizontal spacing | Evens out the horizontal gaps. | Three objects or more | Option+Shift+H |
+| Distribute vertical spacing | Evens out the vertical gaps. | Three objects or more | Option+Shift+V |
+
+## Combine
+
+| Command | What it does | Needs selected | Shortcut (Mac) |
+|---|---|---|---|
+| Union | One shape covering everything the selected shapes cover. | Two shapes or more | Option+Shift+U |
+| Subtract | The bottom shape with the shapes above it cut out. | Two shapes or more | Option+Shift+S |
+| Intersect | Only the area where the shapes overlap. | Two shapes or more | Option+Shift+I |
+| Exclude | Everything except the area where the shapes overlap. | Two shapes or more | Option+Shift+E |
+
+## Group and mask
+
+| Command | What it does | Needs selected | Shortcut (Mac) |
+|---|---|---|---|
+| Group | Groups the selection. | Two objects or more | Command+Option+G |
+| Ungroup | Ungroups the selected group. | A group | Shift+Command+Option+G |
+| Mask image with shape | The shape on top cuts out the picture under it. | One image and one shape or group | Option+Shift+K |
+
+## Outline
+
+| Command | What it does | Needs selected | Shortcut (Mac) |
+|---|---|---|---|
+| Outline stroke | Turns a stroke into a filled shape. | A shape or line with a stroke | Option+Command+O |
+| Outline text | Turns text into shapes. | An object with text | Option+Command+T |
+| Restore outlined text | Puts outlined text back as live text. | Text outlined on this computer | Option+Command+T |
+
+## Fill and stroke
+
+| Command | What it does | Needs selected | Shortcut (Mac) |
+|---|---|---|---|
+| Fill colour | Opens Slides' fill colour menu. | A shape | Option+Shift+F |
+| Stroke colour | Opens Slides' border colour menu. | A shape or line | Option+Shift+L |
+| Stroke on / off | Removes the stroke or puts it back. | A shape or line | Option+Shift+/ |
+| Thinner stroke | Steps the stroke weight down. | A shape or line | Option+Shift+[ |
+| Thicker stroke | Steps the stroke weight up. | A shape or line | Option+Shift+] |
+| Centre stroke | Puts the stroke back on the outline. | A closed shape with a stroke |  |
+| Inside stroke | Moves the stroke inside the outline. | A closed shape with a stroke |  |
+| Outside stroke | Moves the stroke outside the outline. | A closed shape with a stroke |  |
+
+## Arrange, rotate and resize
+
+| Command | What it does | Needs selected | Shortcut (Mac) |
+|---|---|---|---|
+| Bring to front | Moves the selection to the top of the stack. | An object | Shift+Command+Up Arrow |
+| Bring forward | Moves the selection up one place. | An object | Command+Up Arrow |
+| Send backward | Moves the selection down one place. | An object | Command+Down Arrow |
+| Send to back | Moves the selection to the bottom of the stack. | An object | Shift+Command+Down Arrow |
+| Rotate 15° left or right | Rotates the selection. Option+Right Arrow rotates the other way. | An object | Option+Left Arrow |
+| Rotate 1° left or right | Rotates in fine steps. Option+Shift+Right Arrow rotates the other way. | An object | Option+Shift+Left Arrow |
+| Make larger | Resizes the selection up. | An object | Command+Control+K |
+| Make smaller | Resizes the selection down. | An object | Command+Control+J |
+
+
+## Messages
+
+When a command cannot run, the extension shows a short message under the toolbar that says what to select. Examples: "Select two or more objects to group", "Select three or more objects to distribute", "Nothing selected has text".
+
+## See also
+
+- [Keyboard shortcuts](https://svgslid.es/docs/keyboard-shortcuts.md)
+- [The command palette](https://svgslid.es/docs/command-palette.md)
+- [The toolbar](https://svgslid.es/docs/toolbar.md)
+- [Limits and known issues](https://svgslid.es/docs/limits.md)
+
+Source: https://svgslid.es/docs/commands (SVG to Slides Documentation, Reference). Last reviewed November 20, 2026.
+
+
+---
+
+# SVG feature support
+
+Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.3.0; SVG to Slides Workspace Add-on for Google Slides; SVG to Slides Web Uploader.
+
+Paths, basic shapes, arcs, nested transforms and even-odd cut-outs convert in every product. Gradients and text convert only in the Web Uploader. Clip paths, masks, patterns, filters and transparency do not convert.
+
+Tested November 11, 2026 on 20 sample files. Per-file table and sample files: https://svgslid.es/specs.md
+
+## Converts
+
+| SVG feature | Chrome extension and add-on | Web Uploader |
+|---|---|---|
+| One filled path | Converts. | Works |
+| Circle, rounded rectangle and path in three colours | Converts. | Works |
+| rect, circle, ellipse, polygon, polyline, line | Lines and polylines become filled outline shapes | Works. Lines and polylines become filled outline shapes |
+| Arc commands (A and a) | Converts. | Works |
+| translate, rotate and scale on nested groups | Converts. | Works |
+| fill-rule="evenodd" cut-outs | Converts. | Works |
+| Figma-style frame clip and white background | Frame clip and background skipped | Works. Frame clip and background skipped |
+
+## Converts in part
+
+| SVG feature | Chrome extension and add-on | Web Uploader |
+|---|---|---|
+| Linear gradient fill | Solid fill in the first colour | Works. Kept as a gradient |
+| Radial gradient fill | Solid fill in the first colour; a white-centred gradient pastes white | Works. Kept as a gradient |
+| Colours set by CSS classes in a <style> block (Illustrator style) | Shapes kept, colours become black | Partly. Shapes kept, colours become black |
+| clip-path that crops a shape | Clip ignored; the full shape shows | Partly. Clip ignored; the full shape shows |
+| mask that cuts a hole | Mask ignored | Partly. Mask ignored |
+| fill-opacity | Shapes kept, transparency lost | Partly. Shapes kept, transparency lost |
+| Pattern fill | Shape kept, filled black | Partly. Shape kept, filled black |
+| Drop-shadow filter | Shape kept, shadow dropped | Partly. Shape kept, shadow dropped |
+| rgb(), named, short hex and hsl() colours | hsl() becomes black; the rest are exact | Partly. hsl() becomes black; the rest are exact |
+
+## Does not convert
+
+| SVG feature | Chrome extension and add-on | Web Uploader |
+|---|---|---|
+| Line icon with the stroke set on the root <svg> (Lucide and Feather style) | Nothing pastes | Works. Strokes become filled outline shapes |
+| <text> element | Not converted | Works. Outlined into shapes, not editable text |
+| <use> referencing a <symbol> (icon sprites) | Not converted | Not converted. Not converted |
+| stroke="currentColor" | Not converted | Partly. Converted, but black instead of the inherited colour |
+
+
+## Reading the table
+
+The extension and the add-on share one converter, so they give the same result. The JavaScript converter in version 1.3.0 was checked against the earlier one and gives the same output for these files. See [How conversion works](https://svgslid.es/docs/how-conversion-works.md#javascript).
+
+## Getting a file to convert
+
+| Problem | What to do |
+|---|---|
+| A gradient arrives as one colour | Use the [Web Uploader](https://svgslid.es/docs/web-uploader.md), which keeps gradients. |
+| Text is missing | Convert the text to outlines in your design tool before exporting, or use the [Web Uploader](https://svgslid.es/docs/web-uploader.md). |
+| A line icon inserts nothing | Use the [Web Uploader](https://svgslid.es/docs/web-uploader.md), or outline the strokes before exporting. See [PRB: A line icon inserts nothing](https://svgslid.es/docs/kb/line-icon-inserts-nothing.md). |
+| Colours arrive black | Export with colours written on each element. See [PRB: Shapes arrive black](https://svgslid.es/docs/kb/colours-arrive-black.md). |
+| A clipped or masked shape shows in full | Apply the clip in your design tool before exporting, or mask it on the slide with [Masking an image](https://svgslid.es/docs/mask-image.md) and [Combining shapes](https://svgslid.es/docs/combine-shapes.md). |
+
+Have a file that does not convert? Send it to the address on the [Support](https://svgslid.es/support) page.
+
+## See also
+
+- [How conversion works](https://svgslid.es/docs/how-conversion-works.md)
+- [Inserting SVG files](https://svgslid.es/docs/insert-svg.md)
+- [Web Uploader](https://svgslid.es/docs/web-uploader.md)
+- [Limits and known issues](https://svgslid.es/docs/limits.md)
+- [Specs: tested compatibility table](https://svgslid.es/specs#compatibility)
+
+Source: https://svgslid.es/docs/svg-compatibility (SVG to Slides Documentation, Reference). Last reviewed November 20, 2026.
+
+
+---
+
+# Permissions and data handling
+
+Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.3.0; SVG to Slides Web Uploader; SVG to Slides Workspace Add-on for Google Slides.
+
+Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
+
+The extension has no access to your Google account and runs only on Google Slides editor pages. Version 1.3.0 holds one Chrome permission, storage, and converts every file inside your browser.
+
+## Chrome permissions by version
+
+| Version | Chrome permissions | Where SVG files are converted |
+|---|---|---|
+| 1.3.0 | storage | In your browser, always. |
+| 1.2.0 | storage, and one host permission for the svgslid.es converter | In your browser. The converter on the server was a fallback if in-browser conversion was unavailable. |
+| 1.0.1 | One host permission for the svgslid.es converter | As 1.2.0. |
+
+No version requests a Google sign-in or any Google account permission. The extension cannot read your Drive or reach your presentations through Google's API.
+
+## What the extension reads
+
+- The .svg files you drop on the slide.
+- When you use Edit Shape or a shape command, the objects you selected on the open slide: their outlines, fill and stroke. This is read in your browser.
+
+## What is stored on your computer
+
+The storage permission keeps these items in Chrome on the computer you use. None of them is part of the presentation.
+
+| Item | Used by |
+|---|---|
+| Whether the toolbar is open or closed, and whether Layers is open | [The toolbar](https://svgslid.es/docs/toolbar.md) |
+| Snapping settings | [Snapping](https://svgslid.es/docs/snapping.md) |
+| Layer names | [The Layers panel](https://svgslid.es/docs/layers.md#stored) |
+| The original text of outlined text | [Outlining strokes and text](https://svgslid.es/docs/outline-stroke-text.md#restore) |
+| The original outline of shapes whose stroke was moved inside or outside | [Outlining strokes and text](https://svgslid.es/docs/outline-stroke-text.md#position) |
+| Whether the update note has been shown | [Installing and updating](https://svgslid.es/docs/install.md#updates) |
+
+## Network requests in version 1.3.0
+
+SVG files are not uploaded. The extension makes one kind of network request: **Outline text** downloads the font it needs from Google Fonts. The request names the font family, weight and style and carries nothing from the presentation. See [Outlining strokes and text](https://svgslid.es/docs/outline-stroke-text.md#fonts).
+
+## Web Uploader
+
+- The SVG files you upload are sent to the svgslid.es server, held while the request runs, and deleted when it finishes.
+- The converted file is stored in Google Drive for 7 days and shared with anyone who has the link.
+- If you type a Google account address, it is used once, to share the file to that account.
+
+## Workspace Add-on
+
+- The add-on reads the current presentation's page size, shows its dialog, and calls the svgslid.es converter. It has no Drive access.
+- The files you select are sent to the server, held in memory while the request runs, and not kept.
+- The result is written to your clipboard. You paste it.
+
+> **Note:** The [Privacy Policy](https://svgslid.es/privacy) is the governing statement for all three products. This topic summarises it and adds the per-version detail.
+
+## See also
+
+- [Installing and updating](https://svgslid.es/docs/install.md)
+- [How shapes reach the slide](https://svgslid.es/docs/how-shapes-reach-the-slide.md)
+- [Version history](https://svgslid.es/docs/release-notes.md)
+- [Privacy Policy](https://svgslid.es/privacy)
+- [Terms](https://svgslid.es/terms)
+
+Source: https://svgslid.es/docs/permissions-privacy (SVG to Slides Documentation, Reference). Last reviewed November 20, 2026.
+
+
+---
+
+# Limits and known issues
+
+Applies to: SVG to Slides Chrome extension, version 1.3.0; SVG to Slides Web Uploader; SVG to Slides Workspace Add-on for Google Slides.
+
+Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
+
+The limits stated across this library, gathered in one place. Each one links to the topic that explains it.
+
+## Inserting
+
+| Limit | Detail |
+|---|---|
+| Files per drop | 25 in the extension. See [Inserting SVG files](https://svgslid.es/docs/insert-svg.md#several). |
+| Where shapes land | On the slide you have open. The extension and the add-on cannot create slides. |
+| Gradients | First colour only in the extension and the add-on. Kept by the Web Uploader. |
+| SVG text | Not converted by the extension or the add-on. Outlined by the Web Uploader. |
+| Clip paths, masks, patterns, filters, transparency | Not converted. See [SVG feature support](https://svgslid.es/docs/svg-compatibility.md). |
+
+## Shape tools
+
+| Limit | Detail |
+|---|---|
+| Combine and outline | Gradients, pattern fills, transparency and shadows are not carried into the result. Images, video and charts are refused. |
+| Mask | Rotated images are not supported yet. Text must be outlined first. See [Masking an image](https://svgslid.es/docs/mask-image.md#limits). |
+| Pen | Point by point only. No freehand mode. |
+| Skew | Available in Edit Shape only. |
+| Layers | Only top-level rows can be dragged to restack. |
+| Edit Shape | **Done** replaces the object, so animations and links on the original are not kept. See [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md#done). |
+| Converting Slides' own shapes | One-way. See [Editing Slides' own shapes](https://svgslid.es/docs/convert-slides-shapes.md). |
+
+## Kept on one computer
+
+Layer names, snapping settings, the memory that restores outlined text, and the memory of stroke position are kept on the computer you used. They do not travel with the presentation. Hiding an object in Layers affects only your view and ends when the page is reloaded. See [Permissions and data](https://svgslid.es/docs/permissions-privacy.md#storage).
+
+## Undo
+
+One-press undo applies right after one of the extension's changes. If you change the slide in between, Slides' own undo takes over. See [Undo and redo](https://svgslid.es/docs/undo-redo.md#slides-undo).
+
+## Web Uploader and add-on
+
+| Limit | Detail |
+|---|---|
+| Web Uploader links | Deleted after 7 days. Make a copy to keep the file. |
+| Add-on gradients | First colour only. |
+| Add-on insert | Always ends with Command+V. A web page cannot paste for you. |
+
+## See also
+
+- [SVG feature support](https://svgslid.es/docs/svg-compatibility.md)
+- [All articles](https://svgslid.es/docs/kb.md)
+- [Version 1.3.0](https://svgslid.es/docs/release-notes/1-3-0.md#limits)
+
+Source: https://svgslid.es/docs/limits (SVG to Slides Documentation, Reference). Last reviewed November 20, 2026.
+
+
+---
+
+# Glossary
+
+Applies to: All SVG to Slides documentation.
+
+Terms used in this library, in alphabetical order.
+
+### Add-on {#add-on} The SVG to Slides Workspace Add-on. It runs inside Google Slides from the Extensions menu. See [Workspace Add-on](https://svgslid.es/docs/add-on.md).
+
+### Box {#box} The frame with handles around the selection in Edit Shape. Dragging it scales, stretches, skews or rotates. See [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md#smart-box).
+
+### Combine {#combine} To make one shape from several with Union, Subtract, Intersect or Exclude. See [Combining shapes](https://svgslid.es/docs/combine-shapes.md).
+
+### Command palette {#command-palette} A searchable list of every command, opened with Command+\. See [The command palette](https://svgslid.es/docs/command-palette.md).
+
+### Corner point {#corner-point} A point where the outline turns sharply. Drawn as a square in Edit Shape. Compare *smooth point*.
+
+### Custom shape {#custom-shape} A Slides shape defined by its own outline, as opposed to a preset from the shape menu. Every shape SVG to Slides inserts is a custom shape or a polyline.
+
+### Flatten {#flatten} What Slides does to an SVG placed on a slide without SVG to Slides: it turns the drawing into a picture made of pixels.
+
+### Handle {#handle} One of the two control points beside a smooth point. Dragging a handle changes the curve on that side of the point.
+
+### Layout {#layout} A slide design in the theme that slides are based on. Objects on a layout appear on every slide that uses it. See [Theme objects](https://svgslid.es/docs/theme-objects.md).
+
+### Mask {#mask} A shape used to cut a picture so that the picture shows only inside the shape. See [Masking an image](https://svgslid.es/docs/mask-image.md).
+
+### Master {#master} The top level of a Slides theme. Objects on the master appear on every layout and slide. See [Theme objects](https://svgslid.es/docs/theme-objects.md).
+
+### Native shape {#native-shape} A shape that Slides treats as its own: it can be selected, filled, resized, grouped, used in themes and copied to Google Drawings.
+
+### Outline {#outline} As a verb: to turn a stroke or text into filled shapes. As a noun: the path that defines a shape's edge. See [Outlining strokes and text](https://svgslid.es/docs/outline-stroke-text.md).
+
+### Path {#path} In an SVG file, a sequence of lines and curves. Each path becomes one Slides shape.
+
+### Pill {#pill} The small dark panel under the selection in Edit Shape that holds width, height, rotation and corner radius.
+
+### Polyline {#polyline} A Slides shape made of straight segments, on which Slides' own Edit points command works. See [Edit points and polylines](https://svgslid.es/docs/edit-points-and-polylines.md).
+
+### Scrub {#scrub} To change a number by holding Option and dragging across its field.
+
+### Smooth point {#smooth-point} A point where the outline curves through without a corner. Drawn as a circle in Edit Shape. It has two handles.
+
+### Snapping {#snapping} Pulling a point onto a nearby point, pixel or grid line as you place or drag it. See [Snapping](https://svgslid.es/docs/snapping.md).
+
+### Still copy {#still-copy} A picture of the slide that the extension shows while a change takes several steps, so that only the result is seen. See [Multi-step changes and undo](https://svgslid.es/docs/undo-and-still-copy.md).
+
+### Stroke position {#stroke-position} Whether a stroke sits inside, on, or outside a shape's outline. See [Outlining strokes and text](https://svgslid.es/docs/outline-stroke-text.md#position).
+
+### Theme object {#theme-object} An object drawn on a slide that belongs to the slide's layout or master. It cannot be changed on the slide. See [Theme objects](https://svgslid.es/docs/theme-objects.md).
+
+### Toolbar {#toolbar} The strip of buttons the extension adds at the left edge of the slide canvas. See [The toolbar](https://svgslid.es/docs/toolbar.md).
+
+### Web Uploader {#web-uploader} The page at svgslid.es/convert that converts SVG files to a Drive file. See [Web Uploader](https://svgslid.es/docs/web-uploader.md).
+
+## See also
+
+- [Index](https://svgslid.es/docs/a-z-index.md)
+- [Document conventions](https://svgslid.es/docs/conventions.md)
+
+Source: https://svgslid.es/docs/glossary (SVG to Slides Documentation, Reference). Last reviewed November 20, 2026.
+
+
+---
+
+# Index
+
+Applies to: All SVG to Slides documentation.
+
+Every tool, command and term in this library, in alphabetical order. Each entry goes to the section that covers it.
+
+- 1.2.0: [Version 1.2.0](https://svgslid.es/docs/release-notes/1-2-0.md)
+- 1.3.0: [Version 1.3.0](https://svgslid.es/docs/release-notes/1-3-0.md)
+- 25 files: [Inserting SVG files](https://svgslid.es/docs/insert-svg.md#several), [PRB: Nothing is inserted when more than 25 files are dropped](https://svgslid.es/docs/kb/more-than-25-files.md)
+- 7 days: [PRB: A Web Uploader link stops working after 7 days](https://svgslid.es/docs/kb/web-uploader-link-expired.md)
+- 7-day links: [Web Uploader](https://svgslid.es/docs/web-uploader.md#keep)
+- 92% smaller: [Version 1.3.0](https://svgslid.es/docs/release-notes/1-3-0.md#packaging)
+- adding a point: [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md#points)
+- add-on: [Workspace Add-on](https://svgslid.es/docs/add-on.md)
+- adjustment handles: [Editing Slides' own shapes](https://svgslid.es/docs/convert-slides-shapes.md#table)
+- align to slide edge: [Aligning and distributing](https://svgslid.es/docs/align-distribute.md#single)
+- aligning: [Aligning and distributing](https://svgslid.es/docs/align-distribute.md)
+- another computer: [PRB: Layer names are missing on another computer](https://svgslid.es/docs/kb/layer-names-missing.md)
+- applies-to box: [Document conventions](https://svgslid.es/docs/conventions.md#versions)
+- arcs: [SVG feature support](https://svgslid.es/docs/svg-compatibility.md#works)
+- arcs to curves: [How conversion works](https://svgslid.es/docs/how-conversion-works.md#stages)
+- arrows: [Editing Slides' own shapes](https://svgslid.es/docs/convert-slides-shapes.md#table)
+- article IDs: [Document conventions](https://svgslid.es/docs/conventions.md#kb)
+- batch: [PRB: Nothing is inserted when more than 25 files are dropped](https://svgslid.es/docs/kb/more-than-25-files.md)
+- batch conversion: [Web Uploader](https://svgslid.es/docs/web-uploader.md)
+- black shapes: [PRB: Shapes arrive black](https://svgslid.es/docs/kb/colours-arrive-black.md)
+- blurry SVG: [PRB: An SVG placed in Google Slides becomes a flat image](https://svgslid.es/docs/kb/svg-becomes-a-flat-image.md)
+- boolean operations: [Combining shapes](https://svgslid.es/docs/combine-shapes.md)
+- callouts: [Editing Slides' own shapes](https://svgslid.es/docs/convert-slides-shapes.md#table)
+- Cancel: [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md#done)
+- cancelling an insert: [Inserting SVG files](https://svgslid.es/docs/insert-svg.md#cancel)
+- cannot select an object: [INFO: An object in Layers is greyed and marked M](https://svgslid.es/docs/kb/object-greyed-with-m.md)
+- centre on page: [Aligning and distributing](https://svgslid.es/docs/align-distribute.md#single)
+- changelog: [Version history](https://svgslid.es/docs/release-notes.md)
+- Chrome extension, overview: [What SVG to Slides does](https://svgslid.es/docs/overview.md)
+- chrome://extensions: [Installing and updating](https://svgslid.es/docs/install.md#check-version)
+- Click to Place: [Inserting SVG files](https://svgslid.es/docs/insert-svg.md)
+- clip paths: [SVG feature support](https://svgslid.es/docs/svg-compatibility.md#partly)
+- clipboard format: [How shapes reach the slide](https://svgslid.es/docs/how-shapes-reach-the-slide.md)
+- closing a path: [Drawing with the pen](https://svgslid.es/docs/pen.md#keys)
+- combining shapes: [Combining shapes](https://svgslid.es/docs/combine-shapes.md)
+- command palette: [The command palette](https://svgslid.es/docs/command-palette.md)
+- command reference: [Command reference](https://svgslid.es/docs/commands.md)
+- COMMAND-click: [The Layers panel](https://svgslid.es/docs/layers.md#direct-select)
+- Commands button: [The command palette](https://svgslid.es/docs/command-palette.md)
+- commands, list of: [Command reference](https://svgslid.es/docs/commands.md)
+- COMMAND+V prompt: [INFO: The extension asks you to press COMMAND+V](https://svgslid.es/docs/kb/press-command-v-prompt.md)
+- COMMAND+Z: [Undo and redo](https://svgslid.es/docs/undo-redo.md)
+- compatibility: [SVG feature support](https://svgslid.es/docs/svg-compatibility.md)
+- conventions: [Document conventions](https://svgslid.es/docs/conventions.md)
+- conversion: [How conversion works](https://svgslid.es/docs/how-conversion-works.md)
+- converter: [How conversion works](https://svgslid.es/docs/how-conversion-works.md)
+- converting a shape: [Editing Slides' own shapes](https://svgslid.es/docs/convert-slides-shapes.md)
+- corner point: [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md#points)
+- corner radius: [Rounding corners](https://svgslid.es/docs/round-corners.md)
+- Couldn't get the font: [PRB: Outline text reports that it could not get the font](https://svgslid.es/docs/kb/outline-text-font.md)
+- crop to shape: [Masking an image](https://svgslid.es/docs/mask-image.md)
+- CSS classes: [SVG feature support](https://svgslid.es/docs/svg-compatibility.md#partly), [PRB: Shapes arrive black](https://svgslid.es/docs/kb/colours-arrive-black.md)
+- CTRL+V prompt: [INFO: The extension asks you to press COMMAND+V](https://svgslid.es/docs/kb/press-command-v-prompt.md)
+- currentColor: [SVG feature support](https://svgslid.es/docs/svg-compatibility.md#not-converted), [PRB: A line icon inserts nothing](https://svgslid.es/docs/kb/line-icon-inserts-nothing.md)
+- curve handles: [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md#points)
+- curves, why not polylines: [Edit points and polylines](https://svgslid.es/docs/edit-points-and-polylines.md#why)
+- custom shape: [Edit points and polylines](https://svgslid.es/docs/edit-points-and-polylines.md)
+- data handling: [Permissions and data](https://svgslid.es/docs/permissions-privacy.md)
+- detail, keeping: [Point precision](https://svgslid.es/docs/point-precision.md)
+- dimmed buttons: [The toolbar](https://svgslid.es/docs/toolbar.md#dimmed)
+- direct select: [The Layers panel](https://svgslid.es/docs/layers.md#direct-select)
+- distributing: [Aligning and distributing](https://svgslid.es/docs/align-distribute.md)
+- Done: [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md#done)
+- drag and drop: [Inserting SVG files](https://svgslid.es/docs/insert-svg.md)
+- drawing shapes: [Drawing with the pen](https://svgslid.es/docs/pen.md)
+- DrawingML: [How conversion works](https://svgslid.es/docs/how-conversion-works.md#outputs)
+- Drive link: [PRB: A Web Uploader link stops working after 7 days](https://svgslid.es/docs/kb/web-uploader-link-expired.md)
+- Edit points missing: [INFO: Slides' own Edit points is offered for some inserted shapes only](https://svgslid.es/docs/kb/edit-points-missing.md)
+- Edit points, Slides' own: [Edit points and polylines](https://svgslid.es/docs/edit-points-and-polylines.md)
+- Edit Shape: [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md)
+- editor keys: [Keyboard shortcuts](https://svgslid.es/docs/keyboard-shortcuts.md#editor)
+- EMF route: [PRB: An SVG placed in Google Slides becomes a flat image](https://svgslid.es/docs/kb/svg-becomes-a-flat-image.md#more)
+- enlarging an icon: [Point precision](https://svgslid.es/docs/point-precision.md)
+- error messages: [All articles](https://svgslid.es/docs/kb.md)
+- exact values: [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md#exact-values)
+- exclude: [Combining shapes](https://svgslid.es/docs/combine-shapes.md#commands)
+- expired link: [PRB: A Web Uploader link stops working after 7 days](https://svgslid.es/docs/kb/web-uploader-link-expired.md)
+- eye: [The Layers panel](https://svgslid.es/docs/layers.md#hide)
+- Feather: [PRB: A line icon inserts nothing](https://svgslid.es/docs/kb/line-icon-inserts-nothing.md)
+- feature availability: [Version history](https://svgslid.es/docs/release-notes.md#matrix)
+- figures: [Document conventions](https://svgslid.es/docs/conventions.md#figures)
+- fill colour: [Fill, stroke and exact values](https://svgslid.es/docs/fill-stroke.md)
+- filters: [SVG feature support](https://svgslid.es/docs/svg-compatibility.md#partly)
+- first release: [Versions 1.0.0 and 1.0.1](https://svgslid.es/docs/release-notes/1-0.md)
+- first SVG: [Quick start](https://svgslid.es/docs/quick-start.md)
+- flat image: [PRB: An SVG placed in Google Slides becomes a flat image](https://svgslid.es/docs/kb/svg-becomes-a-flat-image.md)
+- font access: [PRB: Outline text reports that it could not get the font](https://svgslid.es/docs/kb/outline-text-font.md)
+- fontkit: [Version 1.3.0](https://svgslid.es/docs/release-notes/1-3-0.md#packaging)
+- fonts: [Outlining strokes and text](https://svgslid.es/docs/outline-stroke-text.md#fonts)
+- fonts in SVG: [PRB: Text in an SVG does not appear on the slide](https://svgslid.es/docs/kb/text-missing-after-insert.md)
+- freehand: [Drawing with the pen](https://svgslid.es/docs/pen.md#limits)
+- freeze: [Multi-step changes and undo](https://svgslid.es/docs/undo-and-still-copy.md)
+- glossary: [Glossary](https://svgslid.es/docs/glossary.md)
+- Google account access: [Permissions and data](https://svgslid.es/docs/permissions-privacy.md)
+- Google Drawings: [What SVG to Slides does](https://svgslid.es/docs/overview.md)
+- Google Drive link: [Web Uploader](https://svgslid.es/docs/web-uploader.md)
+- Google font: [PRB: Outline text reports that it could not get the font](https://svgslid.es/docs/kb/outline-text-font.md)
+- Google Fonts: [Outlining strokes and text](https://svgslid.es/docs/outline-stroke-text.md#fonts)
+- Google permissions, none needed: [How shapes reach the slide](https://svgslid.es/docs/how-shapes-reach-the-slide.md)
+- Google Workspace Marketplace: [Workspace Add-on](https://svgslid.es/docs/add-on.md)
+- gradient becomes solid: [PRB: A gradient arrives as one solid colour](https://svgslid.es/docs/kb/gradient-becomes-solid-colour.md)
+- gradients: [SVG feature support](https://svgslid.es/docs/svg-compatibility.md#partly)
+- gradients, keeping: [Web Uploader](https://svgslid.es/docs/web-uploader.md#differences)
+- greyed layer: [INFO: An object in Layers is greyed and marked M](https://svgslid.es/docs/kb/object-greyed-with-m.md)
+- grid: [Snapping](https://svgslid.es/docs/snapping.md#grid)
+- grid size: [Snapping](https://svgslid.es/docs/snapping.md#grid)
+- groups in Layers: [The Layers panel](https://svgslid.es/docs/layers.md#actions)
+- guides, pink: [Snapping](https://svgslid.es/docs/snapping.md#points)
+- handles: [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md#points)
+- helper square: [Multi-step changes and undo](https://svgslid.es/docs/undo-and-still-copy.md#edge)
+- hiding an object: [The Layers panel](https://svgslid.es/docs/layers.md#hide)
+- hiding the toolbar: [The toolbar](https://svgslid.es/docs/toolbar.md#closed)
+- host permission: [Permissions and data](https://svgslid.es/docs/permissions-privacy.md#by-version)
+- hsl(): [PRB: Shapes arrive black](https://svgslid.es/docs/kb/colours-arrive-black.md)
+- hsl colours: [SVG feature support](https://svgslid.es/docs/svg-compatibility.md#partly)
+- Illustrator export: [PRB: Shapes arrive black](https://svgslid.es/docs/kb/colours-arrive-black.md)
+- image, aligning: [Aligning and distributing](https://svgslid.es/docs/align-distribute.md#single)
+- image, masking: [Masking an image](https://svgslid.es/docs/mask-image.md)
+- images, moving: [Multi-step changes and undo](https://svgslid.es/docs/undo-and-still-copy.md#native)
+- Insert SVGs dialog: [Workspace Add-on](https://svgslid.es/docs/add-on.md)
+- inserting SVG files: [Inserting SVG files](https://svgslid.es/docs/insert-svg.md)
+- insertion method: [How shapes reach the slide](https://svgslid.es/docs/how-shapes-reach-the-slide.md)
+- inside stroke: [Outlining strokes and text](https://svgslid.es/docs/outline-stroke-text.md#position)
+- installing: [Installing and updating](https://svgslid.es/docs/install.md)
+- intersect: [Combining shapes](https://svgslid.es/docs/combine-shapes.md#commands)
+- JavaScript converter: [How conversion works](https://svgslid.es/docs/how-conversion-works.md#javascript)
+- key names: [Document conventions](https://svgslid.es/docs/conventions.md#keys)
+- keyboard shortcuts: [Keyboard shortcuts](https://svgslid.es/docs/keyboard-shortcuts.md)
+- Knowledge Base: [All articles](https://svgslid.es/docs/kb.md)
+- known issues: [Limits and known issues](https://svgslid.es/docs/limits.md)
+- layer names missing: [PRB: Layer names are missing on another computer](https://svgslid.es/docs/kb/layer-names-missing.md)
+- layers: [The Layers panel](https://svgslid.es/docs/layers.md)
+- Layers panel: [The Layers panel](https://svgslid.es/docs/layers.md)
+- layout: [Theme objects](https://svgslid.es/docs/theme-objects.md)
+- limits: [Limits and known issues](https://svgslid.es/docs/limits.md)
+- line icon: [PRB: A line icon inserts nothing](https://svgslid.es/docs/kb/line-icon-inserts-nothing.md)
+- linear gradient: [PRB: A gradient arrives as one solid colour](https://svgslid.es/docs/kb/gradient-becomes-solid-colour.md)
+- lines and connectors: [Editing Slides' own shapes](https://svgslid.es/docs/convert-slides-shapes.md#table)
+- Lucide: [PRB: A line icon inserts nothing](https://svgslid.es/docs/kb/line-icon-inserts-nothing.md)
+- M badge: [Theme objects](https://svgslid.es/docs/theme-objects.md), [INFO: An object in Layers is greyed and marked M](https://svgslid.es/docs/kb/object-greyed-with-m.md)
+- Mac keys: [Document conventions](https://svgslid.es/docs/conventions.md#keys)
+- Mac shortcuts: [Keyboard shortcuts](https://svgslid.es/docs/keyboard-shortcuts.md)
+- magnet button: [Snapping](https://svgslid.es/docs/snapping.md)
+- Make a copy: [Web Uploader](https://svgslid.es/docs/web-uploader.md#keep)
+- mask, editing: [Masking an image](https://svgslid.es/docs/mask-image.md#editing)
+- mask error: [PRB: Mask image with shape shows a message and does not mask](https://svgslid.es/docs/kb/cannot-mask-image.md)
+- Mask image with shape: [Masking an image](https://svgslid.es/docs/mask-image.md)
+- masking an image: [Masking an image](https://svgslid.es/docs/mask-image.md)
+- masks, SVG: [SVG feature support](https://svgslid.es/docs/svg-compatibility.md#partly)
+- master: [Theme objects](https://svgslid.es/docs/theme-objects.md)
+- maximum files: [Limits and known issues](https://svgslid.es/docs/limits.md)
+- merging shapes: [Combining shapes](https://svgslid.es/docs/combine-shapes.md)
+- multi-step changes: [Multi-step changes and undo](https://svgslid.es/docs/undo-and-still-copy.md)
+- native shapes: [What SVG to Slides does](https://svgslid.es/docs/overview.md)
+- network requests: [Permissions and data](https://svgslid.es/docs/permissions-privacy.md#network)
+- new shapes, paint of: [Drawing with the pen](https://svgslid.es/docs/pen.md#result)
+- no toolbar: [PRB: The toolbar does not appear](https://svgslid.es/docs/kb/toolbar-does-not-appear.md)
+- notes, kinds of: [Document conventions](https://svgslid.es/docs/conventions.md#notes)
+- nothing is inserted: [PRB: A line icon inserts nothing](https://svgslid.es/docs/kb/line-icon-inserts-nothing.md)
+- objects that cannot be selected: [Theme objects](https://svgslid.es/docs/theme-objects.md)
+- one-step undo: [Undo and redo](https://svgslid.es/docs/undo-redo.md)
+- online converter: [Web Uploader](https://svgslid.es/docs/web-uploader.md)
+- opacity: [SVG feature support](https://svgslid.es/docs/svg-compatibility.md#partly)
+- open path: [Drawing with the pen](https://svgslid.es/docs/pen.md#keys)
+- opening the toolbar: [The toolbar](https://svgslid.es/docs/toolbar.md#closed)
+- outlining a stroke: [Outlining strokes and text](https://svgslid.es/docs/outline-stroke-text.md#stroke)
+- outlining text: [Outlining strokes and text](https://svgslid.es/docs/outline-stroke-text.md#text)
+- outside stroke: [Outlining strokes and text](https://svgslid.es/docs/outline-stroke-text.md#position)
+- package size: [Version history](https://svgslid.es/docs/release-notes.md#versions)
+- Paper.js: [Version 1.3.0](https://svgslid.es/docs/release-notes/1-3-0.md#packaging)
+- paste prompt: [INFO: The extension asks you to press COMMAND+V](https://svgslid.es/docs/kb/press-command-v-prompt.md)
+- paste, scripted: [How shapes reach the slide](https://svgslid.es/docs/how-shapes-reach-the-slide.md)
+- pasting SVG code: [Inserting SVG files](https://svgslid.es/docs/insert-svg.md#paste-code)
+- pattern fill: [PRB: Shapes arrive black](https://svgslid.es/docs/kb/colours-arrive-black.md)
+- pattern fills: [SVG feature support](https://svgslid.es/docs/svg-compatibility.md#partly)
+- pen: [Drawing with the pen](https://svgslid.es/docs/pen.md)
+- pencil: [Drawing with the pen](https://svgslid.es/docs/pen.md#limits)
+- permissions: [Permissions and data](https://svgslid.es/docs/permissions-privacy.md)
+- pixelated SVG: [PRB: An SVG placed in Google Slides becomes a flat image](https://svgslid.es/docs/kb/svg-becomes-a-flat-image.md)
+- pixels, snapping to: [Snapping](https://svgslid.es/docs/snapping.md#pixels)
+- placement: [Inserting SVG files](https://svgslid.es/docs/insert-svg.md#size)
+- placement error: [FIX: Inserted shapes landed away from the pointer in versions 1.0.0 and 1.0.1](https://svgslid.es/docs/kb/shapes-land-away-from-pointer.md)
+- PNG, SVG becomes: [PRB: An SVG placed in Google Slides becomes a flat image](https://svgslid.es/docs/kb/svg-becomes-a-flat-image.md)
+- points, editing: [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md)
+- polyline: [Edit points and polylines](https://svgslid.es/docs/edit-points-and-polylines.md), [INFO: Slides' own Edit points is offered for some inserted shapes only](https://svgslid.es/docs/kb/edit-points-missing.md)
+- pop-out menus: [The toolbar](https://svgslid.es/docs/toolbar.md#pop-outs)
+- PowerPoint route: [PRB: An SVG placed in Google Slides becomes a flat image](https://svgslid.es/docs/kb/svg-becomes-a-flat-image.md#more)
+- precision: [Point precision](https://svgslid.es/docs/point-precision.md)
+- price: [What SVG to Slides does](https://svgslid.es/docs/overview.md)
+- privacy: [Permissions and data](https://svgslid.es/docs/permissions-privacy.md)
+- problems: [All articles](https://svgslid.es/docs/kb.md)
+- products, the three: [What SVG to Slides does](https://svgslid.es/docs/overview.md)
+- Pyodide: [How conversion works](https://svgslid.es/docs/how-conversion-works.md#javascript)
+- quick start: [Quick start](https://svgslid.es/docs/quick-start.md)
+- radial gradient: [PRB: A gradient arrives as one solid colour](https://svgslid.es/docs/kb/gradient-becomes-solid-colour.md)
+- radius pill: [Rounding corners](https://svgslid.es/docs/round-corners.md)
+- recolouring a shape: [Quick start](https://svgslid.es/docs/quick-start.md#next)
+- redo: [Undo and redo](https://svgslid.es/docs/undo-redo.md)
+- release notes: [Version history](https://svgslid.es/docs/release-notes.md)
+- removing a point: [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md#points)
+- renaming a layer: [The Layers panel](https://svgslid.es/docs/layers.md#actions)
+- requirements, extension: [Installing and updating](https://svgslid.es/docs/install.md#requirements)
+- resize shortcuts: [Fill, stroke and exact values](https://svgslid.es/docs/fill-stroke.md#transform)
+- resizing: [Quick start](https://svgslid.es/docs/quick-start.md#next)
+- restacking: [The Layers panel](https://svgslid.es/docs/layers.md#actions)
+- restoring text: [Outlining strokes and text](https://svgslid.es/docs/outline-stroke-text.md#restore)
+- rotate shortcuts: [Fill, stroke and exact values](https://svgslid.es/docs/fill-stroke.md#transform)
+- rotated image: [Masking an image](https://svgslid.es/docs/mask-image.md#limits), [PRB: Mask image with shape shows a message and does not mask](https://svgslid.es/docs/kb/cannot-mask-image.md)
+- rotating in Edit Shape: [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md#smart-box)
+- rounding corners: [Rounding corners](https://svgslid.es/docs/round-corners.md)
+- scaling in Edit Shape: [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md#smart-box)
+- scrubbing a number: [Fill, stroke and exact values](https://svgslid.es/docs/fill-stroke.md#scrub)
+- searching commands: [The command palette](https://svgslid.es/docs/command-palette.md)
+- selecting inside a group: [The Layers panel](https://svgslid.es/docs/layers.md#direct-select)
+- several files: [Inserting SVG files](https://svgslid.es/docs/insert-svg.md#several)
+- several presses: [PRB: COMMAND+Z undoes only part of a combine or outline](https://svgslid.es/docs/kb/undo-takes-several-presses.md)
+- several shapes, rounding: [Rounding corners](https://svgslid.es/docs/round-corners.md#several)
+- short screens: [The toolbar](https://svgslid.es/docs/toolbar.md#short)
+- shortcuts: [Keyboard shortcuts](https://svgslid.es/docs/keyboard-shortcuts.md)
+- single object, aligning: [Aligning and distributing](https://svgslid.es/docs/align-distribute.md#single)
+- size of inserted shapes: [Inserting SVG files](https://svgslid.es/docs/insert-svg.md#size)
+- skew: [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md#smart-box)
+- Slides API, not used: [How shapes reach the slide](https://svgslid.es/docs/how-shapes-reach-the-slide.md)
+- Slides' own shapes, editing: [Editing Slides' own shapes](https://svgslid.es/docs/convert-slides-shapes.md)
+- small objects: [The Layers panel](https://svgslid.es/docs/layers.md#small)
+- small SVGs: [Point precision](https://svgslid.es/docs/point-precision.md)
+- smart box: [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md#smart-box)
+- smooth point: [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md#points)
+- snapping: [Snapping](https://svgslid.es/docs/snapping.md)
+- snapping, turning off for one move: [Snapping](https://svgslid.es/docs/snapping.md#override)
+- still copy: [Multi-step changes and undo](https://svgslid.es/docs/undo-and-still-copy.md)
+- storage permission: [Permissions and data](https://svgslid.es/docs/permissions-privacy.md#storage)
+- Straighten the image first: [PRB: Mask image with shape shows a message and does not mask](https://svgslid.es/docs/kb/cannot-mask-image.md)
+- stroke colour: [Fill, stroke and exact values](https://svgslid.es/docs/fill-stroke.md)
+- stroke icons: [PRB: A line icon inserts nothing](https://svgslid.es/docs/kb/line-icon-inserts-nothing.md)
+- stroke on / off: [Fill, stroke and exact values](https://svgslid.es/docs/fill-stroke.md#weight)
+- stroke position: [Outlining strokes and text](https://svgslid.es/docs/outline-stroke-text.md#position)
+- stroke weight: [Fill, stroke and exact values](https://svgslid.es/docs/fill-stroke.md#weight)
+- stroke weight field: [The toolbar](https://svgslid.es/docs/toolbar.md#parts)
+- strokes to outlines: [How conversion works](https://svgslid.es/docs/how-conversion-works.md#stages)
+- subtract: [Combining shapes](https://svgslid.es/docs/combine-shapes.md#commands)
+- SVG code, pasting: [Inserting SVG files](https://svgslid.es/docs/insert-svg.md#paste-code)
+- SVG feature support: [SVG feature support](https://svgslid.es/docs/svg-compatibility.md)
+- SVG text: [PRB: Text in an SVG does not appear on the slide](https://svgslid.es/docs/kb/text-missing-after-insert.md)
+- SVG to Slides, overview: [What SVG to Slides does](https://svgslid.es/docs/overview.md)
+- svgslid.es button: [The toolbar](https://svgslid.es/docs/toolbar.md#closed)
+- terms: [Glossary](https://svgslid.es/docs/glossary.md)
+- text box: [Editing Slides' own shapes](https://svgslid.es/docs/convert-slides-shapes.md#table)
+- text missing: [PRB: Text in an SVG does not appear on the slide](https://svgslid.es/docs/kb/text-missing-after-insert.md)
+- text, SVG: [SVG feature support](https://svgslid.es/docs/svg-compatibility.md#not-converted)
+- text to shapes: [Outlining strokes and text](https://svgslid.es/docs/outline-stroke-text.md#text)
+- theme builder: [Theme objects](https://svgslid.es/docs/theme-objects.md)
+- theme objects: [Theme objects](https://svgslid.es/docs/theme-objects.md)
+- too many files: [PRB: Nothing is inserted when more than 25 files are dropped](https://svgslid.es/docs/kb/more-than-25-files.md)
+- toolbar: [The toolbar](https://svgslid.es/docs/toolbar.md)
+- toolbar missing: [PRB: The toolbar does not appear](https://svgslid.es/docs/kb/toolbar-does-not-appear.md)
+- tooltips: [The toolbar](https://svgslid.es/docs/toolbar.md#tooltips)
+- transforms: [SVG feature support](https://svgslid.es/docs/svg-compatibility.md#works)
+- troubleshooting: [All articles](https://svgslid.es/docs/kb.md)
+- undo: [Undo and redo](https://svgslid.es/docs/undo-redo.md)
+- undo, how it works: [Multi-step changes and undo](https://svgslid.es/docs/undo-and-still-copy.md)
+- undo partly: [PRB: COMMAND+Z undoes only part of a combine or outline](https://svgslid.es/docs/kb/undo-takes-several-presses.md)
+- union: [Combining shapes](https://svgslid.es/docs/combine-shapes.md#commands)
+- update note: [Installing and updating](https://svgslid.es/docs/install.md#updates)
+- updating: [Installing and updating](https://svgslid.es/docs/install.md)
+- use and symbol: [SVG feature support](https://svgslid.es/docs/svg-compatibility.md#not-converted)
+- version 1.0.0: [Versions 1.0.0 and 1.0.1](https://svgslid.es/docs/release-notes/1-0.md)
+- version 1.0.1: [Versions 1.0.0 and 1.0.1](https://svgslid.es/docs/release-notes/1-0.md)
+- version 1.1.0: [Version 1.2.0](https://svgslid.es/docs/release-notes/1-2-0.md#notes)
+- version 1.2.0: [Version 1.2.0](https://svgslid.es/docs/release-notes/1-2-0.md)
+- version 1.3.0: [Version 1.3.0](https://svgslid.es/docs/release-notes/1-3-0.md)
+- version, checking: [Installing and updating](https://svgslid.es/docs/install.md#check-version)
+- version, finding: [HOWTO: Find which version of the extension is installed](https://svgslid.es/docs/kb/which-version.md)
+- version history: [Version history](https://svgslid.es/docs/release-notes.md)
+- versions: [Version history](https://svgslid.es/docs/release-notes.md#versions)
+- Web Uploader: [Web Uploader](https://svgslid.es/docs/web-uploader.md)
+- WebAssembly: [How conversion works](https://svgslid.es/docs/how-conversion-works.md#javascript)
+- what's new: [Version history](https://svgslid.es/docs/release-notes.md)
+- Windows keys: [Document conventions](https://svgslid.es/docs/conventions.md#keys)
+- Windows shortcuts: [Keyboard shortcuts](https://svgslid.es/docs/keyboard-shortcuts.md)
+- WordArt: [Editing Slides' own shapes](https://svgslid.es/docs/convert-slides-shapes.md#table)
+- Workspace Add-on: [Workspace Add-on](https://svgslid.es/docs/add-on.md)
+- wrong place: [FIX: Inserted shapes landed away from the pointer in versions 1.0.0 and 1.0.1](https://svgslid.es/docs/kb/shapes-land-away-from-pointer.md)
+- zoom in Edit Shape: [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md#points)
+
+## See also
+
+- [Glossary](https://svgslid.es/docs/glossary.md)
+- [Keyboard shortcuts](https://svgslid.es/docs/keyboard-shortcuts.md)
+- [All articles](https://svgslid.es/docs/kb.md)
+
+Source: https://svgslid.es/docs/a-z-index (SVG to Slides Documentation, Reference). Last reviewed November 20, 2026.
+
+
+---
+
+# How conversion works
+
+Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.3.0; SVG to Slides Web Uploader; SVG to Slides Workspace Add-on for Google Slides.
+
+Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
+
+Conversion turns every drawable element of the SVG into a path, and every path into one Slides shape with one fill. The extension and the add-on write the shapes in Slides' own form. The Web Uploader writes a presentation file.
+
+## Stages
+
+| Stage | What happens |
+|---|---|
+| 1. Read | The SVG is parsed. Definitions, clip paths and masks are set aside, and so is a rectangle that only fills the canvas as a background. |
+| 2. Paint | Fill and stroke are worked out for each element, including values inherited from the groups around it. |
+| 3. Shapes to paths | `rect`, `circle`, `ellipse`, `line`, `polyline` and `polygon` become path data. |
+| 4. Arcs to curves | Arc commands are converted into cubic Bézier curves. |
+| 5. Strokes to outlines | A stroke with a width is expanded into a filled outline, because the shape that lands has one fill. |
+| 6. Transforms | `translate`, `rotate` and `scale` on the element and on its groups are applied to the points. |
+| 7. Write | Each path becomes one shape with a tight bounding box. Shapes from one file are grouped. |
+
+## Two outputs
+
+|  | Extension and add-on | Web Uploader |
+|---|---|---|
+| Output | Slides' own shape data, handed to the open slide. See [How shapes reach the slide](https://svgslid.es/docs/how-shapes-reach-the-slide.md). | A presentation file with one slide per SVG, each path a custom-geometry shape. |
+| Gradients | The first colour stop becomes a solid fill. | Kept as gradients. |
+| Text and some strokes | Not converted. | Outlined on the server before conversion. |
+
+## The JavaScript converter in version 1.3.0
+
+Up to version 1.2.0 the extension carried a Python runtime compiled to WebAssembly and ran the same Python converter the server runs. That runtime was most of the installed size.
+
+Version 1.3.0 replaces it with a JavaScript converter that follows the Python one line for line, including its rounding rules and its error cases. The two were compared before release:
+
+| Check | Result |
+|---|---|
+| All 138 SVG files in the project's repository, and multi-file drops | Output identical, byte for byte. |
+| 3,000 randomly generated SVG files | Identical except for 3 files with a perfect half-ellipse arc, where the last bit of a floating-point result decides whether the same shape is written as two curve pieces or three. |
+
+The installed size fell from 14 MB to 1.1 MB. With no runtime to fall back from, the server fallback and its host permission were removed. See [Version 1.3.0](https://svgslid.es/docs/release-notes/1-3-0.md#packaging).
+
+## Why some features do not convert
+
+A Slides shape has one outline and one fill. SVG features that depend on something else, such as a clip path, a mask, a filter, a pattern or per-element transparency, have no place to go and are dropped or ignored. Colours written as `hsl()` are not parsed and arrive black. The tested results are in [SVG feature support](https://svgslid.es/docs/svg-compatibility.md).
+
+## See also
+
+- [SVG feature support](https://svgslid.es/docs/svg-compatibility.md)
+- [How shapes reach the slide](https://svgslid.es/docs/how-shapes-reach-the-slide.md)
+- [Point precision](https://svgslid.es/docs/point-precision.md)
+- [Edit points and polylines](https://svgslid.es/docs/edit-points-and-polylines.md)
+
+Source: https://svgslid.es/docs/how-conversion-works (SVG to Slides Documentation, Technical Notes). Last reviewed November 20, 2026.
+
+
+---
+
+# How shapes reach the slide
+
+Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.3.0; SVG to Slides Workspace Add-on for Google Slides.
+
+The extension never calls a Google API. It hands shapes to Slides in the form Slides itself uses when you copy and paste a shape, so Slides treats them as its own. That is why the extension needs no Google permission.
+
+## The route
+
+When you copy a shape in Google Slides, Slides writes it to the clipboard in a form of its own. Paste that data back and Slides rebuilds the shape. SVG to Slides writes the same form from an SVG's paths and gives it to Slides. Slides accepts it as if it had copied the shapes itself.
+
+No request goes to the Slides API or to Drive, and no OAuth scope is involved.
+
+## How the hand-over is made
+
+| Product and version | Hand-over |
+|---|---|
+| Extension 1.0.0 and 1.0.1 | The extension placed the data on your clipboard at your click. You pressed Command+V. |
+| Extension 1.2.0 and later | The extension delivers the data to the Slides tab the way a paste does. If Slides does not accept it, the extension falls back to your clipboard and asks for Command+V. |
+| Add-on | You click **Copy**, then press Command+V. A dialog in a web page cannot paste for you. |
+
+## Reading the selection
+
+Edit Shape and the shape commands need to know what is selected. They read it the way a copy does: Slides hands over the same shape data, inside your browser. Nothing is sent anywhere.
+
+## Replacing a shape
+
+An edit, a combine or an outline ends by removing the original objects and handing Slides the result in the same place, then restoring its place in the stack. Slides records that as several steps. See [Multi-step changes and undo](https://svgslid.es/docs/undo-and-still-copy.md) for how those steps are hidden and undone as one.
+
+## What follows from this route
+
+- Shapes land on the slide you have open. The route cannot create slides.
+- The result is a native object. A masked image, for example, is the same kind of object Slides makes when you crop an image to a shape: a shape filled with the picture.
+- The form Slides uses is internal to Google and can change. The extension is built so that if a scripted hand-over stops working, it falls back to copy and Command+V.
+
+## See also
+
+- [How conversion works](https://svgslid.es/docs/how-conversion-works.md)
+- [Permissions and data](https://svgslid.es/docs/permissions-privacy.md)
+- [Multi-step changes and undo](https://svgslid.es/docs/undo-and-still-copy.md)
+- [INFO: The extension asks you to press COMMAND+V](https://svgslid.es/docs/kb/press-command-v-prompt.md)
+
+Source: https://svgslid.es/docs/how-shapes-reach-the-slide (SVG to Slides Documentation, Technical Notes). Last reviewed November 20, 2026.
+
+
+---
+
+# Slides' Edit points and polylines
+
+Applies to: SVG to Slides Chrome extension, versions 1.2.0 and 1.3.0; SVG to Slides Workspace Add-on for Google Slides.
+
+Google Slides has an Edit points command of its own, which works on polylines. Inserted shapes with one outline and only straight segments land as polylines, so that command works on them. Curved shapes land as custom shapes. Use Edit Shape for those.
+
+## The rule
+
+A converted shape lands as a polyline when all three are true:
+
+- It has a single outline, with no holes and no separate pieces.
+- Every segment is a straight line.
+- It has no more than 150 points.
+
+Rectangles, polygons and other straight-edged closed paths meet the rule. Circles, curved icons and shapes with holes land as custom shapes.
+
+## Why curved shapes are not polylines
+
+Slides' point editor has no model for Bézier curves. These results come from inserting test shapes and dragging a point in each.
+
+| Test | Result |
+|---|---|
+| A polyline that contains curves | It draws correctly when inserted. On the first point drag, Slides rewrites the whole outline as straight lines, and every curve control point becomes a corner. |
+| A polyline with several outlines | Slides merges them into one outline, joining the outer and inner parts with stray diagonal edges. |
+| A shape of Slides' curve-tool kind, given curve data | Slides ignores the curve data and draws its own smooth line through every coordinate. A circle made of four curves comes out as a lumpy rounded square. |
+
+So only shapes that Slides' editor can represent exactly are marked for it.
+
+## A difference you can see
+
+| Shape | Double-click in Slides |
+|---|---|
+| Custom shape | Gives a text cursor. The shape can hold text. |
+| Polyline | Enters Slides' point editing. |
+
+## Which editor to use
+
+| To edit | Use |
+|---|---|
+| A straight-edged shape, corner by corner | Slides' own **Edit points**, or [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md). |
+| Any shape with curves or holes | [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md). |
+| A shape from Slides' shape menu | [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md), which converts it first. See [Editing Slides' own shapes](https://svgslid.es/docs/convert-slides-shapes.md). |
+
+## See also
+
+- [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md)
+- [Editing Slides' own shapes](https://svgslid.es/docs/convert-slides-shapes.md)
+- [How conversion works](https://svgslid.es/docs/how-conversion-works.md)
+- [INFO: Slides' own Edit points is offered for some inserted shapes only](https://svgslid.es/docs/kb/edit-points-missing.md)
+
+Source: https://svgslid.es/docs/edit-points-and-polylines (SVG to Slides Documentation, Technical Notes). Last reviewed November 20, 2026.
+
+
+---
+
+# Point precision: small SVGs keep their detail
+
+Applies to: SVG to Slides Chrome extension, version 1.3.0.
+
+Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
+
+From version 1.3.0 every inserted shape carries its points at full precision, whatever size it lands at. An icon dropped at 12 pixels can be enlarged later and keeps every curve.
+
+## The problem before 1.3.0
+
+Slides stores an inserted shape's points as they arrive and resizes the shape by changing its transform. It does not recalculate the points. Earlier versions wrote the points at the size of the drop, so those points were all the detail the shape ever had. An icon that landed 12 pixels wide carried 12 pixels' worth of positions, and enlarging it showed the rounding.
+
+## What 1.3.0 does
+
+Each shape's points are written in a frame of its own, about 100,000 units across, and the shape's transform scales that frame down to the size on the slide. The points are the same whatever the size.
+
+Slides keeps a transform's scale to four decimal places. A scale of 0.047625 comes back as 0.0476. The converter therefore rounds the scale to four places first and sizes the frame to fit that scale exactly, so nothing shifts when Slides stores the shape.
+
+![A slide zoomed to 400 percent showing a large palm icon with smooth, clean curves](https://svgslid.es/static/docs/img/small-svg-detail.jpg)
+Figure 1. A small icon after enlarging, viewed at 400% zoom. *Illustration.*
+
+## Checks
+
+| Check | Result |
+|---|---|
+| The 138 SVG files in the project's repository | Every shape lands within 0.01 pixel of where it landed before the change. |
+| A 12 pixel, two-shape icon enlarged about 700 times with Slides' own resize | The shape kept its full-precision points. |
+
+> **Note:** The add-on still writes points at the size of the insert.
+
+## See also
+
+- [Inserting SVG files](https://svgslid.es/docs/insert-svg.md#size)
+- [How conversion works](https://svgslid.es/docs/how-conversion-works.md)
+- [Version 1.3.0](https://svgslid.es/docs/release-notes/1-3-0.md#converter)
+
+Source: https://svgslid.es/docs/point-precision (SVG to Slides Documentation, Technical Notes). Last reviewed November 20, 2026.
+
+
+---
+
+# How multi-step changes run and undo
+
+Applies to: SVG to Slides Chrome extension, version 1.3.0.
+
+Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
+
+A combine, an outline, a mask or an Edit Shape session reaches Slides as several steps: remove, insert, restack. The extension shows a still copy of the slide while they run, so you see only the result, and it counts the steps so that one Command+Z undoes them all.
+
+## The still copy
+
+While a change runs, the extension lays a still picture of the slide over the canvas, under its own toolbar. Slides' toolbar is held still too. The copy includes the selection box, so the selection does not blink. When the last step has finished, the copy is removed and the finished slide shows.
+
+Objects hidden in the Layers panel stay hidden in the copy.
+
+For Align and Distribute the copy is drawn with the objects already at their destination. The slide changes once, straight to the result.
+
+## Slides' own commands for moving
+
+Align, Distribute and Center on page are run from Slides' own Arrange menu, which the extension keeps invisible while it uses it. Each is one Slides step. Nothing is deleted or reinserted.
+
+This matters for images. An image that is deleted and reinserted from copied data can lose its picture, so anything that moves an image goes through Slides' own commands.
+
+## One object to a slide edge
+
+Slides' Align needs something to align to. To align a single object to an edge of the slide, the extension inserts a 1 pixel square with no fill and no line at the corner it needs, selects it with the object, runs Slides' Align, takes the object out of the selection and deletes the square. The steps run behind the still copy and undo as one. No extra object is left in the presentation.
+
+## One-press undo
+
+The extension notes the slide before and after each of its changes and counts the Slides steps the change made. If you press Command+Z right after, it walks Slides' own undo back that many steps, behind the still copy. Redo walks forward the same way.
+
+Two rules keep this safe:
+
+- It never presses undo more times than the change made steps.
+- It applies only while the slide is as the extension left it. If you have changed the slide since, Slides' own undo is used, one step per press.
+
+## See also
+
+- [Undo and redo](https://svgslid.es/docs/undo-redo.md)
+- [Aligning and distributing](https://svgslid.es/docs/align-distribute.md)
+- [How shapes reach the slide](https://svgslid.es/docs/how-shapes-reach-the-slide.md)
+- [PRB: COMMAND+Z undoes only part of a combine or outline](https://svgslid.es/docs/kb/undo-takes-several-presses.md)
+
+Source: https://svgslid.es/docs/undo-and-still-copy (SVG to Slides Documentation, Technical Notes). Last reviewed November 20, 2026.
+
+
+---
+
+# Knowledge Base
+
+Applies to: SVG to Slides Chrome extension; SVG to Slides Web Uploader; SVG to Slides Workspace Add-on.
+
+Each article covers one symptom: what you see, why it happens, and what to do. Articles are numbered so that they can be cited.
+
+- Q100101: [PRB: An SVG placed in Google Slides becomes a flat image](https://svgslid.es/docs/kb/svg-becomes-a-flat-image.md)
+- Q100102: [PRB: A gradient arrives as one solid colour](https://svgslid.es/docs/kb/gradient-becomes-solid-colour.md)
+- Q100103: [PRB: Text in an SVG does not appear on the slide](https://svgslid.es/docs/kb/text-missing-after-insert.md)
+- Q100104: [PRB: A line icon inserts nothing](https://svgslid.es/docs/kb/line-icon-inserts-nothing.md)
+- Q100105: [PRB: Shapes arrive black](https://svgslid.es/docs/kb/colours-arrive-black.md)
+- Q100106: [INFO: The extension asks you to press COMMAND+V](https://svgslid.es/docs/kb/press-command-v-prompt.md)
+- Q100107: [PRB: Nothing is inserted when more than 25 files are dropped](https://svgslid.es/docs/kb/more-than-25-files.md)
+- Q100108: [INFO: Slides' own Edit points is offered for some inserted shapes only](https://svgslid.es/docs/kb/edit-points-missing.md)
+- Q100109: [PRB: COMMAND+Z undoes only part of a combine or outline](https://svgslid.es/docs/kb/undo-takes-several-presses.md)
+- Q100110: [PRB: Layer names are missing on another computer](https://svgslid.es/docs/kb/layer-names-missing.md)
+- Q100111: [INFO: An object in Layers is greyed and marked M](https://svgslid.es/docs/kb/object-greyed-with-m.md)
+- Q100112: [PRB: Mask image with shape shows a message and does not mask](https://svgslid.es/docs/kb/cannot-mask-image.md)
+- Q100113: [PRB: Outline text reports that it could not get the font](https://svgslid.es/docs/kb/outline-text-font.md)
+- Q100114: [PRB: A Web Uploader link stops working after 7 days](https://svgslid.es/docs/kb/web-uploader-link-expired.md)
+- Q100115: [FIX: Inserted shapes landed away from the pointer in versions 1.0.0 and 1.0.1](https://svgslid.es/docs/kb/shapes-land-away-from-pointer.md)
+- Q100116: [PRB: The toolbar does not appear](https://svgslid.es/docs/kb/toolbar-does-not-appear.md)
+- Q100117: [HOWTO: Find which version of the extension is installed](https://svgslid.es/docs/kb/which-version.md)
+
+## Kinds of article
+
+| Prefix | Meaning |
+|---|---|
+| PRB | A problem and its cause. The behaviour may be by design. |
+| FIX | A problem that a later version corrects. |
+| INFO | Background on how something behaves. |
+| HOWTO | A procedure. |
+
+## If your problem is not listed
+
+Check [Limits and known issues](https://svgslid.es/docs/limits.md) and [SVG feature support](https://svgslid.es/docs/svg-compatibility.md). If a file does not convert, send the .svg file itself to the address on the [Support](https://svgslid.es/support) page. Most conversion problems are specific to how one file was exported.
+
+## See also
+
+- [Limits and known issues](https://svgslid.es/docs/limits.md)
+- [SVG feature support](https://svgslid.es/docs/svg-compatibility.md)
+- [Document conventions](https://svgslid.es/docs/conventions.md#kb)
+- [Support](https://svgslid.es/support)
+
+Source: https://svgslid.es/docs/kb (SVG to Slides Documentation, Knowledge Base). Last reviewed November 20, 2026.
+
+
+---
+
+# PRB: An SVG placed in Google Slides becomes a flat image
+
+Article ID: Q100101. Last reviewed: November 20, 2026.
+
+Applies to: Google Slides; SVG to Slides Chrome extension, versions 1.0.0 through 1.3.0; SVG to Slides Web Uploader; SVG to Slides Workspace Add-on for Google Slides.
+
+Google Slides has no SVG import, so an SVG placed on a slide is flattened into a picture. To keep it as vectors, insert it with SVG to Slides: drag the file onto the slide with the Chrome extension, or convert it with the Web Uploader.
+
+## Symptoms
+
+An SVG placed on a slide without SVG to Slides behaves as one picture:
+
+- It blurs or shows pixels when enlarged.
+- Its parts cannot be selected or recoloured.
+- Slides offers it picture options only.
+
+## Cause
+
+Google Slides does not keep SVG files as vectors. It flattens the drawing into a picture on the way in.
+
+## Resolution
+
+Insert the file as native shapes with one of the three products.
+
+| Product | Do this |
+|---|---|
+| Chrome extension | Drag the .svg file onto the slide and click where it goes. See [Inserting SVG files](https://svgslid.es/docs/insert-svg.md). |
+| Web Uploader | Upload the file and open the Drive link. See [Web Uploader](https://svgslid.es/docs/web-uploader.md). |
+| Workspace Add-on | Choose **Insert SVGs** from the Extensions menu. See [Workspace Add-on](https://svgslid.es/docs/add-on.md). |
+
+## Status
+
+This is how Google Slides behaves.
+
+## More information
+
+There are two manual routes that need no extension: convert the SVG to EMF, open it in Google Drawings and copy the shapes across; or insert it in PowerPoint, convert it to a shape, save, and open the file in Slides. The guide [How to insert an SVG into Google Slides](https://svgslid.es/guides/insert-svg-into-google-slides) walks through both.
+
+## See also
+
+- [Inserting SVG files](https://svgslid.es/docs/insert-svg.md)
+- [What SVG to Slides does](https://svgslid.es/docs/overview.md)
+- [SVG feature support](https://svgslid.es/docs/svg-compatibility.md)
+- [Guide: Does Google Slides support SVG?](https://svgslid.es/guides/does-google-slides-support-svg)
+- [Guide: SVG vs PNG in Google Slides](https://svgslid.es/guides/svg-vs-png-google-slides)
+
+Source: https://svgslid.es/docs/kb/svg-becomes-a-flat-image (SVG to Slides Documentation, Knowledge Base). Last reviewed November 20, 2026.
+
+
+---
+
+# PRB: A gradient arrives as one solid colour
+
+Article ID: Q100102. Last reviewed: November 20, 2026.
+
+Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.3.0; SVG to Slides Workspace Add-on for Google Slides.
+
+The Chrome extension and the add-on fill each shape with the gradient's first colour. To keep gradients, convert the file with the Web Uploader, which carries them through.
+
+## Symptoms
+
+A shape that has a linear or radial gradient in the SVG lands with one flat colour. A radial gradient with a white centre lands white.
+
+## Cause
+
+The extension and the add-on write each shape with a single fill. They use the first colour stop of the gradient.
+
+## Resolution
+
+**To keep the gradient**
+
+1. Convert the file with the [Web Uploader](https://svgslid.es/docs/web-uploader.md). It keeps linear and radial gradients.
+2. Open the Drive link and make a copy of the file.
+3. Copy the shapes from the copy into your presentation.
+
+## Status
+
+This is a known limit of the extension and the add-on in the versions listed above.
+
+## See also
+
+- [Web Uploader](https://svgslid.es/docs/web-uploader.md)
+- [SVG feature support](https://svgslid.es/docs/svg-compatibility.md#partly)
+- [How conversion works](https://svgslid.es/docs/how-conversion-works.md#outputs)
+
+Source: https://svgslid.es/docs/kb/gradient-becomes-solid-colour (SVG to Slides Documentation, Knowledge Base). Last reviewed November 20, 2026.
+
+
+---
+
+# PRB: Text in an SVG does not appear on the slide
+
+Article ID: Q100103. Last reviewed: November 20, 2026.
+
+Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.3.0; SVG to Slides Workspace Add-on for Google Slides.
+
+The extension and the add-on do not convert SVG text elements. Convert the text to outlines in your design tool before exporting, or use the Web Uploader, which outlines text into shapes.
+
+## Symptoms
+
+The shapes of the SVG land on the slide. Words that were text in the SVG are not there.
+
+## Cause
+
+The extension and the add-on convert paths and basic shapes. They do not convert `<text>` elements.
+
+## Resolution
+
+Use either method.
+
+- In your design tool, convert the text to outlines, then export the SVG again. The letters are then paths, and paths convert.
+- Convert the file with the [Web Uploader](https://svgslid.es/docs/web-uploader.md). It outlines text on the server.
+
+Either way the words arrive as shapes. They look the same but cannot be retyped. To have editable text, add a Slides text box.
+
+## Status
+
+This is a known limit of the extension and the add-on.
+
+## See also
+
+- [SVG feature support](https://svgslid.es/docs/svg-compatibility.md#not-converted)
+- [Web Uploader](https://svgslid.es/docs/web-uploader.md)
+- [Outlining strokes and text](https://svgslid.es/docs/outline-stroke-text.md)
+
+Source: https://svgslid.es/docs/kb/text-missing-after-insert (SVG to Slides Documentation, Knowledge Base). Last reviewed November 20, 2026.
+
+
+---
+
+# PRB: A line icon inserts nothing
+
+Article ID: Q100104. Last reviewed: November 20, 2026.
+
+Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.3.0; SVG to Slides Workspace Add-on for Google Slides.
+
+Icons that set their stroke once on the root svg element, or use stroke="currentColor", are not converted by the extension. Convert them with the Web Uploader, or outline the strokes in your design tool before exporting.
+
+## Symptoms
+
+You drop a line icon and click to place it. Nothing lands on the slide. Icon sets drawn with strokes, in the style of Lucide and Feather, are the usual case.
+
+## Cause
+
+These icons do not put a stroke on each path. They set it once on the root `<svg>` element, often as `stroke="currentColor"`. The extension's converter does not pick up a stroke set there, and it does not resolve `currentColor`, so it finds nothing to draw.
+
+Strokes written on the elements themselves, with a stated colour, do convert. They land as filled outline shapes.
+
+## Resolution
+
+Use either method.
+
+- Convert the icons with the [Web Uploader](https://svgslid.es/docs/web-uploader.md). It converts strokes set on the whole SVG into filled outline shapes. A `currentColor` stroke comes out black, and you can recolour it in Slides.
+- In your design tool, outline the strokes, then export again.
+
+## Status
+
+This is a known limit of the extension and the add-on. Test files 04 and 17 on the [Specs page](https://svgslid.es/specs#compatibility) cover it.
+
+## See also
+
+- [SVG feature support](https://svgslid.es/docs/svg-compatibility.md)
+- [Web Uploader](https://svgslid.es/docs/web-uploader.md)
+- [How conversion works](https://svgslid.es/docs/how-conversion-works.md#stages)
+- [Guide: SVG logos and icons in Slides themes](https://svgslid.es/guides/svg-logos-icons-google-slides)
+
+Source: https://svgslid.es/docs/kb/line-icon-inserts-nothing (SVG to Slides Documentation, Knowledge Base). Last reviewed November 20, 2026.
+
+
+---
+
+# PRB: Shapes arrive black
+
+Article ID: Q100105. Last reviewed: November 20, 2026.
+
+Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.3.0; SVG to Slides Workspace Add-on for Google Slides; SVG to Slides Web Uploader.
+
+Colours set by CSS classes in a style block, colours written as hsl(), and pattern fills are not read by the converter, so those shapes arrive black. Export with colours written on each element, or recolour the shapes in Slides.
+
+## Symptoms
+
+The shapes land with the right outlines but filled black.
+
+## Cause
+
+| In the SVG | Result |
+|---|---|
+| Colours set by CSS classes in a `<style>` block, as some Illustrator exports write them | Shapes kept, colours black. |
+| Colours written as `hsl()` | Black. `rgb()`, named colours and short hex values are exact. |
+| A pattern fill | Shape kept, filled black. |
+
+## Resolution
+
+- In your design tool's SVG export settings, choose the option that writes each colour on its own element instead of in a style sheet. It is often called presentation attributes.
+- Or select the shapes in Slides and set their colours with the fill picker. Each path is its own shape.
+
+## Status
+
+This is a known limit in all three products.
+
+## See also
+
+- [SVG feature support](https://svgslid.es/docs/svg-compatibility.md#partly)
+- [Quick start](https://svgslid.es/docs/quick-start.md#next)
+- [Guide: Recolor SVGs in Google Slides](https://svgslid.es/guides/recolor-svg-in-google-slides)
+
+Source: https://svgslid.es/docs/kb/colours-arrive-black (SVG to Slides Documentation, Knowledge Base). Last reviewed November 20, 2026.
+
+
+---
+
+# INFO: The extension asks you to press COMMAND+V
+
+Article ID: Q100106. Last reviewed: November 20, 2026.
+
+Applies to: SVG to Slides Chrome extension, versions 1.2.0 and 1.3.0.
+
+The extension hands shapes to Google Slides the way a paste does. If Slides does not accept them, the extension places the shapes on your clipboard and asks you to press COMMAND+V to finish.
+
+## Summary
+
+Since version 1.2.0 a click inserts the shapes directly. The prompt is the fallback for when that does not go through.
+
+## More information
+
+| You see | Do this |
+|---|---|
+| A prompt to press Command+V after placing an SVG | Press Command+V. The shapes land. |
+| "Press ⌘V to finish" after a shape command | Press Command+V. |
+| "Couldn't replace the shapes. Delete them, then press ⌘V." | Delete the selected originals, then press Command+V. The result is on your clipboard. |
+| "Slides didn't accept the result. Press ⌘Z to undo." | Press Command+Z and try the command again. |
+
+On Windows the prompts name Ctrl in place of Command.
+
+In versions 1.0.0 and 1.0.1 every insert ended with Command+V. That was the normal flow in those versions.
+
+## See also
+
+- [Inserting SVG files](https://svgslid.es/docs/insert-svg.md#fallback)
+- [How shapes reach the slide](https://svgslid.es/docs/how-shapes-reach-the-slide.md)
+
+Source: https://svgslid.es/docs/kb/press-command-v-prompt (SVG to Slides Documentation, Knowledge Base). Last reviewed November 20, 2026.
+
+
+---
+
+# PRB: Nothing is inserted when more than 25 files are dropped
+
+Article ID: Q100107. Last reviewed: November 20, 2026.
+
+Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.3.0.
+
+The extension inserts up to 25 SVG files per drop. A larger drop inserts nothing and shows a message. Drop the files in batches of 25, or use the Web Uploader, which makes one slide per SVG.
+
+## Symptoms
+
+You drag more than 25 .svg files onto a slide. A message says there are too many files at once, and nothing lands.
+
+## Cause
+
+Files from one drop are laid out in a grid on the current slide. Past 25 files the grid stops being useful, so the extension refuses the drop.
+
+## Resolution
+
+- Drop the files in batches of 25 or fewer.
+- Or convert the whole set with the [Web Uploader](https://svgslid.es/docs/web-uploader.md). It makes a file with one slide per SVG.
+
+## Status
+
+This behaviour is by design.
+
+## See also
+
+- [Inserting SVG files](https://svgslid.es/docs/insert-svg.md#several)
+- [Web Uploader](https://svgslid.es/docs/web-uploader.md)
+- [Limits and known issues](https://svgslid.es/docs/limits.md#inserting)
+
+Source: https://svgslid.es/docs/kb/more-than-25-files (SVG to Slides Documentation, Knowledge Base). Last reviewed November 20, 2026.
+
+
+---
+
+# INFO: Slides' own Edit points is offered for some inserted shapes only
+
+Article ID: Q100108. Last reviewed: November 20, 2026.
+
+Applies to: SVG to Slides Chrome extension, versions 1.2.0 and 1.3.0.
+
+Slides' own Edit points works only on polylines. Inserted shapes with one outline and straight segments land as polylines. Curved shapes and shapes with holes do not, because Slides' point editor would damage them. Use Edit Shape for those.
+
+## Summary
+
+After inserting an SVG, some shapes offer Slides' **Edit points** and enter point editing on a double-click. Others give a text cursor on a double-click and have no **Edit points**.
+
+## More information
+
+Slides' point editor works with straight segments only. A shape is inserted as a polyline, which that editor accepts, only if it has a single outline, only straight segments, and no more than 150 points.
+
+Every other shape is inserted as a custom shape. To edit its points, double-click it and click **Edit Shape**. See [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md).
+
+The tests behind this rule are described in [Edit points and polylines](https://svgslid.es/docs/edit-points-and-polylines.md).
+
+## See also
+
+- [Edit points and polylines](https://svgslid.es/docs/edit-points-and-polylines.md)
+- [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md)
+
+Source: https://svgslid.es/docs/kb/edit-points-missing (SVG to Slides Documentation, Knowledge Base). Last reviewed November 20, 2026.
+
+
+---
+
+# PRB: COMMAND+Z undoes only part of a combine or outline
+
+Article ID: Q100109. Last reviewed: November 20, 2026.
+
+Applies to: SVG to Slides Chrome extension, version 1.3.0.
+
+Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
+
+A combine, outline or mask is several steps inside Slides. The extension undoes them in one press only while the slide is as it left it. If you changed the slide afterwards, Slides' own undo takes over and goes one step per press. Keep pressing COMMAND+Z until the original returns.
+
+## Symptoms
+
+You press Command+Z after a Union, an Outline or a Mask. Shapes disappear or reappear one at a time and the slide passes through states you did not make.
+
+## Cause
+
+The change reached Slides as several steps: remove the originals, insert the result, restore its place in the stack. The extension undoes all of them in one press, but only right after the change. Once you change the slide yourself, the extension stops, because pressing undo for you could remove your own work.
+
+## Resolution
+
+Keep pressing Command+Z until the slide is back to where you want it. Nothing is lost. The steps are in Slides' own history.
+
+## Status
+
+This behaviour is by design.
+
+## More information
+
+In version 1.2.0, which had no one-press undo, undoing an Edit Shape session always took several presses.
+
+## See also
+
+- [Undo and redo](https://svgslid.es/docs/undo-redo.md)
+- [Multi-step changes and undo](https://svgslid.es/docs/undo-and-still-copy.md#undo)
+
+Source: https://svgslid.es/docs/kb/undo-takes-several-presses (SVG to Slides Documentation, Knowledge Base). Last reviewed November 20, 2026.
+
+
+---
+
+# PRB: Layer names are missing on another computer
+
+Article ID: Q100110. Last reviewed: November 20, 2026.
+
+Applies to: SVG to Slides Chrome extension, version 1.3.0.
+
+Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
+
+Layer names are kept in Chrome on the computer where you set them. They are not saved in the presentation, so other people and other computers show the default names.
+
+## Symptoms
+
+You renamed objects in the Layers panel. On another computer, or for a colleague who opens the same presentation, the rows show their default names such as "Shape", "Image" or "Group of 3".
+
+## Cause
+
+The extension has no way to save a name inside the presentation without changing the objects. It keeps the names in Chrome's storage on the computer you used.
+
+## Resolution
+
+There is none. Rename the layers on the other computer if you need the names there.
+
+## Status
+
+This behaviour is by design.
+
+## More information
+
+The same applies to snapping settings, the memory that restores outlined text, and stroke position memory. Objects hidden with the eye are hidden only in your view. See [Permissions and data](https://svgslid.es/docs/permissions-privacy.md#storage).
+
+## See also
+
+- [The Layers panel](https://svgslid.es/docs/layers.md#stored)
+- [Permissions and data](https://svgslid.es/docs/permissions-privacy.md#storage)
+- [Limits and known issues](https://svgslid.es/docs/limits.md#local)
+
+Source: https://svgslid.es/docs/kb/layer-names-missing (SVG to Slides Documentation, Knowledge Base). Last reviewed November 20, 2026.
+
+
+---
+
+# INFO: An object in Layers is greyed and marked M
+
+Article ID: Q100111. Last reviewed: November 20, 2026.
+
+Applies to: SVG to Slides Chrome extension, version 1.3.0.
+
+Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
+
+The M marks a theme object: one that belongs to the slide's layout or master. It cannot be changed on the slide. Click its row twice to open Slides' theme builder on the layout or master that holds it.
+
+## Summary
+
+Some rows in the Layers panel are grey with an **M** badge, and clicking the object on the slide does nothing.
+
+## More information
+
+Slides draws layout and master objects on every slide that uses them. They can be edited only in the theme builder.
+
+**To edit the object**
+
+1. Click its row in the Layers panel.
+2. Click the row again within 5 seconds. The theme builder opens with the object selected.
+3. Press Option+Shift+M to return to the slide.
+
+If the Layers panel says it could not select an object that is not marked **M**, click the object on the slide instead.
+
+## See also
+
+- [Theme objects](https://svgslid.es/docs/theme-objects.md)
+- [The Layers panel](https://svgslid.es/docs/layers.md)
+
+Source: https://svgslid.es/docs/kb/object-greyed-with-m (SVG to Slides Documentation, Knowledge Base). Last reviewed November 20, 2026.
+
+
+---
+
+# PRB: Mask image with shape shows a message and does not mask
+
+Article ID: Q100112. Last reviewed: November 20, 2026.
+
+Applies to: SVG to Slides Chrome extension, version 1.3.0.
+
+Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
+
+Mask image with shape needs exactly one image and one shape or group selected, an image that is not rotated, and a mask that is a shape and not live text. The message under the toolbar says which condition failed.
+
+## Symptoms
+
+You press Option+Shift+K. The picture is not masked and a message appears under the toolbar.
+
+## Cause and resolution
+
+| Message | Cause | Do this |
+|---|---|---|
+| Select an image and a shape to mask it with | The selection has no image, or no shape. | Select the picture, then Shift-click the shape. |
+| Select an image and the shape to mask it with (two objects) | More than two objects are selected. | Group the shapes first with Command+Option+G, then select the image and the group. |
+| Straighten the image first: masking a rotated image isn't supported yet | The image is rotated. | Set the image's rotation back to 0, mask it, then rotate the result. |
+| That shape is too thin to mask with | The shape has no width or no height, as a straight line has. | Use a shape that has both. |
+| That shape has nothing to mask with | The object has no outline the extension can cut with. | Use a different shape. |
+| Outline the text first (⌥⌘T), then mask with it | The mask is live text. | Press Option+Command+T to outline the text, then mask. |
+| The mask has to be a shape (the other object is an image too) | Both selected objects are images. | Select one image and one shape. |
+| Couldn't get the picture from Slides to mask it | Slides did not hand over the picture. | Try again. If it repeats, copy and paste the image, then mask the pasted copy. |
+
+## Status
+
+Masking rotated images is not supported in version 1.3.0.
+
+## See also
+
+- [Masking an image](https://svgslid.es/docs/mask-image.md)
+- [Outlining strokes and text](https://svgslid.es/docs/outline-stroke-text.md#text)
+- [Limits and known issues](https://svgslid.es/docs/limits.md#shape-tools)
+
+Source: https://svgslid.es/docs/kb/cannot-mask-image (SVG to Slides Documentation, Knowledge Base). Last reviewed November 20, 2026.
+
+
+---
+
+# PRB: Outline text reports that it could not get the font
+
+Article ID: Q100113. Last reviewed: November 20, 2026.
+
+Applies to: SVG to Slides Chrome extension, version 1.3.0.
+
+Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
+
+Outline text reads letter shapes from the font. It downloads Google fonts from Google Fonts and asks Chrome for access to fonts installed on your computer. If neither works, allow font access when Chrome asks, or set the text in a Google font and outline it again.
+
+## Symptoms
+
+You press Option+Command+T. The text is not outlined, and a message says the extension could not get the font and suggests allowing font access or using a Google font.
+
+## Cause
+
+The font is not one that Google Fonts serves, and the extension could not read it from your computer. Either Chrome's font access prompt was declined, or the font is not installed.
+
+## Resolution
+
+Use either method.
+
+- Press Option+Command+T again and choose **Allow** when Chrome asks for access to your fonts.
+- Change the text to a Google font, then outline it.
+
+## More information
+
+For some system fonts that cannot be downloaded, the extension outlines the text with a font that has the same letter widths, and a note names the font it used. The outline then matches the text's spacing but not every letter shape.
+
+## See also
+
+- [Outlining strokes and text](https://svgslid.es/docs/outline-stroke-text.md#fonts)
+- [Permissions and data](https://svgslid.es/docs/permissions-privacy.md#network)
+
+Source: https://svgslid.es/docs/kb/outline-text-font (SVG to Slides Documentation, Knowledge Base). Last reviewed November 20, 2026.
+
+
+---
+
+# PRB: A Web Uploader link stops working after 7 days
+
+Article ID: Q100114. Last reviewed: November 20, 2026.
+
+Applies to: SVG to Slides Web Uploader.
+
+Files made by the Web Uploader are deleted after 7 days. To keep one, open the link within that time and choose File, Make a copy in Google Drive. If the link has expired, convert the SVG files again.
+
+## Symptoms
+
+A Drive link you received from the Web Uploader no longer opens.
+
+## Cause
+
+Converted files are stored for 7 days, then deleted by a daily clean-up.
+
+## Resolution
+
+**To keep a converted file**
+
+1. Open the link within 7 days.
+2. Choose **File › Make a copy**. The copy is yours and does not expire.
+
+If the link has already expired, upload the SVG files again at [svgslid.es/convert](https://svgslid.es/convert).
+
+## Status
+
+This behaviour is by design.
+
+## See also
+
+- [Web Uploader](https://svgslid.es/docs/web-uploader.md#keep)
+- [Permissions and data](https://svgslid.es/docs/permissions-privacy.md#web-uploader)
+
+Source: https://svgslid.es/docs/kb/web-uploader-link-expired (SVG to Slides Documentation, Knowledge Base). Last reviewed November 20, 2026.
+
+
+---
+
+# FIX: Inserted shapes landed away from the pointer in versions 1.0.0 and 1.0.1
+
+Article ID: Q100115. Last reviewed: November 20, 2026.
+
+Applies to: SVG to Slides Chrome extension, versions 1.0.0 and 1.0.1.
+
+Versions 1.0.0 and 1.0.1 estimated the position from the size of the window, which was off when Slides was zoomed or its panels were resized. Version 1.2.0 measures the slide itself and centres the graphic on the point you click.
+
+## Symptoms
+
+In version 1.0.0 or 1.0.1 the shapes land some distance from where you clicked. The error grows when Slides is zoomed in, or when the filmstrip or toolbar is not at its default size.
+
+## Cause
+
+Those versions did not read the slide's position. They estimated it from the window size, assuming Slides' default layout.
+
+## Resolution
+
+Update to version 1.2.0 or later. See [Installing and updating](https://svgslid.es/docs/install.md#updates).
+
+## Status
+
+Fixed in version 1.2.0. The extension now measures the slide you have open. In testing, an inserted graphic was centred within 2 pixels of the point clicked.
+
+## More information
+
+Version 1.2.0 also corrects a related fault in which visiting another slide first could throw off both placement and the editor.
+
+## See also
+
+- [Version 1.2.0](https://svgslid.es/docs/release-notes/1-2-0.md)
+- [Inserting SVG files](https://svgslid.es/docs/insert-svg.md#size)
+
+Source: https://svgslid.es/docs/kb/shapes-land-away-from-pointer (SVG to Slides Documentation, Knowledge Base). Last reviewed November 20, 2026.
+
+
+---
+
+# PRB: The toolbar does not appear
+
+Article ID: Q100116. Last reviewed: November 20, 2026.
+
+Applies to: SVG to Slides Chrome extension, version 1.3.0.
+
+Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
+
+The toolbar is part of version 1.3.0 and shows only on a Google Slides presentation open for editing. Check the installed version, reload the tab, and look for the round button at the left edge of the slide canvas: the toolbar starts closed.
+
+## Symptoms
+
+There is no round button and no toolbar at the left of the slide.
+
+## Cause and resolution
+
+| Cause | Do this |
+|---|---|
+| The installed version is earlier than 1.3.0. | Check the version. See [Installing and updating](https://svgslid.es/docs/install.md#check-version). Chrome updates on its own. |
+| The tab was open before the extension was installed or updated. | Reload the tab. |
+| The toolbar is closed. | It is one round button when closed. Click it, or press Option+\. |
+| Edit Shape is open. | The editor's own toolbar takes the same place. Click **Done** or **Cancel**. |
+| Slides is in full-screen view. | Leave full screen. |
+| The window is very small. | Make the window larger. The toolbar hides when the canvas is too small to hold it. |
+| The page is not a presentation open for editing. | The extension runs only in the Slides editor. |
+
+## See also
+
+- [The toolbar](https://svgslid.es/docs/toolbar.md)
+- [Installing and updating](https://svgslid.es/docs/install.md)
+- [HOWTO: Find which version of the extension is installed](https://svgslid.es/docs/kb/which-version.md)
+
+Source: https://svgslid.es/docs/kb/toolbar-does-not-appear (SVG to Slides Documentation, Knowledge Base). Last reviewed November 20, 2026.
+
+
+---
+
+# HOWTO: Find which version of the extension is installed
+
+Article ID: Q100117. Last reviewed: November 20, 2026.
+
+Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.3.0.
+
+Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
+
+Type chrome://extensions in Chrome's address bar and find SVG to Slides. The version number is beside the name. On the slide, version 1.3.0 shows a round toolbar button at the left of the canvas.
+
+**To check the version**
+
+1. In Chrome's address bar, type `chrome://extensions` and press Enter.
+2. Find **SVG to Slides**. The version number is shown beside the name.
+
+## Telling versions apart on the slide
+
+| Version | What you see in Google Slides |
+|---|---|
+| 1.3.0 | A round button at the left edge of the slide canvas. It opens the toolbar. |
+| 1.2.0 | No toolbar. Double-clicking a shape shows an **Edit Shape** button. |
+| 1.0.0, 1.0.1 | Neither. Dropping an SVG ends with a prompt to press Command+V. |
+
+## More information
+
+Chrome installs new versions on its own, usually within a few hours of their release. See [Installing and updating](https://svgslid.es/docs/install.md#updates) and [Version history](https://svgslid.es/docs/release-notes.md).
+
+## See also
+
+- [Installing and updating](https://svgslid.es/docs/install.md#check-version)
+- [Version history](https://svgslid.es/docs/release-notes.md)
+
+Source: https://svgslid.es/docs/kb/which-version (SVG to Slides Documentation, Knowledge Base). Last reviewed November 20, 2026.
+
+
+---
+
+# Release notes and version history
+
+Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.3.0; SVG to Slides Web Uploader; SVG to Slides Workspace Add-on.
+
+Version 1.3.0 is the newest version of the Chrome extension. It is not in the Chrome Web Store yet, and the store installs version 1.2.0. Version 1.3.0 adds a toolbar with a pen, image masks, shape combining, a Layers panel and one-press undo, and it is 92% smaller than 1.2.0. Each release has a technical changelog below.
+
+## Chrome extension versions
+
+| Version | Date | What it added | Download | Installed | Chrome permissions |
+|---|---|---|---|---|---|
+| [1.3.0](https://svgslid.es/docs/release-notes/1-3-0.md) | Not in the Chrome Web Store yet | Toolbar, pen, snapping, image masks, combine, one-press undo, instant align, Layers, outline stroke and text, command palette, full-precision points, JavaScript converter | 392 KB | 1.1 MB | storage |
+| [1.2.0](https://svgslid.es/docs/release-notes/1-2-0.md) | November 2026 | Edit Shape, round corners, editing Slides' own shapes, click to insert, exact placement | 5.8 MB | 14 MB | storage, one host permission |
+| [1.0.1](https://svgslid.es/docs/release-notes/1-0.md) | July 2026 | Removed an unused permission |  |  | One host permission |
+| [1.0.0](https://svgslid.es/docs/release-notes/1-0.md) | July 2026 | First release: drag SVG files onto a slide |  |  |  |
+
+Version 1.1.0 was an internal build and was not released. Its changes shipped in 1.2.0.
+
+> **Note:** A new version reaches installed copies through the Chrome Web Store's automatic update, once the store has published it. To see which version you have, see [Installing and updating](https://svgslid.es/docs/install.md#check-version).
+
+## Feature availability by version
+
+| Feature | 1.0 | 1.2 | 1.3 |
+|---|---|---|---|
+| Insert SVG files by drag and drop | Yes | Yes | Yes |
+| Up to 25 files per drop | Yes | Yes | Yes |
+| Converts in the browser | Yes | Yes | Yes |
+| Click places the shapes, with no Command+V |  | Yes | Yes |
+| Placement measured from the slide |  | Yes | Yes |
+| [Edit Shape](https://svgslid.es/docs/edit-shape.md) |  | Yes | Yes |
+| [Round corners](https://svgslid.es/docs/round-corners.md) |  | Yes | Yes |
+| [Edit Slides' own shapes](https://svgslid.es/docs/convert-slides-shapes.md) |  | Yes | Yes |
+| Straight-edged shapes work with Slides' Edit points |  | Yes | Yes |
+| [Toolbar](https://svgslid.es/docs/toolbar.md) and [command palette](https://svgslid.es/docs/command-palette.md) |  |  | Yes |
+| [Pen](https://svgslid.es/docs/pen.md) and [snapping](https://svgslid.es/docs/snapping.md) |  |  | Yes |
+| [Mask image with shape](https://svgslid.es/docs/mask-image.md) |  |  | Yes |
+| [Union, subtract, intersect, exclude](https://svgslid.es/docs/combine-shapes.md) |  |  | Yes |
+| [Align and distribute commands](https://svgslid.es/docs/align-distribute.md) |  |  | Yes |
+| [Layers panel](https://svgslid.es/docs/layers.md) and theme builder shortcut |  |  | Yes |
+| [Outline stroke, outline text, stroke position](https://svgslid.es/docs/outline-stroke-text.md) |  |  | Yes |
+| [One-press undo](https://svgslid.es/docs/undo-redo.md) |  |  | Yes |
+| Paste SVG code |  |  | Yes |
+| [Full-precision points](https://svgslid.es/docs/point-precision.md) |  |  | Yes |
+| Server fallback for conversion | Yes | Yes | Removed |
+
+## Web Uploader and Workspace Add-on
+
+| Product | Available since |
+|---|---|
+| [Web Uploader](https://svgslid.es/docs/web-uploader.md) | June 2026 |
+| [Workspace Add-on](https://svgslid.es/docs/add-on.md) | July 2026, on the Google Workspace Marketplace |
+
+Both are updated in place and carry no version number in these notes.
+
+## How to read a changelog
+
+| Mark | Meaning |
+|---|---|
+| NEW | Added in this version. |
+| CHG | Behaviour that changed. |
+| FIX | A fault corrected. |
+| REM | Removed. |
+
+## Release posts
+
+The illustrated release posts, with animations of each feature, are on the [What's new](https://svgslid.es/whats-new) page.
+
+## See also
+
+- [Version 1.3.0](https://svgslid.es/docs/release-notes/1-3-0.md)
+- [Version 1.2.0](https://svgslid.es/docs/release-notes/1-2-0.md)
+- [Versions 1.0.0 and 1.0.1](https://svgslid.es/docs/release-notes/1-0.md)
+- [Installing and updating](https://svgslid.es/docs/install.md#updates)
+- [What's new: release posts](https://svgslid.es/whats-new)
+
+Source: https://svgslid.es/docs/release-notes (SVG to Slides Documentation, Release Notes). Last reviewed November 20, 2026.
+
+
+---
+
+# Version 1.3.0: technical changelog
+
+Applies to: SVG to Slides Chrome extension, version 1.3.0.
+
+Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
+
+Version 1.3.0 puts a pen, image masks, shape combining, instant align and a Layers panel on the slide, with one toolbar for all of it. The converter now runs as JavaScript inside the extension, which makes the package 92% smaller and removes the server fallback and its permission.
+
+| Item | Detail |
+|---|---|
+| Version | 1.3.0 |
+| Date | Not in the Chrome Web Store yet |
+| Download size | 392 KB (1.2.0: 5.8 MB) |
+| Installed size | 1.1 MB (1.2.0: 14 MB) |
+| Chrome permissions | storage |
+
+## Toolbar and commands
+
+| Mark | Change | Topic |
+|---|---|---|
+| NEW | One toolbar at the left edge of the slide canvas, two columns wide. Closed, it is a single round button. Option+\ opens and closes it. The state is remembered. | [The toolbar](https://svgslid.es/docs/toolbar.md) |
+| NEW | Command palette, Command+\: every command by name, with its shortcut. | [The command palette](https://svgslid.es/docs/command-palette.md) |
+| NEW | Tooltips with shortcuts on every button, pop-out item and field. | [The toolbar](https://svgslid.es/docs/toolbar.md#tooltips) |
+| NEW | Stroke weight field in pixels, stroke on and off, thinner and thicker stroke. | [Fill, stroke and exact values](https://svgslid.es/docs/fill-stroke.md) |
+| NEW | On a short canvas the Combine and Outline groups fold into one pop-out button each. | [The toolbar](https://svgslid.es/docs/toolbar.md#short) |
+
+## Drawing and editing
+
+| Mark | Change | Topic |
+|---|---|---|
+| NEW | Pen. Draws new shapes anywhere on the slide, point by point. Option+Shift+P. | [Drawing with the pen](https://svgslid.es/docs/pen.md) |
+| NEW | Snapping to points, their lines, the slide's edges and centre, whole pixels, or a grid of any size. | [Snapping](https://svgslid.es/docs/snapping.md) |
+| NEW | A box around the selection in Edit Shape scales, stretches, skews and rotates. | [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md#smart-box) |
+| NEW | Exact values: width, height, rotation and corner radius can be typed. Option-drag changes any number. | [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md#exact-values) |
+| CHG | The Edit Shape toolbar has two columns and repeats the main toolbar's command groups. Commands used inside the editor are applied on **Done**. | [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md#scope) |
+| CHG | A whole Edit Shape or pen session is one undo step on the slide. | [Undo and redo](https://svgslid.es/docs/undo-redo.md) |
+| NEW | SVG markup copied as text can be pasted onto the slide and placed with a click. | [Inserting SVG files](https://svgslid.es/docs/insert-svg.md#paste-code) |
+
+## Shape operations
+
+| Mark | Change | Topic |
+|---|---|---|
+| NEW | Union, Subtract, Intersect, Exclude, on the slide and inside Edit Shape. | [Combining shapes](https://svgslid.es/docs/combine-shapes.md) |
+| NEW | Mask image with shape, Option+Shift+K. Any shape or group cuts the picture under it, and the picture keeps its position and size. The result is the same kind of object Slides makes when an image is cropped to a shape. | [Masking an image](https://svgslid.es/docs/mask-image.md) |
+| NEW | Outline stroke and Outline text. Outlined text can be restored on the computer that outlined it. | [Outlining strokes and text](https://svgslid.es/docs/outline-stroke-text.md) |
+| NEW | Stroke position: inside, centre, outside. | [Outlining strokes and text](https://svgslid.es/docs/outline-stroke-text.md#position) |
+| NEW | Align and distribute commands with shortcuts. They run Slides' own Align, Distribute and Center on page behind a still copy of the slide, so objects move once and images stay intact. | [Aligning and distributing](https://svgslid.es/docs/align-distribute.md) |
+| NEW | One object, an image included, aligns to the slide's edges. A 1 pixel helper is placed, used and removed in one undo step. | [Aligning and distributing](https://svgslid.es/docs/align-distribute.md#single) |
+| NEW | One-press undo and redo for the extension's multi-step changes. | [Undo and redo](https://svgslid.es/docs/undo-redo.md) |
+
+## Layers and selection
+
+| Mark | Change | Topic |
+|---|---|---|
+| NEW | Layers panel, Option+1: select, add to the selection, restack, rename, hide, fold groups. | [The Layers panel](https://svgslid.es/docs/layers.md) |
+| NEW | Theme objects are greyed and marked M. A second click opens the theme builder on the layout or master that holds the object. Option+Shift+M opens the theme builder and returns. | [Theme objects](https://svgslid.es/docs/theme-objects.md) |
+| NEW | Command-click selects the innermost object inside groups. | [The Layers panel](https://svgslid.es/docs/layers.md#direct-select) |
+| NEW | Objects under 6 pixels on screen get a zoom-in on the second click. | [The Layers panel](https://svgslid.es/docs/layers.md#small) |
+
+## Converter
+
+| Mark | Change | Topic |
+|---|---|---|
+| CHG | The converter is JavaScript inside the extension. It replaces the Python converter that ran in WebAssembly. Output was compared on all 138 SVG files in the project's repository and was identical, byte for byte. | [How conversion works](https://svgslid.es/docs/how-conversion-works.md#javascript) |
+| CHG | Every shape's points are written at full precision and scaled by the shape's transform, so a graphic inserted small keeps its detail when enlarged. | [Point precision](https://svgslid.es/docs/point-precision.md) |
+
+## Packaging and permissions
+
+| Mark | Change |
+|---|---|
+| CHG | The download is 392 KB, down from 5.8 MB. Installed, the extension is 1.1 MB, down from 14 MB: 92% smaller. |
+| REM | The bundled Python runtime and the converter's Python files. |
+| REM | The converter fallback on the svgslid.es server, and the host permission that reached it. SVG files are never uploaded. |
+| REM | The content security policy entry that allowed WebAssembly to run. |
+| CHG | Chrome permissions: storage only. Storage now also holds the toolbar state, snapping settings, layer names, and the memory that restores outlined text and stroke position. See [Permissions and data](https://svgslid.es/docs/permissions-privacy.md#storage). |
+| NEW | Bundled open-source libraries, all under the MIT licence: Paper.js 0.12.18 and paperjs-offset 2.2.2 for shape geometry, fontkit 3.0.0 for reading font outlines. |
+
+## Fixes
+
+| Mark | Change |
+|---|---|
+| FIX | Layer tooltips no longer read "undefined". |
+| FIX | Renaming a layer always ends with Enter, Esc or a click elsewhere. |
+| FIX | Objects are no longer flagged as theme objects, or as too small to see, by mistake. |
+
+## Known limits
+
+- Gradients, pattern fills, transparency and shadows are not carried through Combine and Outline. Images, video and charts cannot be combined or outlined.
+- Rotated images cannot be masked yet. Text must be outlined before it is used as a mask.
+- Layer names, the memory that restores outlined text, and stroke position memory are kept on the computer you used.
+- Skew is available in Edit Shape only. Only top-level layers can be dragged to restack.
+- One-press undo is lost if you change the slide after the extension's change.
+- The pen has no freehand mode.
+
+The full list is in [Limits and known issues](https://svgslid.es/docs/limits.md).
+
+## Upgrading from 1.2.0
+
+Chrome installs 1.3.0 on its own. Version 1.3.0 holds fewer permissions than 1.2.0, so Chrome does not ask you to approve anything. The first time you open Slides after the update, a note names the changes. The toolbar starts closed: look for the round button at the left edge of the slide canvas.
+
+## See also
+
+- [Version history](https://svgslid.es/docs/release-notes.md)
+- [Version 1.2.0](https://svgslid.es/docs/release-notes/1-2-0.md)
+- [The toolbar](https://svgslid.es/docs/toolbar.md)
+- [Limits and known issues](https://svgslid.es/docs/limits.md)
+- [What's new: release post](https://svgslid.es/whats-new)
+
+Source: https://svgslid.es/docs/release-notes/1-3-0 (SVG to Slides Documentation, Release Notes). Last reviewed November 20, 2026.
+
+
+---
+
+# Version 1.2.0: technical changelog
+
+Applies to: SVG to Slides Chrome extension, version 1.2.0.
+
+Version 1.2.0 adds Edit Shape, a vector editor that opens on the slide, and corner rounding. It works on Slides' own shapes as well as inserted ones. Inserting no longer needs a paste: the click places the shapes.
+
+| Item | Detail |
+|---|---|
+| Version | 1.2.0 |
+| Date | November 2026 |
+| Download size | 5.8 MB |
+| Installed size | 14 MB |
+| Chrome permissions | storage, and one host permission for the converter fallback |
+
+## Editor
+
+| Mark | Change | Topic |
+|---|---|---|
+| NEW | Edit Shape. Double-click a shape and click **Edit Shape**. An editor opens on the slide at the shape's exact size and position: drag points and curve handles, add and remove points, select several, undo, redo, zoom and pan. **Done** updates the shape in place. | [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md) |
+| NEW | Round corners. Drag a circle inside a corner or type a radius in pixels. A whole shape or several shapes round together. | [Rounding corners](https://svgslid.es/docs/round-corners.md) |
+| NEW | Edit Shape opens on Slides' own shapes, lines, text boxes and WordArt by converting them to custom shapes first. The conversion reads the outlines Slides itself draws. **Cancel** restores the original. | [Editing Slides' own shapes](https://svgslid.es/docs/convert-slides-shapes.md) |
+| NEW | Shapes stacked above the one being edited stay visible, and **Done** returns each edited shape to its place in the stack. | [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md#done) |
+
+## Inserting
+
+| Mark | Change | Topic |
+|---|---|---|
+| CHG | Click to insert. Drop an SVG and click where it goes. The shapes land with nothing to paste. If Slides does not accept them, the extension asks for Command+V. | [Inserting SVG files](https://svgslid.es/docs/insert-svg.md) |
+| CHG | Placement is measured from the slide. Earlier versions estimated it from the window size. | [FIX: Inserted shapes landed away from the pointer in versions 1.0.0 and 1.0.1](https://svgslid.es/docs/kb/shapes-land-away-from-pointer.md) |
+
+## Converter
+
+| Mark | Change | Topic |
+|---|---|---|
+| CHG | Shapes with one outline, straight segments only and no more than 150 points land as Slides polylines, so Slides' own Edit points works on them. | [Edit points and polylines](https://svgslid.es/docs/edit-points-and-polylines.md) |
+| FIX | For those shapes, a closing segment that repeated the start point is dropped. It left two points in one place, and dragging one tore the corner. |  |
+
+## Fixes
+
+| Mark | Change |
+|---|---|
+| FIX | Placement and the editor measure the slide you have open. Before, visiting another slide first could throw both off. |
+| FIX | The editor measures the visible canvas, so editing while Slides is zoomed in works. |
+| FIX | Shapes picked from inside a group are placed correctly when edited. |
+
+## Permissions and updates
+
+| Mark | Change |
+|---|---|
+| NEW | The storage permission, used to remember that the update note has been shown. |
+| NEW | A one-time note in the corner of Slides after the update, naming the changes. New installations do not see it. |
+
+## Notes
+
+Version 1.1.0 was an internal build of the editor and was not released. Everything in it shipped in 1.2.0.
+
+Version 1.3.0 changes parts of what is described here: the editor's toolbar, the permissions and the converter. See [Version 1.3.0](https://svgslid.es/docs/release-notes/1-3-0.md).
+
+## See also
+
+- [Version history](https://svgslid.es/docs/release-notes.md)
+- [Version 1.3.0](https://svgslid.es/docs/release-notes/1-3-0.md)
+- [Versions 1.0.0 and 1.0.1](https://svgslid.es/docs/release-notes/1-0.md)
+- [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md)
+- [What's new: release post](https://svgslid.es/whats-new)
+
+Source: https://svgslid.es/docs/release-notes/1-2-0 (SVG to Slides Documentation, Release Notes). Last reviewed November 20, 2026.
+
+
+---
+
+# Versions 1.0.0 and 1.0.1: technical changelog
+
+Applies to: SVG to Slides Chrome extension, versions 1.0.0 and 1.0.1.
+
+Version 1.0.0 is the first release: drag SVG files onto a Google Slides tab and they land as native, editable shapes, converted inside the browser. Version 1.0.1 removed an unused permission.
+
+## Version 1.0.1
+
+July 2026.
+
+| Mark | Change |
+|---|---|
+| REM | The activeTab permission. The extension did not use it, and Chrome Web Store review flagged it. |
+
+## Version 1.0.0
+
+July 2026. First release.
+
+| Mark | Change |
+|---|---|
+| NEW | Drag one or more .svg files onto an open Google Slides tab. A preview follows the pointer. |
+| NEW | Place the graphic, then press Command+V to confirm. The shapes land as native Slides shapes, one per path, grouped per file. |
+| NEW | Up to 25 files per drop, laid out in a grid on the current slide. |
+| NEW | Conversion runs inside the browser. The converter was the project's Python converter, compiled to WebAssembly. A converter on the svgslid.es server was the fallback. |
+| NEW | No Google sign-in and no Google permissions. |
+
+## How 1.0 differs from later versions
+
+| In 1.0 | Since |
+|---|---|
+| Every insert ended with Command+V. | 1.2.0: the click places the shapes. |
+| Position was estimated from the window size. See [FIX: Inserted shapes landed away from the pointer in versions 1.0.0 and 1.0.1](https://svgslid.es/docs/kb/shapes-land-away-from-pointer.md). | 1.2.0: measured from the slide. |
+| No editing tools. | 1.2.0: [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md). 1.3.0: [The toolbar](https://svgslid.es/docs/toolbar.md). |
+| The extension carried a Python runtime. | 1.3.0: a JavaScript converter. See [How conversion works](https://svgslid.es/docs/how-conversion-works.md#javascript). |
+
+## See also
+
+- [Version history](https://svgslid.es/docs/release-notes.md)
+- [Version 1.2.0](https://svgslid.es/docs/release-notes/1-2-0.md)
+- [Inserting SVG files](https://svgslid.es/docs/insert-svg.md)
+- [How shapes reach the slide](https://svgslid.es/docs/how-shapes-reach-the-slide.md)
+
+Source: https://svgslid.es/docs/release-notes/1-0 (SVG to Slides Documentation, Release Notes). Last reviewed November 20, 2026.

@@ -47,14 +47,27 @@ def git_date(path):
     except OSError:
         return TODAY
 
+REBASE = False  # --rebase-lastmod: take the current content as unchanged since each stored date
+
 def lastmod(key, content, seed=None):
     h = hashlib.sha256(content.replace(TODAY, "").encode()).hexdigest()[:16]
     prev = _LM.get(key)
     if prev and prev[0] == h:
         return prev[1]
+    if prev and REBASE:
+        _LM[key] = [h, prev[1]]
+        return prev[1]
     date = TODAY if prev else (seed or TODAY)
     _LM[key] = [h, date]
     return date
+
+def core(doc):
+    """A page without the chrome every page shares (nav, footer, shared CSS), so that
+    adding a nav link does not move every page's lastmod."""
+    doc = re.sub(r'<nav class="nav">.*?</nav>', "", doc, count=1, flags=re.S)
+    doc = re.sub(r"<!-- sitefoot:start -->.*?<!-- sitefoot:end -->", "", doc, flags=re.S)
+    doc = re.sub(r'<style id="sw">.*?</style>', "", doc, flags=re.S)
+    return re.sub(r"\n\s*\n+", "\n", doc)
 
 def save_lastmod():
     LASTMOD_FILE.write_text(json.dumps(_LM, indent=1, sort_keys=True) + "\n")
@@ -742,6 +755,7 @@ def sw_css():
             '.nav .btn{padding:0 16px}.nav .brand span{display:none}}html{scroll-behavior:smooth}'
             '.bnav{display:flex;gap:22px;align-items:center}.bnav a.txt{color:#1c1e22;text-decoration:none;font-family:Overpass,Verdana,sans-serif;font-weight:700;font-size:16px}'
             '.bnav a.txt:hover{text-decoration:underline}@media (max-width:560px){.bnav{gap:14px}.bnav a.txt{font-size:15px}}'
+            '@media (max-width:359px){.bnav{gap:9px}.bnav a.txt{font-size:14px}.nav .btn{padding:0 11px}}'
             + P.FOOTER_CSS.replace("\n", "")
             + '@media (max-width:560px){.wrap{padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}'
               '.sfoot{padding-left:max(24px,env(safe-area-inset-left,0px));padding-right:max(24px,env(safe-area-inset-right,0px))}'
@@ -765,7 +779,7 @@ def sitewide_polish(text):
 
 def with_footer(text):
     text = re.sub(r'\s*<footer class="wrap foot">.*?</footer>', "", text, flags=re.S)
-    text = re.sub(r'<!-- sitefoot:start -->.*?<!-- sitefoot:end -->\n?', "", text, flags=re.S)
+    text = re.sub(r'\n?<!-- sitefoot:start -->.*?<!-- sitefoot:end -->\n?', "", text, flags=re.S)
     foot = P.footer_html(LOGO_SVG) + "\n"
     if "</main>" in text:
         return text.replace("</main>", "</main>\n" + foot, 1)
@@ -783,7 +797,7 @@ def polish_all():
     idx = STATIC / "index.html"
     t = idx.read_text()
     idx.write_text(re.sub(r"<!-- latest:start -->.*?<!-- latest:end -->", lambda m: latest_block(), t, flags=re.S))
-    for f in list(STATIC.glob("*.html")) + list((STATIC / "blog").glob("*.html")) + list((STATIC / "guides").glob("*.html")) + list((STATIC / "_lobby").glob("*.html")):
+    for f in list(STATIC.glob("*.html")) + list((STATIC / "blog").glob("*.html")) + list((STATIC / "guides").glob("*.html")) + list((STATIC / "_lobby").glob("*.html")) + list((STATIC / "docs").rglob("*.html")):
         t = f.read_text()
         n = sitewide_polish(t)
         if f.parent == STATIC and f.name in HAND_PAGES:
@@ -852,6 +866,8 @@ def main():
     specs, specs_md = site_specs.specs_page(ctx)
     (STATIC / "specs.html").write_text(specs)
     (MD / "specs.md").write_text(specs_md)
+    import site_docs
+    docs_listing, docs_topics, _ = site_docs.build(ctx, lastmod)
 
     # 3. hand-maintained pages
     camp = {"index.html": "home", "features.html": "features", "support.html": "support",
@@ -888,6 +904,9 @@ def main():
            [("/blog", "0.7")] + [(f"/blog/{p['slug']}", "0.7") for p in B.POSTS] + \
            [("/specs", "0.7"), ("/whats-new", "0.6"), ("/about", "0.5"), ("/support", "0.4"), ("/privacy", "0.2"), ("/terms", "0.2")]
     urls.insert(urls.index(("/about", "0.5")), ("/features", "0.4"))
+    DOC_PRI = {"start": "0.7", "guide": "0.7", "surfaces": "0.7", "reference": "0.7", "technical": "0.6", "kb": "0.6", "release": "0.6"}
+    at = urls.index(("/blog", "0.7"))
+    urls[at:at] = [("/docs", "0.8")] + [(u, DOC_PRI[docs_topics[u[len("/docs/"):]]["book"]]) for u, _t, _d, _m in docs_listing[1:]]
     def page_file(u):
         if u == "/":
             return STATIC / "index.html"
@@ -898,7 +917,7 @@ def main():
     for u, pr in urls:
         f = page_file(u)
         seed = post_modified(posts[u]) if u in posts else git_date(f)
-        lm = lastmod("url:" + u, f.read_text() if f.is_file() else u, seed=seed)
+        lm = lastmod("url:" + u, core(f.read_text()) if f.is_file() else u, seed=seed)
         if u in posts:
             lm = max(lm, post_modified(posts[u]))
         sm.append(f"  <url><loc>{C.SITE}{u}</loc><lastmod>{lm}</lastmod><priority>{pr}</priority></url>")
@@ -908,8 +927,12 @@ def main():
 
     # 6. robots
     bots = ["GPTBot", "OAI-SearchBot", "ChatGPT-User", "ClaudeBot", "Claude-User", "Claude-SearchBot",
-            "PerplexityBot", "Perplexity-User", "Google-Extended", "Applebot-Extended", "CCBot"]
-    robots = ["# svgslid.es: all public pages are open to search engines and AI agents.", "User-agent: *", "Allow: /",
+            "PerplexityBot", "Perplexity-User", "Google-Extended", "Applebot-Extended", "CCBot",
+            "Amazonbot", "DuckAssistBot", "Meta-ExternalAgent", "MistralAI-User"]
+    robots = ["# svgslid.es: all public pages are open to search engines and AI agents.",
+              f"# Documentation: {C.SITE}/docs",
+              f"# Plain-text index for agents: {C.SITE}/llms.txt (every page also answers at <url>.md)",
+              "User-agent: *", "Allow: /",
               "Disallow: /cleanup", "Disallow: /insert-svg-clip", "Disallow: /insert-svg-clip-at", "Disallow: /static/_lobby/", ""]
     for b in bots:
         robots += [f"User-agent: {b}", "Allow: /", ""]
@@ -921,6 +944,7 @@ def main():
         "# SVG to Slides", "",
         "> Free Chrome extension (plus web uploader and Google Slides add-on) that inserts SVG files into Google Slides as native, editable shapes. " + C.FREE_LINE, "",
         "Google Slides doesn't keep SVG files as editable vectors. SVG to Slides converts every SVG path into its own native Slides shape, so users can recolor individual elements, edit points, animate shapes, and resize without losing quality. The shapes also work in Google Drawings. Since version 1.2 the extension also edits any shape's points and curves as SVG, directly on the slide.", "",
+        f"Product documentation (user's guide, shortcut and command reference, Knowledge Base, release notes): {C.SITE}/docs.md", "",
         f"- Install (Chrome Web Store): {C.CWS}",
         f"- Web uploader, no install: {C.SITE}/convert", "",
         "## Docs",
@@ -930,6 +954,9 @@ def main():
     llms += [f"- [{plain(p['nav'])}]({C.SITE}/guides/{p['slug']}.md): {plain(p['answer'])}" for p in C.PAGES]
     llms += [f"- [Web uploader]({C.SITE}/convert.md): upload SVGs, get a Slides-ready Drive file",
              f"- [Google Slides add-on]({C.SITE}/google-slides-addon.md): insert SVGs from a dialog inside Slides", "",
+             "## Product documentation"]
+    llms += [f"- [{t}]({C.SITE}{u}.md): {d}" for u, t, d, _m in docs_listing]
+    llms += ["",
              "## Blog"] + [f"- [{p['h1']}]({C.SITE}/blog/{p['slug']}.md): {plain(p['dek'])}" for p in B.POSTS] + ["",
              "## Optional",
              f"- [Specs: product facts and tested SVG compatibility]({C.SITE}/specs.md)",
@@ -943,6 +970,7 @@ def main():
     full += [(MD / "guides" / f"{p['slug']}.md").read_text() for p in C.PAGES]
     full += [(MD / "blog" / f"{p['slug']}.md").read_text() for p in B.POSTS]
     full += [(MD / "whats-new.md").read_text(), (MD / "about.md").read_text()]
+    full += [m for _u, _t, _d, m in docs_listing[1:]]
     (STATIC / "llms-full.txt").write_text("\n\n---\n\n".join(full))
 
     # 8. 404
@@ -955,4 +983,6 @@ def main():
     print("built", len(C.PAGES), "guides; featured:", P.featured_slug(), "; GA:", GA_ID or "(none)")
 
 if __name__ == "__main__":
+    import sys
+    REBASE = "--rebase-lastmod" in sys.argv
     main()

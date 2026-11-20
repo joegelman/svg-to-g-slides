@@ -10,6 +10,63 @@
   <url><loc>https://svgslid.es/guides/svg-to-google-slides-converter</loc><lastmod>2026-11-10</lastmod><priority>0.8</priority></url>
   <url><loc>https://svgslid.es/guides/recolor-svg-in-google-slides</loc><lastmod>2026-11-10</lastmod><priority>0.8</priority></url>
   <url><loc>https://svgslid.es/guides/svg-logos-icons-google-slides</loc><lastmod>2026-11-10</lastmod><priority>0.8</priority></url>
+  <url><loc>https://svgslid.es/docs</loc><lastmod>2026-11-20</lastmod><priority>0.8</priority></url>
+  <url><loc>https://svgslid.es/docs/overview</loc><lastmod>2026-11-20</lastmod><priority>0.7</priority></url>
+  <url><loc>https://svgslid.es/docs/install</loc><lastmod>2026-11-20</lastmod><priority>0.7</priority></url>
+  <url><loc>https://svgslid.es/docs/quick-start</loc><lastmod>2026-11-20</lastmod><priority>0.7</priority></url>
+  <url><loc>https://svgslid.es/docs/conventions</loc><lastmod>2026-11-20</lastmod><priority>0.7</priority></url>
+  <url><loc>https://svgslid.es/docs/insert-svg</loc><lastmod>2026-11-20</lastmod><priority>0.7</priority></url>
+  <url><loc>https://svgslid.es/docs/toolbar</loc><lastmod>2026-11-20</lastmod><priority>0.7</priority></url>
+  <url><loc>https://svgslid.es/docs/edit-shape</loc><lastmod>2026-11-20</lastmod><priority>0.7</priority></url>
+  <url><loc>https://svgslid.es/docs/round-corners</loc><lastmod>2026-11-20</lastmod><priority>0.7</priority></url>
+  <url><loc>https://svgslid.es/docs/pen</loc><lastmod>2026-11-20</lastmod><priority>0.7</priority></url>
+  <url><loc>https://svgslid.es/docs/snapping</loc><lastmod>2026-11-20</lastmod><priority>0.7</priority></url>
+  <url><loc>https://svgslid.es/docs/mask-image</loc><lastmod>2026-11-20</lastmod><priority>0.7</priority></url>
+  <url><loc>https://svgslid.es/docs/combine-shapes</loc><lastmod>2026-11-20</lastmod><priority>0.7</priority></url>
+  <url><loc>https://svgslid.es/docs/align-distribute</loc><lastmod>2026-11-20</lastmod><priority>0.7</priority></url>
+  <url><loc>https://svgslid.es/docs/layers</loc><lastmod>2026-11-20</lastmod><priority>0.7</priority></url>
+  <url><loc>https://svgslid.es/docs/theme-objects</loc><lastmod>2026-11-20</lastmod><priority>0.7</priority></url>
+  <url><loc>https://svgslid.es/docs/outline-stroke-text</loc><lastmod>2026-11-20</lastmod><priority>0.7</priority></url>
+  <url><loc>https://svgslid.es/docs/fill-stroke</loc><lastmod>2026-11-20</lastmod><priority>0.7</priority></url>
+  <url><loc>https://svgslid.es/docs/command-palette</loc><lastmod>2026-11-20</lastmod><priority>0.7</priority></url>
+  <url><loc>https://svgslid.es/docs/undo-redo</loc><lastmod>2026-11-20</lastmod><priority>0.7</priority></url>
+  <url><loc>https://svgslid.es/docs/convert-slides-shapes</loc><lastmod>2026-11-20</lastmod><priority>0.7</priority></url>
+  <url><loc>https://svgslid.es/docs/web-uploader</loc><lastmod>2026-11-20</lastmod><priority>0.7</priority></url>
+  <url><loc>https://svgslid.es/docs/add-on</loc><lastmod>2026-11-20</lastmod><priority>0.7</priority></url>
+  <url><loc>https://svgslid.es/docs/keyboard-shortcuts</loc><lastmod>2026-11-20</lastmod><priority>0.7</priority></url>
+  <url><loc>https://svgslid.es/docs/commands</loc><lastmod>2026-11-20</lastmod><priority>0.7</priority></url>
+  <url><loc>https://svgslid.es/docs/svg-compatibility</loc><lastmod>2026-11-20</lastmod><priority>0.7</priority></url>
+  <url><loc>https://svgslid.es/docs/permissions-privacy</loc><lastmod>2026-11-20</lastmod><priority>0.7</priority></url>
+  <url><loc>https://svgslid.es/docs/limits</loc><lastmod>2026-11-20</lastmod><priority>0.7</priority></url>
+  <url><loc>https://svgslid.es/docs/glossary</loc><lastmod>2026-11-20</lastmod><priority>0.7</priority></url>
+  <url><loc>https://svgslid.es/docs/a-z-index</loc><lastmod>2026-11-20</lastmod><priority>0.7</priority></url>
+  <url><loc>https://svgslid.es/docs/how-conversion-works</loc><lastmod>2026-11-20</lastmod><priority>0.6</priority></url>
+  <url><loc>https://svgslid.es/docs/how-shapes-reach-the-slide</loc><lastmod>2026-11-20</lastmod><priority>0.6</priority></url>
+  <url><loc>https://svgslid.es/docs/edit-points-and-polylines</loc><lastmod>2026-11-20</lastmod><priority>0.6</priority></url>
+  <url><loc>https://svgslid.es/docs/point-precision</loc><lastmod>2026-11-20</lastmod><priority>0.6</priority></url>
+  <url><loc>https://svgslid.es/docs/undo-and-still-copy</loc><lastmod>2026-11-20</lastmod><priority>0.6</priority></url>
+  <url><loc>https://svgslid.es/docs/kb</loc><lastmod>2026-11-20</lastmod><priority>0.6</priority></url>
+  <url><loc>https://svgslid.es/docs/kb/svg-becomes-a-flat-image</loc><lastmod>2026-11-20</lastmod><priority>0.6</priority></url>
+  <url><loc>https://svgslid.es/docs/kb/gradient-becomes-solid-colour</loc><lastmod>2026-11-20</lastmod><priority>0.6</priority></url>
+  <url><loc>https://svgslid.es/docs/kb/text-missing-after-insert</loc><lastmod>2026-11-20</lastmod><priority>0.6</priority></url>
+  <url><loc>https://svgslid.es/docs/kb/line-icon-inserts-nothing</loc><lastmod>2026-11-20</lastmod><priority>0.6</priority></url>
+  <url><loc>https://svgslid.es/docs/kb/colours-arrive-black</loc><lastmod>2026-11-20</lastmod><priority>0.6</priority></url>
+  <url><loc>https://svgslid.es/docs/kb/press-command-v-prompt</loc><lastmod>2026-11-20</lastmod><priority>0.6</priority></url>
+  <url><loc>https://svgslid.es/docs/kb/more-than-25-files</loc><lastmod>2026-11-20</lastmod><priority>0.6</priority></url>
+  <url><loc>https://svgslid.es/docs/kb/edit-points-missing</loc><lastmod>2026-11-20</lastmod><priority>0.6</priority></url>
+  <url><loc>https://svgslid.es/docs/kb/undo-takes-several-presses</loc><lastmod>2026-11-20</lastmod><priority>0.6</priority></url>
+  <url><loc>https://svgslid.es/docs/kb/layer-names-missing</loc><lastmod>2026-11-20</lastmod><priority>0.6</priority></url>
+  <url><loc>https://svgslid.es/docs/kb/object-greyed-with-m</loc><lastmod>2026-11-20</lastmod><priority>0.6</priority></url>
+  <url><loc>https://svgslid.es/docs/kb/cannot-mask-image</loc><lastmod>2026-11-20</lastmod><priority>0.6</priority></url>
+  <url><loc>https://svgslid.es/docs/kb/outline-text-font</loc><lastmod>2026-11-20</lastmod><priority>0.6</priority></url>
+  <url><loc>https://svgslid.es/docs/kb/web-uploader-link-expired</loc><lastmod>2026-11-20</lastmod><priority>0.6</priority></url>
+  <url><loc>https://svgslid.es/docs/kb/shapes-land-away-from-pointer</loc><lastmod>2026-11-20</lastmod><priority>0.6</priority></url>
+  <url><loc>https://svgslid.es/docs/kb/toolbar-does-not-appear</loc><lastmod>2026-11-20</lastmod><priority>0.6</priority></url>
+  <url><loc>https://svgslid.es/docs/kb/which-version</loc><lastmod>2026-11-20</lastmod><priority>0.6</priority></url>
+  <url><loc>https://svgslid.es/docs/release-notes</loc><lastmod>2026-11-20</lastmod><priority>0.6</priority></url>
+  <url><loc>https://svgslid.es/docs/release-notes/1-3-0</loc><lastmod>2026-11-20</lastmod><priority>0.6</priority></url>
+  <url><loc>https://svgslid.es/docs/release-notes/1-2-0</loc><lastmod>2026-11-20</lastmod><priority>0.6</priority></url>
+  <url><loc>https://svgslid.es/docs/release-notes/1-0</loc><lastmod>2026-11-20</lastmod><priority>0.6</priority></url>
   <url><loc>https://svgslid.es/blog</loc><lastmod>2026-11-14</lastmod><priority>0.7</priority></url>
   <url><loc>https://svgslid.es/blog/letter-spacing-google-slides-pdf-export</loc><lastmod>2026-11-14</lastmod><priority>0.7</priority></url>
   <url><loc>https://svgslid.es/blog/apps-script-for-gtm-part-1</loc><lastmod>2026-11-14</lastmod><priority>0.7</priority></url>
@@ -30,7 +87,7 @@
   <url><loc>https://svgslid.es/whats-new</loc><lastmod>2026-11-14</lastmod><priority>0.6</priority></url>
   <url><loc>https://svgslid.es/features</loc><lastmod>2026-11-10</lastmod><priority>0.4</priority></url>
   <url><loc>https://svgslid.es/about</loc><lastmod>2026-11-14</lastmod><priority>0.5</priority></url>
-  <url><loc>https://svgslid.es/support</loc><lastmod>2026-11-10</lastmod><priority>0.4</priority></url>
+  <url><loc>https://svgslid.es/support</loc><lastmod>2026-11-20</lastmod><priority>0.4</priority></url>
   <url><loc>https://svgslid.es/privacy</loc><lastmod>2026-11-14</lastmod><priority>0.2</priority></url>
   <url><loc>https://svgslid.es/terms</loc><lastmod>2026-11-10</lastmod><priority>0.2</priority></url>
 </urlset>

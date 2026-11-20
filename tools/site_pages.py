@@ -23,7 +23,7 @@ def nav_html(campaign, logo_svg):
     return f"""<div class="wrap">
   <nav class="nav">
     <a class="brand" href="/" aria-label="SVG to Slides home">{logo_svg}<span>SVG to Slides</span></a>
-    <span class="bnav"><a class="txt" href="/guides">Guides</a><a class="txt" href="/blog">Blog</a><a class="btn btn-primary" href="{cws(campaign, 'nav')}" data-cta="nav"><img src="/static/chrome-glyph.svg" alt=""><span class="lg">Add to Chrome</span><span class="sm">Add</span></a></span>
+    <span class="bnav"><a class="txt" href="/guides">Guides</a><a class="txt" href="/docs">Docs</a><a class="txt" href="/blog">Blog</a><a class="btn btn-primary" href="{cws(campaign, 'nav')}" data-cta="nav"><img src="/static/chrome-glyph.svg" alt=""><span class="lg">Add to Chrome</span><span class="sm">Add</span></a></span>
   </nav>
 </div>"""
 
@@ -31,7 +31,7 @@ def nav_html(campaign, logo_svg):
 # --------------------------------------------------------------- footer
 FOOTER_COLS = [
     ("Products", [("Chrome Extension", "CWS"), ("Workspace Add-on", "/google-slides-addon"), ("Web Uploader", "/convert")]),
-    ("Resources", [("Guides", "/guides"), ("Specs", "/specs"), ("Blog", "/blog")]),
+    ("Resources", [("Guides", "/guides"), ("Docs", "/docs"), ("Specs", "/specs"), ("Blog", "/blog")]),
     ("Details", [("Privacy", "/privacy"), ("Terms", "/terms")]),
     ("About", [("About", "/about")]),
     ("Contact", [("joe@glmn.co", "mailto:joe@glmn.co"), ("Support", "/support")]),

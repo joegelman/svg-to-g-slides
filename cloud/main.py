@@ -24,7 +24,10 @@ from drive import delete_old_files, upload_and_share  # noqa: E402
 RETENTION_DAYS = int(os.environ.get("RETENTION_DAYS", "7"))
 MAX_INSERT_FILES = 25  # grid layout is only reasonable up to this many at once; more should use the bulk uploader
 
-app = FastAPI(title="svg-to-slides")
+# FastAPI's interactive API page defaults to /docs. That address belongs to
+# the product documentation (static/docs/, served by content_page below), so
+# the API page lives at /api-docs instead.
+app = FastAPI(title="svg-to-slides", docs_url="/api-docs")
 
 # Every endpoint here is already fully unauthenticated/public (no cookies or
 # auth headers involved), so a wildcard origin costs nothing and lets the

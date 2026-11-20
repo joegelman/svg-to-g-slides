@@ -24,3 +24,6 @@ __pycache__/
 # Contains a personal Apps Script project ID — see addon/README.md
 addon/.clasp.json
 !cloud/static/specs/samples/*.svg
+
+# Docs figure scratch output
+tools/docs_shots/out/
