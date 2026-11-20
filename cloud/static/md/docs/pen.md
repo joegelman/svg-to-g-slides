@@ -2,8 +2,6 @@
 
 Applies to: SVG to Slides Chrome extension, version 1.3.0.
 
-Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
-
 The pen draws new shapes point by point, anywhere on the slide. Press Option+Shift+P or click **Pen** on the toolbar. Click for a corner, drag for a curve, and click the first point to close the shape.
 
 **To draw a shape**

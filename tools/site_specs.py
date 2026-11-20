@@ -18,19 +18,21 @@ TESTED_ON_ISO = "2026-11-11"
 FACTS = [
     ("Product", "SVG to Slides"),
     ("What it does", "Converts SVG files into native, editable Google Slides shapes. Every SVG path becomes its own shape."),
-    ("Ways to use it", f'<a href="{C.CWS}">Chrome extension</a> (drag and drop onto a slide), <a href="/convert">web uploader</a> (returns a Google Drive file), <a href="/google-slides-addon">Google Slides add-on</a> (dialog inside Slides)'),
+    ("Ways to use it", f'<a href="{C.CWS}">Chrome extension</a> (drag and drop onto a slide, or paste SVG code), <a href="/convert">web uploader</a> (returns a Google Drive file), <a href="/google-slides-addon">Google Slides add-on</a> (dialog inside Slides)'),
     ("Price", "Free. No daily cap, no Pro tier."),
     ("Account", "None for the extension. The web uploader takes an optional Google account email to share the file to."),
     ("Google permissions", "Chrome extension: none. Add-on: reads the current presentation's page size, shows a dialog, and calls the converter."),
     ("Files per drop", "Up to 25 SVGs per drop in the extension. The web uploader takes a batch and makes one slide per SVG."),
-    ("Where conversion runs", "Extension: in your browser, with a WebAssembly engine. Web uploader and add-on: on the svgslid.es backend."),
+    ("Where conversion runs", "Extension: inside your browser, with a JavaScript converter. Nothing is uploaded. Web uploader and add-on: on the svgslid.es backend."),
+    ("Chrome permissions", "Extension 1.3.0: access to Google Slides pages, where its tools run, and storage, to remember your settings. No access to other sites."),
+    ("Extension size", "Version 1.3.0: 392 KB to download, 1.1 MB installed. That is 92% smaller than 1.2."),
     ("File retention", "Web uploader files are deleted after 7 days. Make a copy in Drive to keep one."),
     ("Gradients", "Kept by the web uploader. The extension and add-on fill the shape with the gradient's first colour."),
     ("Text", "Web uploader: converted to outlined shapes, not editable text. Extension and add-on: not converted."),
     ("Placement", "The extension fits each SVG to about a fifth of the slide, centred where you click. The add-on fits it to the current slide."),
-    ("Editing", "Chrome extension: double-click any shape and click Edit Shape to move its points and curve handles on the slide, or round its corners by dragging or typing a radius. Works on Slides' own shapes, lines and WordArt by converting them to custom shapes first. SVG shapes made only of straight lines also support Slides' own Edit points."),
+    ("Editing", "Chrome extension: double-click any shape and click Edit Shape to move its points and curve handles on the slide, or round its corners by dragging or typing a radius. Works on Slides' own shapes, lines and WordArt by converting them to custom shapes first. SVG shapes made only of straight lines also support Slides' own Edit points. Version 1.3 adds a toolbar on the slide with a pen, snapping, exact strokes, outline stroke and outline text, image masks, union, subtract, intersect and exclude, align and distribute, a Layers panel and a command palette. Each tool has a topic in the <a href=\"/docs\">documentation</a>."),
     ("Also works in", "Google Drawings"),
-    ("Current versions", 'Chrome extension 1.2.0 (<a href="/whats-new">what&rsquo;s new</a>)'),
+    ("Current versions", 'Chrome extension 1.3.0 (<a href="/whats-new">what&rsquo;s new</a>, <a href="/docs/release-notes">release notes</a>)'),
     ("Source code", f'<a href="{C.GITHUB}">github.com/joegelman/svg-to-g-slides</a> (source-available, PolyForm Strict 1.0.0)'),
     ("Built by", 'Joe Gelman. Contact: <a href="mailto:joe@glmn.co">joe@glmn.co</a>'),
 ]
@@ -107,7 +109,7 @@ def specs_page(ctx):
     <table class="facts-t"><tbody>{facts}</tbody></table>
 
     <h2 id="compatibility">SVG compatibility</h2>
-    <p>Tested {TESTED_ON} on {len(COMPAT)} small SVGs, one feature each. Fully supported: {n_ok_web} of {len(COMPAT)} on the web uploader, {n_ok_ext} of {len(COMPAT)} in the Chrome extension and add-on, which share one converter. Each file name links to the file.</p>
+    <p>Tested {TESTED_ON} on {len(COMPAT)} small SVGs, one feature each. Fully supported: {n_ok_web} of {len(COMPAT)} on the web uploader, {n_ok_ext} of {len(COMPAT)} in the Chrome extension and add-on. Since version 1.3.0 the extension runs a JavaScript port of the add-on&rsquo;s converter. The port was checked against the original on every test file and gives the same output. Each file name links to the file.</p>
     <table class="compat-t"><thead><tr><th>Test file</th><th>Web uploader</th><th>Extension and add-on</th></tr></thead><tbody>{rows}</tbody></table>
     <a class="btn btn-ghost dl" href="/static/specs/svg-to-slides-test-files.zip" download>Download all {len(COMPAT)} test files (.zip)</a>
 

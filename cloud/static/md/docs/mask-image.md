@@ -2,8 +2,6 @@
 
 Applies to: SVG to Slides Chrome extension, version 1.3.0.
 
-Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
-
 Put a shape over a picture, select both, and press Option+Shift+K. The shape cuts out the picture under it. Any shape or group of shapes can be the mask, and the picture stays exactly where it was.
 
 **To mask an image with a shape**

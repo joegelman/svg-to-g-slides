@@ -2,17 +2,6 @@
 
 if (typeof console !== 'undefined') console.log('[svg2slides] shared.js loaded');
 
-const BACKEND = 'https://svg-to-slides-jwxfsrfexq-uc.a.run.app';
-
-function readFilesAsBase64(files) {
-  return Promise.all(files.map((file) => new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = (e) => resolve({ name: file.name, data: e.target.result.split(',')[1] });
-    reader.onerror = () => reject(new Error('Could not read ' + file.name));
-    reader.readAsDataURL(file);
-  })));
-}
-
 // ── Cursor/size estimation, no Slides DOM reverse-engineering, no Slides
 // API, no Google scope of any kind. Deliberately approximate in two ways:
 // position is a fraction-of-assumed-canvas mapped onto an assumed-default

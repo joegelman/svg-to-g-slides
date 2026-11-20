@@ -36,6 +36,11 @@ console.log('[svg2slides] svg-editor.js loaded');
   const HIT = 9; // px: matches the larger point markers
   const CORNER_INSET = 14; // px from a corner to its radius handle at radius 0
   const SVGNS = 'http://www.w3.org/2000/svg';
+  // A curved double arrow, for the rotate zone outside the transform box.
+  const cur = (svg, hot = '12 12', fb = 'default') => 'url("data:image/svg+xml;utf8,' + encodeURIComponent(svg) + '") ' + hot + ', ' + fb;
+  const SKEW_H_CURSOR = cur("<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><path d='M3 9h14l-3-3M21 15H7l3 3' fill='none' stroke='#fff' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/><path d='M3 9h14l-3-3M21 15H7l3 3' fill='none' stroke='#000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>", '12 12', 'ew-resize');
+  const SKEW_V_CURSOR = cur("<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'><path d='M9 21V7l-3 3M15 3v14l3-3' fill='none' stroke='#fff' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'/><path d='M9 21V7l-3 3M15 3v14l3-3' fill='none' stroke='#000' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/></svg>", '12 12', 'ns-resize');
+  const ROTATE_CURSOR = 'url("data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'24\' height=\'24\' viewBox=\'0 0 24 24\'><path d=\'M6 15a7 7 0 0 1 9-9\' fill=\'none\' stroke=\'#fff\' stroke-width=\'4\'/><path d=\'M6 15a7 7 0 0 1 9-9\' fill=\'none\' stroke=\'#000\' stroke-width=\'1.6\'/><path d=\'M13 3l4 3-4 3Z M3 13l3 4 3-4Z\' fill=\'#000\' stroke=\'#fff\' stroke-width=\'.8\'/></svg>') + '") 12 12, crosshair';
 
   // Slides enforces Trusted Types, so build every element with DOM calls —
   // never innerHTML.
@@ -217,6 +222,7 @@ console.log('[svg2slides] svg-editor.js loaded');
   // Focus has to be inside Slides' text iframe first, and the overlay may
   // still hold it, so focus, wait a frame, and retry once.
   async function deleteSelected(ids) {
+    if (!ids.length) return true; // nothing to take away (only new shapes)
     for (let attempt = 0; attempt < 2; attempt++) {
       SB.focusTextbox();
       await SB.sleep(attempt ? 120 : 30);
@@ -243,9 +249,10 @@ console.log('[svg2slides] svg-editor.js loaded');
         const subs = SB.parseRenderedD(p.getAttribute('d'));
         if (!subs) continue;
         // Same subpath on both sides, the first with enough points.
-        for (let i = 0; i < Math.min(subs.length, sh.subs.length); i++) {
+        const own = sh.drawn || sh.subs; // what the slide shows (a moved outline for inside/outside strokes)
+        for (let i = 0; i < Math.min(subs.length, own.length); i++) {
           const pts = subs[i].filter((seg) => seg[0] !== 'Z').map((seg) => ({ x: seg[seg.length - 2], y: seg[seg.length - 1] }));
-          if (pts.length >= 3 && sh.subs[i].nodes.length >= 3) { sp0 = sh.subs[i]; rendered = pts; break; }
+          if (pts.length >= 3 && own[i].nodes.length >= 3) { sp0 = own[i]; rendered = pts; break; }
         }
         if (rendered) break;
       }
@@ -322,7 +329,7 @@ console.log('[svg2slides] svg-editor.js loaded');
   // then open the editor on them. Cancel in the editor puts the original
   // back the same way.
   let converting = false;
-  async function convertAndOpen(hint) {
+  async function convertAndOpen(hint, opts = {}) {
     if (editor || converting) return;
     converting = true;
     try {
@@ -342,7 +349,7 @@ console.log('[svg2slides] svg-editor.js loaded');
       // geometry while the originals stay put (hidden). Done swaps them in
       // place; Cancel just closes.
       console.log('[svg2slides] converted', conv.converted);
-      openEditor(original, { preset: conv.resolved, srcOf: conv.srcOf, original });
+      openEditor(original, { preset: conv.resolved, srcOf: conv.srcOf, original, tool: opts.tool });
     } finally {
       converting = false;
     }
@@ -387,6 +394,7 @@ console.log('[svg2slides] svg-editor.js loaded');
   // ── Editor ─────────────────────────────────────────────────────────────
   function openEditor(hint, opts = {}) {
     if (editor) return;
+    if (opts.blank) return openBlank(opts);
     // Re-read the live selection: what we edit must be exactly what Done
     // deletes. If Slides went into text editing (or its own point editing)
     // on the double-click, Escape returns to plain shape selection.
@@ -405,17 +413,22 @@ console.log('[svg2slides] svg-editor.js loaded');
     for (const entry of resolved) {
       if (!SB.isEditableShape(entry)) continue;
       const rec = SB.pathRecord(entry);
-      const subs = SB.decodePath(rec[2], rec[3]);
+      let subs = SB.decodePath(rec[2], rec[3]);
       if (!subs) { console.warn('[svg2slides] could not decode', entry[1]); return; }
-      const fill = SB.getProp(entry[4], 15);
+      const paint = SB.paintFromProps(entry[4]);
+      // An inside or outside stroke made earlier: edit the shape's own
+      // outline, not the moved one.
+      const mem = self.SVG2S_SHAPES && self.SVG2S_SHAPES.recall && self.SVG2S_SHAPES.recall(SB.pathFingerprint(entry));
+      let drawn;
+      if (mem && mem.kind === 'align' && paint.strokeOn) { drawn = subs; subs = JSON.parse(JSON.stringify(mem.design)); paint.align = mem.align; }
       shapes.push({
+        drawn,
         entry,
         id: entry[1],
         src: srcOf[entry[1]] || entry[1], // the slide object this shape stands for
         subs,
         toPage: SB.localToPage(resolved, entry),
-        fill: typeof fill === 'string' ? fill : '#9e9e9e',
-        filled: SB.getProp(entry[4], 14) !== 0,
+        paint,
       });
     }
     if (!shapes.length) return;
@@ -426,12 +439,34 @@ console.log('[svg2slides] svg-editor.js loaded');
       return;
     }
     try {
-      editor = new Editor(resolved, shapes, ctm, { original: opts.original || resolved, srcOf });
+      // Everything from here to close (Arrange on the originals, Done's
+      // delete and paste) undoes as one step.
+      SB.beginMacro('edit shape');
+      editor = new Editor(resolved, shapes, ctm, { original: opts.original || resolved, srcOf, tool: opts.tool });
     } catch (err) {
       // Never leave a half-built overlay holding the page hostage.
       console.error('[svg2slides] editor failed to open', err);
       emergencyRestore();
       editor = null;
+      SB.endMacro();
+    }
+  }
+
+  // The pen with nothing selected: an editor with no shapes in it, to draw
+  // new ones anywhere on the slide.
+  function openBlank(opts) {
+    const ctm = SB.pageCTM();
+    if (!ctm) { console.warn('[svg2slides] no page CTM — cannot open editor'); return; }
+    const vis = SB.visibleWorkspaceRect();
+    if (vis.right - vis.left < 160 || vis.bottom - vis.top < 120) return;
+    try {
+      SB.beginMacro('draw');
+      editor = new Editor([], [], ctm, { original: [], srcOf: {}, tool: opts.tool || 'pen' });
+    } catch (err) {
+      console.error('[svg2slides] editor failed to open', err);
+      emergencyRestore();
+      editor = null;
+      SB.endMacro();
     }
   }
 
@@ -446,13 +481,27 @@ console.log('[svg2slides] svg-editor.js loaded');
     SB.focusTextbox();
   }
 
+  // Snapping (pen and point editing): to other points and the lines
+  // through them (and the slide's edges and centre), to whole pixels, and
+  // to a grid of a chosen size. Kept on this computer.
+  const SNAP_KEY = 'svgxSnap';
+  const snapPrefs = { points: true, px: true, grid: false, size: 10 };
+  try { chrome.storage.local.get(SNAP_KEY, (v) => { Object.assign(snapPrefs, (v && v[SNAP_KEY]) || {}); }); } catch { /* storage unavailable */ }
+  const saveSnap = () => { try { chrome.storage.local.set({ [SNAP_KEY]: Object.assign({}, snapPrefs) }); } catch { /* storage unavailable */ } };
+  const SNAP_PX = 6; // how close, on screen, counts as on a point or line
+
   class Editor {
     constructor(resolved, shapes, ctm, ctx = {}) {
-      this.resolved = resolved;
-      this.original = ctx.original || resolved; // what is on the slide now
-      this.srcOf = ctx.srcOf || {};
+      // Commands below restructure the payload (groups, new shapes), so work
+      // on a copy and keep the original for stacking slots on Done.
+      this.original = clone(ctx.original || resolved); // what is on the slide now
+      this.resolved = clone(resolved);
+      this.srcOf = Object.assign({}, ctx.srcOf || {});
       this.shapes = shapes;
+      this.srcIds = [...new Set(shapes.map((s) => s.src))]; // deleted on Done
+      this.textSrcs = new Set(this.srcIds.filter((id) => self.SVG2S_SHAPES && self.SVG2S_SHAPES.hasText(id, true)));
       this.tool = 'direct';
+      this.drawing = null; // the path the pen is drawing: { si, pi }
       this.sel = new Set(); // "si:pi:ni"
       this.undo = [];
       this.redo = [];
@@ -475,13 +524,16 @@ console.log('[svg2slides] svg-editor.js loaded');
 
       this.hideSlidesChrome();
       this.buildDOM();
+      this.updateSnapUI();
       this.buildCover();
+      if (ctx.tool) this.setTool(ctx.tool);
       this.render();
       this.onResize = () => {
         const c = SB.pageCTM();
         if (!c) return;
         this.dropZoomLayer();
         this.setCTM(c);
+        if (this.rk) this.placeRail();
         this.render();
       };
       window.addEventListener('resize', this.onResize);
@@ -501,7 +553,7 @@ console.log('[svg2slides] svg-editor.js loaded');
       });
       this.updateZoomLayer();
       if (this.coverGaps) this.updateCoverTransforms();
-      if (this.zoomLabel) this.zoomLabel.textContent = Math.round(v.s * 100) + '%';
+      if (this.zoomLabel && this.rk) this.rk.setText('zoomreset', Math.round(v.s * 100) + '%');
     }
 
     // ── Shapes above the one being edited ──
@@ -743,27 +795,8 @@ console.log('[svg2slides] svg-editor.js loaded');
           :host { all: initial; }
           svg.stage { position: fixed; inset: 0; width: 100vw; height: 100vh; cursor: default; }
           svg.stage.pen { cursor: crosshair; }
-          .rail { position: fixed; z-index: 2; display: flex; flex-direction: column; align-items: center; gap: 2px;
-                  width: 40px; padding: 6px 0; background: ${GM.surface}; border-radius: 20px; box-shadow: ${GM.elev2};
-                  font: 500 11px/1 ${FONT}; color: ${GM.icon}; user-select: none;
-                  transition: opacity .18s ease, transform .18s ease; transform-origin: left center; }
-          .rail.idle { opacity: .45; transform: scale(.94); }
-          .rail.busy { opacity: .6; pointer-events: none; }
-          .btn { width: 32px; height: 32px; border-radius: 16px; display: flex; align-items: center; justify-content: center;
-                 cursor: pointer; color: ${GM.icon}; }
-          .btn:hover { background: ${GM.hover}; }
-          .btn.on { background: ${GM.selected}; color: #1f1f1f; }
-          .btn.dim { opacity: .38; pointer-events: none; }
-          .btn svg { width: 20px; height: 20px; display: block; }
-          .btn.done { background: ${GM.tonal}; color: ${GM.onTonal}; }
-          .btn.done:hover { filter: brightness(.96); }
-          .zoom { width: 36px; height: 22px; border-radius: 11px; font-size: 11px; font-variant-numeric: tabular-nums; }
-          .sep { width: 20px; height: 1px; background: #c4c7c5; margin: 4px 0; }
-          .tip { position: fixed; z-index: 3; pointer-events: none; background: ${GM.tooltip}; color: ${GM.onTooltip};
-                 font: 500 12px/16px ${FONT}; padding: 4px 8px; border-radius: 4px; white-space: nowrap;
-                 opacity: 0; transition: opacity .1s; }
-          .tip.show { opacity: 1; }
-          .tip .k { opacity: .7; margin-left: 6px; }
+          ${RK.CSS}
+          .btn.dim[data-act="undo"], .btn.dim[data-act="redo"] { pointer-events: none; }
           .hint { position: fixed; z-index: 2; pointer-events: none; background: ${GM.tooltip}; color: ${GM.onTooltip};
                   font: 400 12px/16px ${FONT}; padding: 6px 10px; border-radius: 4px; white-space: nowrap;
                   opacity: 0; transition: opacity .25s; }
@@ -782,13 +815,18 @@ console.log('[svg2slides] svg-editor.js loaded');
           .rpill .u { opacity: .7; margin-left: -2px; }
           .rpill .sc { opacity: .7; padding-left: 8px; border-left: 1px solid rgba(255,255,255,.25); }
           .rpill.live input { background: transparent; }
+          .rpill .seg { display: flex; align-items: center; gap: 6px; }
+          .rpill .seg + .seg { border-left: 1px solid rgba(255,255,255,.25); padding-left: 10px; }
+          .rpill .lb { opacity: .7; }
           .anchors, .handles, .cornerh { filter: drop-shadow(0 0 1px rgba(0,0,0,.35)) drop-shadow(0 1px 2px rgba(0,0,0,.18)); }`));
 
       const svg = sv('svg', { class: 'stage' });
-      ['defs', 'fills', 'outlines', 'handles', 'anchors', 'cornerh'].forEach((c) => svg.append(sv(c === 'defs' ? 'defs' : 'g', { class: c })));
+      ['defs', 'grid', 'fills', 'outlines', 'xform', 'handles', 'anchors', 'cornerh', 'guides'].forEach((c) => svg.append(sv(c === 'defs' ? 'defs' : 'g', { class: c, 'pointer-events': c === 'grid' || c === 'guides' ? 'none' : null })));
       svg.append(
         sv('rect', { class: 'marquee', fill: 'rgba(11,87,208,.08)', stroke: ACCENT, 'stroke-width': 1, visibility: 'hidden' }),
-        sv('circle', { class: 'pen-ghost', r: 4, fill: ACCENT, visibility: 'hidden' })
+        sv('circle', { class: 'pen-ghost', r: 4, fill: ACCENT, visibility: 'hidden' }),
+        sv('path', { class: 'pen-rubber', fill: 'none', stroke: ACCENT, 'stroke-width': 1.5, 'stroke-dasharray': '4 3', visibility: 'hidden', 'pointer-events': 'none' }),
+        sv('circle', { class: 'pen-close', r: 9, fill: 'none', stroke: ACCENT, 'stroke-width': 2, visibility: 'hidden', 'pointer-events': 'none' })
       );
 
       const icon = (viewBox, d, rule) => {
@@ -810,24 +848,26 @@ console.log('[svg2slides] svg-editor.js loaded');
         corners: icon('0 0 20 20', 'M4.25 17V9.5A5.25 5.25 0 0 1 9.5 4.25H17v1.5H9.5A3.75 3.75 0 0 0 5.75 9.5V17Z'),
         close: icon('0 0 20 20', 'M6.06 15 5 13.94 8.94 10 5 6.06 6.06 5 10 8.94 13.94 5 15 6.06 11.06 10 15 13.94 13.94 15 10 11.06Z'),
       };
-      const b = (attrs, child) => el('div', Object.assign({ class: 'btn', role: 'button' }, attrs), child);
-      const zoomLabel = el('div', { class: 'btn zoom', role: 'button', 'data-act': 'zoomreset', 'data-tip': 'Fit / reset zoom', 'data-key': '⇧1 · ⌘0' }, '100%');
-      this.zoomLabel = zoomLabel;
-      const rail = el('div', { class: 'rail' },
-        b({ 'data-tool': 'direct', 'data-tip': 'Select points', 'data-key': 'A' }, I.select),
-        b({ 'data-tool': 'pen', 'data-tip': 'Add / remove points', 'data-key': 'P' }, I.pen),
-        el('div', { class: 'sep' }),
-        b({ 'data-act': 'undo', 'data-tip': 'Undo', 'data-key': '⌘Z' }, I.undo),
-        b({ 'data-act': 'redo', 'data-tip': 'Redo', 'data-key': '⇧⌘Z' }, I.redo),
-        el('div', { class: 'sep' }),
-        b({ 'data-act': 'zoomin', 'data-tip': 'Zoom in', 'data-key': '⌘+' }, I.plus),
-        zoomLabel,
-        b({ 'data-act': 'zoomout', 'data-tip': 'Zoom out', 'data-key': '⌘−' }, I.minus),
-        el('div', { class: 'sep' }),
-        b({ 'data-act': 'cancel', 'data-tip': 'Discard changes' }, I.close),
-        b({ 'data-act': 'done', class: 'btn done', 'data-tip': 'Done', 'data-key': '↵' }, I.done)
-      );
-      const tip = el('div', { class: 'tip' });
+      const MODK = SB.IS_MAC ? '⌘' : 'Ctrl+';
+      this.rk = RK.mountRail(root, [
+        [{ act: 'select', tip: 'Select points', key: 'V', node: I.select }, { act: 'pen', tip: 'Pen: draw shapes, add / remove points', key: 'P', node: I.pen },
+          { act: 'snap', tip: 'Snapping (hold ' + (SB.IS_MAC ? '⌘' : 'Ctrl') + ' while dragging to ignore it)', key: '', fly: [
+            { act: 'snapPoints', tip: 'Snap to points, their lines and the slide’s edges and centre' },
+            { act: 'snapPx', tip: 'Snap to whole pixels' },
+            { act: 'snapGrid', tip: 'Snap to the grid (shows it)', key: (SB.IS_MAC ? '⌘' : 'Ctrl+') + "'" },
+            { act: 'snapSize', field: true, icon: 'snapGrid', unit: 'px', step: 1, tip: 'Grid size' },
+          ] }],
+      ], [
+        [{ act: 'undo', tip: 'Undo', key: MODK + 'Z', node: I.undo }, { act: 'redo', tip: 'Redo', key: (SB.IS_MAC ? '⇧⌘' : 'Ctrl+Shift+') + 'Z', node: I.redo }],
+        [{ act: 'zoomreset', tip: 'Fit / reset zoom (pinch or ' + MODK + '+ / ' + MODK + '− to zoom)', key: '⇧1 · ' + MODK + '0', text: '100%', span: true }],
+        [{ act: 'cancel', tip: 'Discard changes', key: 'Esc', node: I.close }, { act: 'done', tip: 'Done', key: '↵', node: I.done, cls: 'done' }],
+      ], (act, info) => this.onRailAct(act, info), {
+        label: 'Edit Shape', onEnter: () => this.updateRailState(),
+        onField: (act, v, how) => this.onField(act, v, how),
+        onFieldBlur: () => { this._fieldTyping = false; this.host.focus(); },
+      });
+      const rail = this.rk.rail;
+      this.zoomLabel = true;
       const hint = el('div', { class: 'hint' });
       // Corner radius pill: shows under the shape while corner handles are
       // visible. Live value while dragging a handle; type a px value too.
@@ -835,8 +875,68 @@ console.log('[svg2slides] svg-editor.js loaded');
       rIcon.append(sv('path', { d: 'M4.25 17V9.5A5.25 5.25 0 0 1 9.5 4.25H17v1.5H9.5A3.75 3.75 0 0 0 5.75 9.5V17Z', fill: 'currentColor' }));
       const rNum = el('input', { type: 'number', min: '0', step: '1', 'aria-label': 'Corner radius in px' });
       const rScope = el('span', { class: 'sc' }, 'All corners');
-      const rpill = el('div', { class: 'rpill', role: 'group', 'aria-label': 'Corner radius' }, rIcon, rNum, el('span', { class: 'u' }, 'px'), rScope);
-      root.append(svg, rail, rpill, tip, hint);
+      // Precise values for what's in scope: corner radius (when there are
+      // corners), width and height in px, and rotate by degrees.
+      const num = (label) => el('input', { type: 'number', step: 'any', 'aria-label': label });
+      const wNum = num('Width in px'), hNum = num('Height in px'), aNum = num('Rotate by degrees');
+      aNum.placeholder = '0';
+      const segR = el('span', { class: 'seg', 'data-tip': 'Corner radius · ⌥-drag to scrub' }, rIcon, rNum, el('span', { class: 'u' }, 'px'), rScope);
+      const wLb = el('span', { class: 'lb', 'data-tip': 'Width · ⌥-drag to scrub' }, 'W'), hLb = el('span', { class: 'lb', 'data-tip': 'Height · ⌥-drag to scrub' }, 'H');
+      wNum.dataset.tip = 'Width · ⌥-drag to scrub'; hNum.dataset.tip = 'Height · ⌥-drag to scrub';
+      const segS = el('span', { class: 'seg' }, wLb, wNum, hLb, hNum, el('span', { class: 'u' }, 'px'));
+      const aIcon = sv('svg', { class: 'ic', viewBox: '0 0 20 20', 'aria-hidden': 'true' });
+      aIcon.append(sv('path', { d: 'M10 3.5a6.5 6.5 0 1 0 6.5 6.5H15a5 5 0 1 1-5-5v2.3l3.2-3-3.2-3Z', fill: 'currentColor' }));
+      const segA = el('span', { class: 'seg', 'data-tip': 'Rotate by (type and press ↵) · ⌥-drag to scrub', 'data-key': SB.SHORTCUT_LABEL.rotL15 + ' ' + SB.SHORTCUT_LABEL.rotR15 }, aIcon, aNum, el('span', { class: 'u' }, '°'));
+      const rpill = el('div', { class: 'rpill', role: 'group', 'aria-label': 'Size, rotation and corner radius' }, segR, segS, segA);
+      this.segR = segR; this.wNum = wNum; this.hNum = hNum; this.aNum = aNum;
+      const sizeInput = (inp, axis) => {
+        inp.addEventListener('focus', () => { this._sizeBase = null; });
+        inp.addEventListener('input', () => {
+          const v = parseFloat(inp.value);
+          if (!Number.isFinite(v) || v <= 0) return;
+          if (!this._sizeBase) { this.pushUndo(); this._sizeBase = { box: this.scopeBBox(), subs: clone(this.shapes.map((s) => s.subs)) }; }
+          const b = this._sizeBase.box;
+          if (!b) return;
+          const cur = axis === 'x' ? b.maxX - b.minX : b.maxY - b.minY;
+          if (cur < 1e-6) return;
+          const f = (v * 381) / cur;
+          const S = axis === 'x' ? [f, 0, 0, 1, 0, 0] : [1, 0, 0, f, 0, 0];
+          this.transformScope(SB.matMul([1, 0, 0, 1, b.minX, b.minY], SB.matMul(S, [1, 0, 0, 1, -b.minX, -b.minY])), this._sizeBase.subs);
+          this.render();
+        });
+        inp.addEventListener('blur', () => { this._sizeBase = null; });
+      };
+      sizeInput(wNum, 'x');
+      sizeInput(hNum, 'y');
+      [rNum, wNum, hNum, aNum].forEach((inp) => inp.addEventListener('focus', () => setTimeout(() => inp.select(), 0)));
+      aNum.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter') return;
+        const v = parseFloat(aNum.value);
+        if (Number.isFinite(v) && v) this.rotateBy(v);
+        aNum.value = '';
+      });
+      // ⌥-drag scrubbing. Width and height go through their input handlers
+      // (one undo step per drag); rotation turns live from where it started.
+      RK.scrub(wLb, wNum, { step: 1, min: 1, onStart: () => { this._sizeBase = null; }, onEnd: () => { this._sizeBase = null; this.updatePill(); } });
+      RK.scrub(hLb, hNum, { step: 1, min: 1, onStart: () => { this._sizeBase = null; }, onEnd: () => { this._sizeBase = null; this.updatePill(); } });
+      RK.scrub(wNum, wNum, { step: 1, min: 1, onStart: () => { this._sizeBase = null; }, onEnd: () => { this._sizeBase = null; this.updatePill(); } });
+      RK.scrub(hNum, hNum, { step: 1, min: 1, onStart: () => { this._sizeBase = null; }, onEnd: () => { this._sizeBase = null; this.updatePill(); } });
+      RK.scrub(segR, rNum, { step: 0.5, min: 0, onStart: () => { this._rTyping = false; }, onEnd: () => { this._rTyping = false; } });
+      let rot0 = null;
+      RK.scrub(segA, aNum, {
+        step: 0.5,
+        onStart: () => { const b = this.scopeBBox(); if (!b) return; this.pushUndo(); rot0 = { b, base: clone(this.shapes.map((x) => x.subs)) }; },
+        onValue: (v) => {
+          if (!rot0) return;
+          const r = v * Math.PI / 180, c = Math.cos(r), sn = Math.sin(r);
+          this.transformScope(this.about(rot0.b.cx, rot0.b.cy, [c, sn, -sn, c, 0, 0]), rot0.base);
+          this.render();
+        },
+        onEnd: () => { rot0 = null; aNum.value = ''; },
+      });
+      root.prepend(svg);
+      root.append(rpill, hint);
+      this.rk.attachTips(rpill, 'above');
       this.rpill = rpill;
       this.rNum = rNum;
       this.rScope = rScope;
@@ -858,44 +958,16 @@ console.log('[svg2slides] svg-editor.js loaded');
       this.gAnchors = svg.querySelector('.anchors');
       this.gDefs = svg.querySelector('defs');
       this.gCorners = svg.querySelector('.cornerh');
+      this.gGrid = svg.querySelector('.grid');
+      this.gGuides = svg.querySelector('.guides');
       this.marquee = svg.querySelector('.marquee');
       this.penGhost = svg.querySelector('.pen-ghost');
+      this.penRubber = svg.querySelector('.pen-rubber');
+      this.penClose = svg.querySelector('.pen-close');
       this.rail = rail;
-      this.tip = tip;
       this.hint = hint;
+      this.gXform = svg.querySelector('.xform');
 
-      rail.addEventListener('pointerdown', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        this.hideTip();
-        const t = e.target.closest('.btn');
-        if (!t) return;
-        if (t.dataset.tool) this.setTool(t.dataset.tool);
-        else if (t.dataset.act === 'undo') this.doUndo();
-        else if (t.dataset.act === 'redo') this.doRedo();
-        else if (t.dataset.act === 'zoomin') this.zoomStep(1.5);
-        else if (t.dataset.act === 'zoomout') this.zoomStep(1 / 1.5);
-        else if (t.dataset.act === 'zoomreset') { if (this.isIdentityView()) this.fitView(); else this.resetView(); }
-        else if (t.dataset.act === 'cancel') this.close(true);
-        else if (t.dataset.act === 'done') this.commit();
-      });
-      // Tooltips, Slides-style: dark chip to the right of the button.
-      rail.addEventListener('pointerover', (e) => {
-        const t = e.target.closest('[data-tip]');
-        if (!t) return;
-        clearTimeout(this._tipT);
-        this._tipT = setTimeout(() => this.showTip(t), 350);
-      });
-      rail.addEventListener('pointerout', (e) => {
-        // Leaving a button hides its tip unless the pointer went straight
-        // onto another button (that one's tip takes over).
-        const to = e.relatedTarget && e.relatedTarget.closest ? e.relatedTarget.closest('[data-tip]') : null;
-        if (!to || !rail.contains(to)) this.hideTip();
-      });
-      rail.addEventListener('pointerdown', () => this.hideTip(), true);
-      // Fade back when not in use.
-      rail.addEventListener('pointerenter', () => { clearTimeout(this._idleT); rail.classList.remove('idle'); });
-      rail.addEventListener('pointerleave', () => { this.scheduleIdle(600); });
       this.scheduleIdle(2500);
 
       svg.addEventListener('pointerdown', (e) => { this.hideHint(); this.onDown(e); });
@@ -917,27 +989,14 @@ console.log('[svg2slides] svg-editor.js loaded');
     }
 
     placeRail() {
-      const r = this.wsRect;
-      const h = this.rail.offsetHeight || 380;
-      this.rail.style.left = (r.left + 12) + 'px';
-      this.rail.style.top = Math.max(r.top + 12, Math.min(r.top + 56, r.bottom - h - 12)) + 'px';
+      this.rk.place(this.wsRect);
     }
 
     scheduleIdle(ms) {
-      clearTimeout(this._idleT);
-      this._idleT = setTimeout(() => { if (this.rail) this.rail.classList.add('idle'); }, ms);
-    }
-
-    showTip(t) {
-      const rr = t.getBoundingClientRect();
-      this.tip.replaceChildren(t.dataset.tip, ...(t.dataset.key ? [el('span', { class: 'k' }, t.dataset.key)] : []));
-      this.tip.style.left = (this.rail.getBoundingClientRect().right + 8) + 'px';
-      this.tip.style.top = (rr.top + rr.height / 2 - 12) + 'px';
-      this.tip.classList.add('show');
+      if (this.rk) this.rk.scheduleIdle(ms);
     }
     hideTip() {
-      clearTimeout(this._tipT);
-      if (this.tip) this.tip.classList.remove('show');
+      if (this.rk) this.rk.hideTip();
     }
 
     hideHint() {
@@ -985,10 +1044,168 @@ console.log('[svg2slides] svg-editor.js loaded');
     setTool(t) {
       const changed = this.tool !== t;
       this.tool = t;
-      this.root.querySelectorAll('[data-tool]').forEach((b) => b.classList.toggle('on', b.dataset.tool === t));
+      this.rk.setOn('select', t === 'direct');
+      this.rk.setOn('pen', t === 'pen');
       this.svg.classList.toggle('pen', t === 'pen');
       this.penGhost.setAttribute('visibility', 'hidden');
-      if (changed && t === 'pen') this.flashHint('Click a segment to add a point · click a point to remove it · ⌥-click to convert', 3000);
+      if (t !== 'pen') this.finishDrawing();
+      if (changed && t === 'pen') this.flashHint(this.shapes.some((sh) => !sh.added)
+        ? 'Click anywhere to draw · drag for curves · click the first point to close · on a shape: click a segment to add a point, a point to remove it'
+        : 'Click anywhere to draw · drag for curves · click the first point to close · ↵ to finish', 4500);
+    }
+
+    // ── Pen: draw new shapes ──
+    // Click places a corner, click-drag pulls out a smooth curve (⌥ while
+    // dragging breaks the handles), a click on the path's first point
+    // closes it, and ↵ or Esc leaves it open. Each path is a new shape,
+    // stroked like the last one drawn; clicking the end of an open path
+    // (new or old) carries on drawing it.
+    addNewShape() {
+      const id = SB.newId();
+      const paint = Object.assign({ fill: '#FFFFFF', filled: false, stroke: '#1F1F1F', weight: 2 * 381, strokeOn: true }, this.penPaint || {});
+      const entry = [3, id, 1, [1, 0, 0, 1, 0, 0], [8, 1, 9, 1, 12, [[1, 1, [], [], [], 0]], 14, 0, 15, paint.fill, 18, 1, 19, paint.stroke, 22, paint.weight]];
+      this.resolved.push(entry);
+      const shape = { entry, id, src: id, subs: [], toPage: [1, 0, 0, 1, 0, 0], paint, added: true, drawnHere: true };
+      this.shapes.push(shape);
+      this.zRank = this.zRank || [];
+      this.zRank.push((this.coverGaps || []).length + this.shapes.length); // above everything
+      this.applyView();
+      return this.shapes.length - 1;
+    }
+    finishDrawing() {
+      const d = this.drawing;
+      this.drawing = null;
+      if (this.penRubber) { this.penRubber.setAttribute('visibility', 'hidden'); this.penClose.setAttribute('visibility', 'hidden'); }
+      this.showGuides(null);
+      if (!d) return;
+      const s = this.shapes[d.si];
+      const sp = s && s.subs[d.pi];
+      if (sp && sp.nodes.length < 2) {
+        // A lone point isn't a path: take it away again.
+        s.subs.splice(d.pi, 1);
+        if (!s.subs.length && s.drawnHere) {
+          this.resolved = this.resolved.filter((e) => e !== s.entry && !(e[0] === 3 && e[1] === s.id));
+          this.shapes.splice(d.si, 1);
+          if (this.zRank) this.zRank.splice(d.si, 1);
+          this.applyView();
+        }
+      }
+      if (s && s.drawnHere) this.penPaint = Object.assign({}, s.paint);
+      this.sel.clear();
+      this.render();
+    }
+    penPoint(s, x, y) { return this.local(s, { x, y }); }
+    penDown(x0, y0, e) {
+      // Points snap where they land (the path's own first point included,
+      // so a snapped close is exact); a click on the first point closes.
+      const tg = this.snapTargets(null);
+      const q = this.snapScreen(x0, y0, tg, e);
+      this.showGuides(null);
+      const x = q.x, y = q.y;
+      const d = this.drawing;
+      if (d) {
+        const s = this.shapes[d.si], sp = s.subs[d.pi];
+        const first = this.screen(s, sp.nodes[0]);
+        this.pushUndo();
+        if (sp.nodes.length >= 2 && Math.hypot(first.x - x0, first.y - y0) <= 9) {
+          sp.closed = true;
+          this.drag = { kind: 'pen', si: d.si, pi: d.pi, ni: 0, start: { x, y }, pushed: true, closing: true };
+          this.drawing = null;
+          this.penRubber.setAttribute('visibility', 'hidden');
+          this.penClose.setAttribute('visibility', 'hidden');
+          if (s.drawnHere) this.penPaint = Object.assign({}, s.paint);
+        } else {
+          sp.nodes.push(Object.assign(this.penPoint(s, x, y), { in: null, out: null }));
+          this.drag = { kind: 'pen', si: d.si, pi: d.pi, ni: sp.nodes.length - 1, start: { x, y }, pushed: true };
+        }
+        this.sel = new Set([this.key(this.drag.si, this.drag.pi, this.drag.ni)]);
+        this.render();
+        return;
+      }
+      const nk = this.hitNode(x0, y0);
+      if (nk) {
+        const h = this.nodeAt(nk);
+        const L = h.sp.nodes.length;
+        if (!h.sp.closed && !e.altKey && (h.ni === 0 || h.ni === L - 1)) {
+          // The end of an open path: carry on from there.
+          this.pushUndo();
+          if (h.ni === 0 && L > 1) h.sp.nodes = h.sp.nodes.reverse().map((n) => Object.assign({}, n, { in: n.out, out: n.in }));
+          this.drawing = { si: h.si, pi: h.pi };
+          this.sel = new Set([this.key(h.si, h.pi, h.sp.nodes.length - 1)]);
+          this.render();
+          return;
+        }
+        this.pushUndo();
+        if (e.altKey) this.toggleSmooth(nk);
+        else this.deleteNodes(new Set([nk]));
+        this.render();
+        return;
+      }
+      const seg = this.hitSegment(x0, y0);
+      if (seg) {
+        this.pushUndo();
+        const k = this.splitSegment(seg);
+        this.sel = new Set([k]);
+        this.render();
+        return;
+      }
+      // Empty space: a new path.
+      this.pushUndo();
+      const si = this.addNewShape();
+      const s = this.shapes[si];
+      s.subs.push({ closed: false, nodes: [Object.assign(this.penPoint(s, x, y), { in: null, out: null })] });
+      this.drawing = { si, pi: s.subs.length - 1 };
+      this.drag = { kind: 'pen', si, pi: s.subs.length - 1, ni: 0, start: { x, y }, pushed: true };
+      this.sel = new Set([this.key(si, s.subs.length - 1, 0)]);
+      this.render();
+    }
+    // Dragging out of a pen click pulls the point's handles: the out handle
+    // follows the pointer, the in handle mirrors it (⌥: only the out one).
+    penDrag(x, y, e) {
+      const dr = this.drag;
+      const s = this.shapes[dr.si];
+      const n = s && s.subs[dr.pi] && s.subs[dr.pi].nodes[dr.ni];
+      if (!n) return;
+      if (!dr.moved && Math.hypot(x - dr.start.x, y - dr.start.y) < 3) return;
+      dr.moved = true;
+      let tx = x, ty = y;
+      if (e.shiftKey) { const a = this.screen(s, n); const q = snap45(x - a.x, y - a.y); tx = a.x + q.x; ty = a.y + q.y; }
+      else {
+        if (!dr.targets) dr.targets = this.snapTargets(new Set([this.key(dr.si, dr.pi, dr.ni)]));
+        const q = this.snapScreen(x, y, dr.targets, e); tx = q.x; ty = q.y;
+      }
+      const p = this.penPoint(s, tx, ty);
+      if (dr.closing) {
+        // Closing on the first point: the pointer sets the curve coming in.
+        n.in = { x: 2 * n.x - p.x, y: 2 * n.y - p.y };
+        if (!e.altKey) n.out = { x: p.x, y: p.y };
+      } else {
+        n.out = p;
+        n.in = e.altKey ? n.in : { x: 2 * n.x - p.x, y: 2 * n.y - p.y };
+      }
+      n.smooth = !e.altKey;
+    }
+    // The dashed segment from the last point to the pointer, and a ring on
+    // the first point when a click there would close the path.
+    drawRubber(x, y) {
+      const d = this.drawing;
+      if (!d || this.tool !== 'pen') { this.penRubber.setAttribute('visibility', 'hidden'); this.penClose.setAttribute('visibility', 'hidden'); return; }
+      const s = this.shapes[d.si], sp = s && s.subs[d.pi];
+      if (!sp || !sp.nodes.length) return;
+      const last = sp.nodes[sp.nodes.length - 1];
+      const a = this.screen(s, last), c = last.out ? this.screen(s, last.out) : null;
+      const first = this.screen(s, sp.nodes[0]);
+      const closing = sp.nodes.length >= 2 && Math.hypot(first.x - x, first.y - y) <= 9;
+      let tx = x, ty = y;
+      if (closing) { tx = first.x; ty = first.y; this.showGuides(null); }
+      else {
+        if (!this._rubberT || this._rubberT.n !== sp.nodes.length) this._rubberT = { n: sp.nodes.length, t: this.snapTargets(null) };
+        const q = this.snapScreen(x, y, this._rubberT.t, this._lastMoveEvt); tx = q.x; ty = q.y;
+      }
+      this.penRubber.setAttribute('d', c ? `M${a.x} ${a.y}C${c.x} ${c.y} ${tx} ${ty} ${tx} ${ty}` : `M${a.x} ${a.y}L${tx} ${ty}`);
+      this.penRubber.setAttribute('visibility', 'visible');
+      this.penClose.setAttribute('cx', first.x); this.penClose.setAttribute('cy', first.y);
+      this.penClose.setAttribute('visibility', closing ? 'visible' : 'hidden');
     }
 
     updateUndoButtons() {
@@ -1012,7 +1229,15 @@ console.log('[svg2slides] svg-editor.js loaded');
     local(s, p) { return SB.apply(s.Minv, p.x, p.y); }
     localVec(s, dx, dy) { const m = s.Minv; return { x: m[0] * dx + m[2] * dy, y: m[1] * dx + m[3] * dy }; }
 
-    snapshot() { return JSON.stringify(this.shapes.map((s) => s.subs)); }
+    // The whole model, not just points: commands add, drop, regroup and
+    // repaint shapes, and native Arrange moves the originals on the slide.
+    snapshot() {
+      return JSON.stringify({
+        resolved: this.resolved, zRank: this.zRank, srcOf: this.srcOf,
+        shapes: this.shapes.map((s) => ({ entry: s.entry, id: s.id, src: s.src, subs: s.subs, toPage: s.toPage, paint: s.paint, fix: s.fix || null, added: !!s.added, fromText: s.fromText || null })),
+        slot: this.nativeArranged ? SB.topLevelOrder().indexOf(this.srcTop()) : null,
+      });
+    }
     pushUndo() {
       this.undo.push(this.snapshot());
       if (this.undo.length > 200) this.undo.shift();
@@ -1021,10 +1246,25 @@ console.log('[svg2slides] svg-editor.js loaded');
       this.updateUndoButtons();
     }
     restore(snap) {
-      const all = JSON.parse(snap);
-      this.shapes.forEach((s, i) => { s.subs = all[i]; });
+      const o = JSON.parse(snap);
+      this.resolved = o.resolved;
+      this.zRank = o.zRank;
+      this.srcOf = o.srcOf;
+      this.shapes = o.shapes.map((s) => Object.assign({}, s, { fix: s.fix || undefined }));
+      // Each shape's entry is the one in the restored payload.
+      this.shapes.forEach((sh) => { const e = this.resolved.find((x) => x[0] === 3 && x[1] === sh.id); if (e) sh.entry = e; });
       this.sel.clear();
+      if (this.drawing) {
+        const sh = this.shapes[this.drawing.si], sp = sh && sh.subs[this.drawing.pi];
+        if (!sp || sp.closed || !sp.nodes.length) this.drawing = null;
+        if (this.penRubber) { this.penRubber.setAttribute('visibility', 'hidden'); this.penClose.setAttribute('visibility', 'hidden'); }
+      }
+      this.applyView();
       this.render();
+      if (o.slot !== null && o.slot !== undefined && this.nativeArranged) {
+        const top = this.srcTop();
+        if (SB.topLevelOrder().indexOf(top) !== o.slot) this.nativeMoveTo(o.slot);
+      }
     }
     doUndo() {
       if (!this.undo.length) return;
@@ -1047,10 +1287,19 @@ console.log('[svg2slides] svg-editor.js loaded');
 
     draw() {
       const fills = [], outlines = [], handles = [], anchors = [];
+      const k = this.pageScale();
       this.shapes.forEach((s, si) => {
         const d = SB.svgPathD(s.subs, s.M);
-        const f = sv('path', { 'data-si': si, d, fill: s.filled ? s.fill : 'none', 'fill-rule': 'nonzero' });
-        if (!s.filled) f.setAttribute('stroke', s.fill);
+        const p = s.paint;
+        // Slides fills every path even-odd. Inside/outside strokes draw the
+        // moved outline (what Done will put on the slide).
+        const al = this.alignedSubs(s);
+        const f = sv('path', { 'data-si': si, d: al ? SB.svgPathD(al, s.M) : d, fill: p.filled ? p.fill : 'none', 'fill-rule': 'evenodd' });
+        if (p.strokeOn) {
+          f.setAttribute('stroke', p.stroke);
+          f.setAttribute('stroke-width', Math.max(0.5, p.weight * k));
+          f.setAttribute('stroke-linejoin', 'miter');
+        } else if (!p.filled) f.setAttribute('stroke', p.fill);
         fills.push(f);
         outlines.push(sv('path', { d, fill: 'none', stroke: ACCENT, 'stroke-width': 1.5 }));
       });
@@ -1107,7 +1356,8 @@ console.log('[svg2slides] svg-editor.js loaded');
       // static copies of whatever sits between it and the next one.
       const rank = this.zRank || this.shapes.map((_, i) => i);
       const painted = [];
-      const byRank = this.shapes.map((_, si) => si).sort((a, b) => rank[a] - rank[b] || a - b);
+      const ord = this.dfsOrder();
+      const byRank = this.shapes.map((_, si) => si).sort((a, b) => rank[a] - rank[b] || ord[a] - ord[b] || a - b);
       byRank.forEach((si, i) => {
         painted.push(fills[si]);
         const last = i === byRank.length - 1 || rank[byRank[i + 1]] !== rank[si];
@@ -1120,6 +1370,9 @@ console.log('[svg2slides] svg-editor.js loaded');
       this.gAnchors.replaceChildren(...anchors);
       if (!this.drag || this.drag.kind === 'radius') this.updateCornerUI();
       else { this.gCorners.replaceChildren(); }
+      this.drawXform();
+      this.drawGrid();
+      this.updateRailState();
     }
 
     // ── Corner rounding (Figma-style) ──
@@ -1255,7 +1508,7 @@ console.log('[svg2slides] svg-editor.js loaded');
       const g = this.gCorners;
       const sc = this.drag && this.drag.kind === 'radius' ? this.drag.liveScope() : this.cornerScope();
       this.cornerHandles = [];
-      if (!sc) { g.replaceChildren(); this.rpill.classList.remove('show'); return; }
+      if (!sc) { g.replaceChildren(); this.segR.style.display = 'none'; this.updatePill(); return; }
       const k = Math.sqrt(Math.abs(this.ctm[0] * this.ctm[3] - this.ctm[1] * this.ctm[2])); // page → screen
       const els = [];
       let minX = Infinity, maxX = -Infinity, maxY = -Infinity;
@@ -1283,11 +1536,28 @@ console.log('[svg2slides] svg-editor.js loaded');
         this.rNum.placeholder = same ? '' : 'Mixed';
       }
       this.rScope.textContent = sc.scoped ? (sc.corners.length === 1 ? '1 corner' : sc.corners.length + ' corners') : 'All corners';
-      this.rpill.classList.add('show');
-      this.rpill.classList.toggle('live', !!(this.drag && this.drag.kind === 'radius'));
+      this.segR.style.display = '';
+      this.updatePill();
+    }
+
+    // The value pill under what's in scope.
+    updatePill() {
+      const pill = this.rpill;
+      const ok = this.tool === 'direct' && this.targets().length && (!this.drag || this.drag.kind === 'radius' || this.drag.kind === 'xform');
+      const b = ok ? (this.drag && this.drag.kind === 'xform' ? null : this.scopeBBox()) : null;
+      if (!b) { if (!(this.drag && this.drag.kind === 'xform')) pill.classList.remove('show'); return; }
+      const fmt = (v) => String(Math.round(v * 10) / 10);
+      const focused = this.root.activeElement;
+      if (focused !== this.wNum) this.wNum.value = fmt((b.maxX - b.minX) / 381);
+      if (focused !== this.hNum) this.hNum.value = fmt((b.maxY - b.minY) / 381);
+      pill.classList.add('show');
+      pill.classList.toggle('live', !!(this.drag && this.drag.kind === 'radius'));
+      const a = SB.apply(this.ctm, b.minX, b.minY), z = SB.apply(this.ctm, b.maxX, b.maxY);
       const r = this.wsRect;
-      this.rpill.style.left = Math.max(r.left + 80, Math.min(r.right - 80, (minX + maxX) / 2)) + 'px';
-      this.rpill.style.top = Math.min(r.bottom - 42, maxY + 18) + 'px';
+      const half = (pill.offsetWidth || 300) / 2;
+      const railR = this.rail ? this.rail.getBoundingClientRect().right : r.left;
+      pill.style.left = Math.max(railR + half + 10, Math.min(r.right - half - 8, (a.x + z.x) / 2)) + 'px';
+      pill.style.top = Math.min(r.bottom - 42, Math.max(a.y, z.y) + 22) + 'px';
     }
 
     hitCornerHandle(x, y) {
@@ -1378,24 +1648,7 @@ console.log('[svg2slides] svg-editor.js loaded');
         return;
       }
 
-      if (this.tool === 'pen') {
-        const nk = this.hitNode(x, y);
-        if (nk) {
-          this.pushUndo();
-          if (e.altKey) this.toggleSmooth(nk);
-          else this.deleteNodes(new Set([nk]));
-          this.render();
-          return;
-        }
-        const seg = this.hitSegment(x, y);
-        if (seg) {
-          this.pushUndo();
-          const k = this.splitSegment(seg);
-          this.sel = new Set([k]);
-          this.render();
-        }
-        return;
-      }
+      if (this.tool === 'pen') { this.penDown(x, y, e); return; }
 
       const ch = this.hitCornerHandle(x, y);
       if (ch) {
@@ -1414,6 +1667,8 @@ console.log('[svg2slides] svg-editor.js loaded');
           return;
         }
       }
+      const xs = this.hitXform(x, y, 'box', e);
+      if (xs) { this.startXform(xs, x, y); return; }
       const h = this.hitHandle(x, y);
       if (h) {
         const hn = this.nodeAt(h.k);
@@ -1428,10 +1683,12 @@ console.log('[svg2slides] svg-editor.js loaded');
         } else if (!this.sel.has(nk)) {
           this.sel = new Set([nk]);
         }
-        this.startNodeDrag(x, y);
+        this.startNodeDrag(x, y, nk);
         this.render();
         return;
       }
+      const xr = this.hitXform(x, y, 'outside', e);
+      if (xr) { this.startXform(xr, x, y); return; }
       const si = this.hitShape(x, y);
       if (si != null) {
         const keys = [];
@@ -1448,15 +1705,151 @@ console.log('[svg2slides] svg-editor.js loaded');
       this.render();
     }
 
-    startNodeDrag(x, y) {
+    // ── Snapping ──
+    snapOn() { return snapPrefs.points || snapPrefs.px || snapPrefs.grid; }
+    updateSnapUI() {
+      this.rk.setOn('snapPoints', snapPrefs.points);
+      this.rk.setOn('snapPx', snapPrefs.px);
+      this.rk.setOn('snapGrid', snapPrefs.grid);
+      this.rk.setOn('snap', this.snapOn());
+      this.rk.setField('snapSize', snapPrefs.size);
+    }
+    toggleSnap(which) {
+      snapPrefs[which] = !snapPrefs[which];
+      saveSnap();
+      this.updateSnapUI();
+      const names = { points: 'points', px: 'whole pixels', grid: 'grid (' + snapPrefs.size + ' px)' };
+      this.flashHint('Snap to ' + names[which] + ': ' + (snapPrefs[which] ? 'on' : 'off'), 1600);
+      this.render();
+    }
+    // The slide's own box in page units (edges and centre snap too).
+    pageBox() {
+      if (this._pageBox !== undefined) return this._pageBox;
+      let b = null;
+      try {
+        const page = SB.currentPageGroup();
+        const bg = page && document.getElementById(page.id + '-bg');
+        const r = bg && bg.getBBox();
+        if (r && r.width) b = { x: r.x, y: r.y, w: r.width, h: r.height };
+      } catch { b = null; }
+      this._pageBox = b;
+      return b;
+    }
+    // What can be snapped to during one drag, in page units: every point
+    // except the ones moving, plus the slide's edges and centre.
+    snapTargets(skip) {
+      const pts = [];
+      this.eachNode((n, s, si, pi, ni) => {
+        if (skip && skip.has(this.key(si, pi, ni))) return;
+        pts.push(SB.apply(s.toPage, n.x, n.y));
+      });
+      const b = this.pageBox();
+      const xs = b ? [b.x, b.x + b.w / 2, b.x + b.w] : [];
+      const ys = b ? [b.y, b.y + b.h / 2, b.y + b.h] : [];
+      return { pts, xs, ys };
+    }
+    // Snap a page point. Points (and lines through them) win when close;
+    // otherwise the grid, or whole pixels, round it. Returns the point and
+    // the guides to show.
+    snapPage(P, targets, e) {
+      const out = { x: P.x, y: P.y, guides: [] };
+      if (!this.snapOn() || (e && (SB.IS_MAC ? e.metaKey : e.ctrlKey))) return out;
+      const tol = SNAP_PX / (this.pageScale() || 1);
+      let gx = false, gy = false;
+      if (snapPrefs.points && targets) {
+        let best = null, bd = tol;
+        targets.pts.forEach((q) => { const d = Math.hypot(q.x - P.x, q.y - P.y); if (d <= bd) { bd = d; best = q; } });
+        if (best) { out.x = best.x; out.y = best.y; out.guides.push({ kind: 'point', x: best.x, y: best.y }); return out; }
+        let bx = null, dx = tol, by = null, dy = tol;
+        targets.pts.forEach((q) => {
+          const ddx = Math.abs(q.x - P.x), ddy = Math.abs(q.y - P.y);
+          if (ddx <= dx) { dx = ddx; bx = q; }
+          if (ddy <= dy) { dy = ddy; by = q; }
+        });
+        targets.xs.forEach((x) => { const d = Math.abs(x - P.x); if (d <= dx) { dx = d; bx = { x, y: null }; } });
+        targets.ys.forEach((y) => { const d = Math.abs(y - P.y); if (d <= dy) { dy = d; by = { x: null, y }; } });
+        if (bx) { out.x = bx.x; gx = true; out.guides.push({ kind: 'v', x: bx.x, from: bx.y }); }
+        if (by) { out.y = by.y; gy = true; out.guides.push({ kind: 'h', y: by.y, from: by.x }); }
+      }
+      const step = snapPrefs.grid ? Math.max(0.01, snapPrefs.size) * 381 : snapPrefs.px ? 381 : 0;
+      if (step) {
+        const b = this.pageBox();
+        const ox = b ? b.x : 0, oy = b ? b.y : 0;
+        if (!gx) out.x = ox + Math.round((out.x - ox) / step) * step;
+        if (!gy) out.y = oy + Math.round((out.y - oy) / step) * step;
+      }
+      return out;
+    }
+    // Screen point → snapped screen point (and its guides shown).
+    snapScreen(x, y, targets, e) {
+      const inv = SB.matInv(this.ctm);
+      if (!inv) return { x, y };
+      const P = SB.apply(inv, x, y);
+      const r = this.snapPage(P, targets, e);
+      this.showGuides(r.guides, P);
+      const q = SB.apply(this.ctm, r.x, r.y);
+      return { x: q.x, y: q.y };
+    }
+    showGuides(guides, P) {
+      if (!this.gGuides) return;
+      if (!guides || !guides.length) { this.gGuides.replaceChildren(); return; }
+      const C = (x, y) => SB.apply(this.ctm, x, y);
+      const kids = [];
+      const line = (a, b) => kids.push(sv('line', { x1: a.x, y1: a.y, x2: b.x, y2: b.y, stroke: '#e8458b', 'stroke-width': 1 }));
+      const mark = (p) => kids.push(sv('path', { d: `M${p.x - 4} ${p.y - 4}l8 8m0 -8l-8 8`, stroke: '#e8458b', 'stroke-width': 1.5 }));
+      const box = this.pageBox();
+      guides.forEach((g) => {
+        if (g.kind === 'point') { mark(C(g.x, g.y)); return; }
+        if (g.kind === 'v') {
+          const y0 = g.from !== null && g.from !== undefined ? g.from : (box ? box.y : P.y), y1 = g.from !== null && g.from !== undefined ? P.y : (box ? box.y + box.h : P.y);
+          line(C(g.x, y0), C(g.x, y1)); mark(C(g.x, P.y));
+        } else {
+          const x0 = g.from !== null && g.from !== undefined ? g.from : (box ? box.x : P.x), x1 = g.from !== null && g.from !== undefined ? P.x : (box ? box.x + box.w : P.x);
+          line(C(x0, g.y), C(x1, g.y)); mark(C(P.x, g.y));
+        }
+      });
+      this.gGuides.replaceChildren(...kids);
+    }
+    // The grid, while grid snapping is on and its lines are far enough apart
+    // on screen to read.
+    drawGrid() {
+      if (!this.gGrid) return;
+      const b = this.pageBox();
+      const step = snapPrefs.grid ? Math.max(0.01, snapPrefs.size) * 381 : 0;
+      const k = this.pageScale();
+      if (!b || !step || step * k < 6) { this.gGrid.replaceChildren(); this._gridSig = null; return; }
+      const sig = this.ctm.join(',') + '|' + step;
+      if (sig === this._gridSig) return;
+      this._gridSig = sig;
+      const C = (x, y) => SB.apply(this.ctm, x, y);
+      let d = '';
+      for (let x = b.x; x <= b.x + b.w + 0.5; x += step) { const a = C(x, b.y), z = C(x, b.y + b.h); d += `M${a.x} ${a.y}L${z.x} ${z.y}`; }
+      for (let y = b.y; y <= b.y + b.h + 0.5; y += step) { const a = C(b.x, y), z = C(b.x + b.w, y); d += `M${a.x} ${a.y}L${z.x} ${z.y}`; }
+      this.gGrid.replaceChildren(sv('path', { d, stroke: 'rgba(11,87,208,.16)', 'stroke-width': 1, fill: 'none', 'shape-rendering': 'crispEdges' }));
+    }
+
+    startNodeDrag(x, y, leadKey) {
       const orig = new Map();
       this.sel.forEach((k) => { const h = this.nodeAt(k); if (h) orig.set(k, clone({ x: h.n.x, y: h.n.y, in: h.n.in, out: h.n.out })); });
-      this.drag = { kind: 'nodes', start: { x, y }, orig, pushed: false };
+      // The point that snaps: the one grabbed, else the selected point
+      // nearest the pointer; the others move with it.
+      let lead = leadKey && orig.has(leadKey) ? leadKey : null;
+      if (!lead) {
+        let bd = Infinity;
+        orig.forEach((o, k) => { const h = this.nodeAt(k); const p = this.screen(h.s, o); const d = Math.hypot(p.x - x, p.y - y); if (d < bd) { bd = d; lead = k; } });
+      }
+      const lh = lead && this.nodeAt(lead);
+      const leadScreen = lh ? this.screen(lh.s, orig.get(lead)) : null;
+      this.drag = { kind: 'nodes', start: { x, y }, orig, pushed: false, leadScreen, targets: this.snapTargets(new Set(orig.keys())) };
     }
 
     onMove(e) {
       const x = e.clientX, y = e.clientY;
       if (!this.drag) {
+        this._hoverPt = { x, y };
+        this.hoverCursor(e);
+        this._lastMoveEvt = e;
+        if (this.tool === 'pen' && this.drawing) { this.penGhost.setAttribute('visibility', 'hidden'); this.drawRubber(x, y); return; }
         if (this.tool === 'pen') {
           const seg = !this.hitNode(x, y) && this.hitSegment(x, y);
           if (seg) { this.penGhost.setAttribute('cx', seg.x); this.penGhost.setAttribute('cy', seg.y); this.penGhost.setAttribute('visibility', 'visible'); }
@@ -1466,6 +1859,16 @@ console.log('[svg2slides] svg-editor.js loaded');
       }
       e.preventDefault();
       let dx = x - this.drag.start.x, dy = y - this.drag.start.y;
+      if (this.drag.kind === 'xform') {
+        if (!this.drag.pushed) {
+          if (Math.hypot(dx, dy) < 2) return;
+          this.pushUndo();
+          this.drag.pushed = true;
+        }
+        this.moveXform(x, y, e);
+        return;
+      }
+      if (this.drag.kind === 'pen') { this.penDrag(x, y, e); this.render(); return; }
       if (this.drag.kind === 'pan') {
         this.view.tx = this.drag.tx0 + dx;
         this.view.ty = this.drag.ty0 + dy;
@@ -1489,6 +1892,11 @@ console.log('[svg2slides] svg-editor.js loaded');
         return;
       }
       if (e.shiftKey && this.drag.kind === 'nodes') { const s = snap45(dx, dy); dx = s.x; dy = s.y; }
+      else if (this.drag.kind === 'nodes' && this.drag.leadScreen) {
+        const L = this.drag.leadScreen;
+        const q = this.snapScreen(L.x + dx, L.y + dy, this.drag.targets, e);
+        dx = q.x - L.x; dy = q.y - L.y;
+      }
 
       if (this.drag.kind === 'nodes') {
         this.drag.orig.forEach((o, k) => {
@@ -1507,6 +1915,10 @@ console.log('[svg2slides] svg-editor.js loaded');
         const selfS = this.screen(hn.s, orig.self);
         let tx = selfS.x + dx, ty = selfS.y + dy;
         if (e.shiftKey) { const s = snap45(tx - anchorS.x, ty - anchorS.y); tx = anchorS.x + s.x; ty = anchorS.y + s.y; }
+        else {
+          if (!this.drag.targets) this.drag.targets = this.snapTargets(null);
+          const q = this.snapScreen(tx, ty, this.drag.targets, e); tx = q.x; ty = q.y;
+        }
         const p = this.local(hn.s, { x: tx, y: ty });
         hn.n[h.which] = p;
         const other = h.which === 'in' ? 'out' : 'in';
@@ -1536,9 +1948,11 @@ console.log('[svg2slides] svg-editor.js loaded');
     onUp() {
       if (this.drag && this.drag.kind === 'marquee') this.marquee.setAttribute('visibility', 'hidden');
       if (this.drag && this.drag.kind === 'pan') this.setPanCursor(this.spaceDown ? 'grab' : '');
-      const wasRadius = this.drag && this.drag.kind === 'radius';
+      this.showGuides(null);
+      const redraw = this.drag && (this.drag.kind === 'radius' || this.drag.kind === 'xform' || this.drag.kind === 'pen');
+      if (this.drag && this.drag.kind === 'pen' && this.drag.closing) this.sel.clear();
       this.drag = null;
-      if (wasRadius) this.render();
+      if (redraw) this.render();
     }
 
     onDbl(e) {
@@ -1632,6 +2046,12 @@ console.log('[svg2slides] svg-editor.js loaded');
       const mod = e.metaKey || e.ctrlKey;
       const k = e.key;
       const handled = () => { e.preventDefault(); };
+      if (k === 'Meta' || k === 'Control' || k === 'Alt' || k === 'Shift') { this.hoverCursor(e); return; }
+      if (this.pal && k === 'Escape') { handled(); this.pal.close(); return; }
+      if (this.pop && k === 'Escape') { handled(); this.pop.close(); return; }
+      if (mod && (k === "'" || e.code === 'Quote')) { handled(); this.toggleSnap('grid'); return; }
+      const sc = SB.matchShortcut(e);
+      if (sc) { handled(); this.command(sc); return; }
       // View: Space pans; ⌘+/⌘− zoom; ⌘0 or ⇧0 resets; ⇧1 / ⇧2 fit.
       if (k === ' ') {
         handled();
@@ -1648,6 +2068,18 @@ console.log('[svg2slides] svg-editor.js loaded');
         handled();
         this.sel = new Set();
         this.eachNode((n, s, si, pi, ni) => this.sel.add(this.key(si, pi, ni)));
+        this.render();
+        return;
+      }
+      if (this.drawing && (k === 'Enter' || k === 'Escape')) { handled(); this.finishDrawing(); return; }
+      if (this.drawing && (k === 'Backspace' || k === 'Delete')) {
+        handled();
+        const sp = this.shapes[this.drawing.si].subs[this.drawing.pi];
+        this.pushUndo();
+        sp.nodes.pop();
+        if (!sp.nodes.length) { sp.nodes.push({ x: 0, y: 0, in: null, out: null }); this.finishDrawing(); return; }
+        this.sel = new Set([this.key(this.drawing.si, this.drawing.pi, sp.nodes.length - 1)]);
+        if (this._hoverPt) this.drawRubber(this._hoverPt.x, this._hoverPt.y);
         this.render();
         return;
       }
@@ -1672,6 +2104,726 @@ console.log('[svg2slides] svg-editor.js loaded');
       handled();
     }
 
+    // ── One toolbar: commands (rail, flyouts and shortcuts) ──
+    // Everything acts on the shapes being edited, in memory, with the
+    // editor's own undo; Done puts the result on the slide. The scope is the
+    // shapes with selected points, or every shape when nothing is selected.
+    onRailAct(act, info) {
+      if (act === 'undo') this.doUndo();
+      else if (act === 'redo') this.doRedo();
+      else if (act === 'zoomreset') { if (this.isIdentityView()) this.fitView(); else this.resetView(); }
+      else if (act === 'cancel') this.close(true);
+      else if (act === 'done') this.commit();
+      else this.command(act, info);
+    }
+
+    command(act, info = {}) {
+      if (this.committing) return;
+      const btn = (a) => { const r = this.rk.items.get(a); return r ? r.b.getBoundingClientRect() : null; };
+      switch (act) {
+        case 'select': return this.setTool('direct');
+        case 'pen': return this.setTool('pen');
+        case 'snapPoints': return this.toggleSnap('points');
+        case 'snapPx': return this.toggleSnap('px');
+        case 'snapGrid': return this.toggleSnap('grid');
+        case 'rotL15': return this.rotateBy(-15);
+        case 'rotR15': return this.rotateBy(15);
+        case 'rotL1': return this.rotateBy(-1);
+        case 'rotR1': return this.rotateBy(1);
+        case 'scaleUp': return this.scaleBy(1.1);
+        case 'scaleDown': return this.scaleBy(1 / 1.1);
+        case 'forward': case 'backward': case 'front': case 'back': return this.arrange(act);
+        case 'union': case 'subtract': case 'intersect': case 'exclude': return this.booleanOp(act);
+        case 'group': return this.groupOp();
+        case 'ungroup': return this.ungroupOp();
+        case 'outlineStroke': return this.outlineStrokeOp();
+        case 'outlineText': return this.outlineTextOp();
+        case 'restoreText': return this.flashHint('Restore text from the toolbar, after Done', 2500);
+        case 'mask': return this.flashHint('Mask from the toolbar, after Done', 2500);
+        case 'alignLeft': case 'alignHCenter': case 'alignRight': case 'alignTop': case 'alignVMiddle': case 'alignBottom': return this.alignOp(act);
+        case 'distH': return this.distributeOp('h');
+        case 'distV': return this.distributeOp('v');
+        case 'strokeCenter': return this.setStrokeAlign('center');
+        case 'strokeInside': return this.setStrokeAlign('inside');
+        case 'strokeOutside': return this.setStrokeAlign('outside');
+        case 'palette': return this.openPalette();
+        case 'undo': return this.doUndo();
+        case 'redo': return this.doRedo();
+        case 'done': return this.commit();
+        case 'cancel': return this.close(true);
+        case 'fit': return this.fitView();
+        case 'fill': case 'fillColor': return this.openColor('fill', info.anchor || btn('fill'));
+        case 'stroke': case 'strokeColor': return this.openColor('stroke', info.anchor || btn('stroke'));
+        case 'strokeToggle': return this.strokeToggle();
+        case 'strokeThinner': return this.strokeStep(-1);
+        case 'strokeThicker': return this.strokeStep(1);
+        default: return undefined;
+      }
+    }
+
+    onField(act, v, how) {
+      if (act === 'snapSize') {
+        const n = parseFloat(v);
+        if (!Number.isFinite(n) || n <= 0) return;
+        snapPrefs.size = n;
+        if (how && (how.commit || how.cancel)) { if (!snapPrefs.grid && how.commit) snapPrefs.grid = true; saveSnap(); this.updateSnapUI(); }
+        this._gridSig = null;
+        this.render();
+        return;
+      }
+      if (act !== 'weight') return;
+      const px = parseFloat(v);
+      if (!Number.isFinite(px) || px < 0) return;
+      const ts = this.targets();
+      if (!ts.length) return;
+      if (!this._fieldTyping) { this.pushUndo(); this._fieldTyping = true; }
+      ts.forEach((si) => { const s = this.shapes[si]; s.paint = Object.assign({}, s.paint, px > 0 ? { strokeOn: true, weight: px * 381 } : { strokeOn: false }); });
+      this.render();
+      if (how && (how.commit || how.cancel)) this._fieldTyping = false;
+    }
+
+    // ── Command palette ──
+    openPalette() {
+      if (this.pal) { this.pal.close(); return; }
+      const n = this.targets().length;
+      const cmds = RK.commandList([
+        { act: 'select', label: 'Select points', group: 'Edit Shape', key: 'V' },
+        { act: 'pen', label: 'Pen: draw shapes, add / remove points', group: 'Edit Shape', key: 'P' },
+        { act: 'snapPoints', label: (snapPrefs.points ? 'Stop snapping' : 'Snap') + ' to points and lines', group: 'Snapping' },
+        { act: 'snapPx', label: (snapPrefs.px ? 'Stop snapping' : 'Snap') + ' to whole pixels', group: 'Snapping' },
+        { act: 'snapGrid', label: (snapPrefs.grid ? 'Hide the grid and stop snapping to it' : 'Show the grid and snap to it') + ' (' + snapPrefs.size + ' px)', group: 'Snapping', key: (SB.IS_MAC ? '⌘' : 'Ctrl+') + "'" },
+        { act: 'undo', label: 'Undo', group: 'Edit Shape', key: (SB.IS_MAC ? '⌘' : 'Ctrl+') + 'Z' },
+        { act: 'redo', label: 'Redo', group: 'Edit Shape', key: (SB.IS_MAC ? '⇧⌘' : 'Ctrl+Shift+') + 'Z' },
+        { act: 'fit', label: 'Fit to window', group: 'Edit Shape', key: '⇧1', icon: 'expand' },
+        { act: 'done', label: 'Done', group: 'Edit Shape', key: '↵' },
+        { act: 'cancel', label: 'Discard changes', group: 'Edit Shape', key: 'Esc', icon: 'close' },
+      ]).map((c) => Object.assign(c, { enabled: ['select', 'pen', 'undo', 'redo', 'fit', 'done', 'cancel', 'snapPoints', 'snapPx', 'snapGrid'].includes(c.act) || n > 0 }));
+      this.pal = RK.palette(this.root, cmds, (act) => { this.host.focus(); this.command(act); }, {
+        rect: this.wsRect,
+        onClose: () => { this.pal = null; this.host.focus(); },
+      });
+    }
+
+    // ── Align and distribute ──
+    // Several shapes: each shape moves as a whole. Points selected in one
+    // shape: the points move. Nothing selected: every shape.
+    alignUnits() {
+      const bySi = new Map();
+      if (this.sel.size) this.sel.forEach((k) => { const si = Number(k.split(':')[0]); if (!bySi.has(si)) bySi.set(si, []); bySi.get(si).push(k); });
+      else this.shapes.forEach((sh, si) => { if (!this.live(si)) return; const ks = []; sh.subs.forEach((sp, pi) => sp.nodes.forEach((n, ni) => ks.push(this.key(si, pi, ni)))); bySi.set(si, ks); });
+      let units = [...bySi.values()].map((keys) => ({ keys }));
+      if (units.length === 1 && this.sel.size) units = units[0].keys.map((k) => ({ keys: [k] }));
+      units.forEach((u) => {
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+        u.keys.forEach((k) => { const h = this.nodeAt(k); if (!h) return; const q = SB.apply(h.s.toPage, h.n.x, h.n.y); minX = Math.min(minX, q.x); maxX = Math.max(maxX, q.x); minY = Math.min(minY, q.y); maxY = Math.max(maxY, q.y); });
+        u.box = { minX, minY, maxX, maxY };
+      });
+      return units.filter((u) => isFinite(u.box.minX));
+    }
+    moveKeys(keys, dx, dy) {
+      keys.forEach((k) => {
+        const h = this.nodeAt(k);
+        if (!h) return;
+        const Ti = SB.matInv(h.s.toPage);
+        if (!Ti) return;
+        const lx = Ti[0] * dx + Ti[2] * dy, ly = Ti[1] * dx + Ti[3] * dy;
+        const n = h.n;
+        n.x += lx; n.y += ly;
+        if (n.in) n.in = { x: n.in.x + lx, y: n.in.y + ly };
+        if (n.out) n.out = { x: n.out.x + lx, y: n.out.y + ly };
+      });
+    }
+    alignOp(act) {
+      const units = this.alignUnits();
+      if (units.length < 2) { this.flashHint('Select two or more shapes or points to align', 2200); return; }
+      const ref = { minX: Math.min(...units.map((u) => u.box.minX)), minY: Math.min(...units.map((u) => u.box.minY)), maxX: Math.max(...units.map((u) => u.box.maxX)), maxY: Math.max(...units.map((u) => u.box.maxY)) };
+      const moves = units.map((u) => {
+        const b = u.box;
+        let dx = 0, dy = 0;
+        if (act === 'alignLeft') dx = ref.minX - b.minX;
+        if (act === 'alignRight') dx = ref.maxX - b.maxX;
+        if (act === 'alignHCenter') dx = (ref.minX + ref.maxX) / 2 - (b.minX + b.maxX) / 2;
+        if (act === 'alignTop') dy = ref.minY - b.minY;
+        if (act === 'alignBottom') dy = ref.maxY - b.maxY;
+        if (act === 'alignVMiddle') dy = (ref.minY + ref.maxY) / 2 - (b.minY + b.maxY) / 2;
+        return { u, dx, dy };
+      }).filter((m) => Math.abs(m.dx) > 1e-3 || Math.abs(m.dy) > 1e-3);
+      if (!moves.length) return;
+      this.pushUndo();
+      moves.forEach((m) => this.moveKeys(m.u.keys, m.dx, m.dy));
+      this.render();
+    }
+    distributeOp(axis) {
+      const units = this.alignUnits();
+      if (units.length < 3) { this.flashHint('Select three or more shapes or points to distribute', 2200); return; }
+      const lo = axis === 'h' ? 'minX' : 'minY', hi = axis === 'h' ? 'maxX' : 'maxY';
+      units.sort((a, b) => (a.box[lo] + a.box[hi]) - (b.box[lo] + b.box[hi]));
+      const span = units[units.length - 1].box[hi] - units[0].box[lo];
+      const total = units.reduce((t, u) => t + (u.box[hi] - u.box[lo]), 0);
+      const gap = (span - total) / (units.length - 1);
+      this.pushUndo();
+      let at = units[0].box[hi] + gap;
+      units.slice(1, -1).forEach((u) => {
+        const d = at - u.box[lo];
+        this.moveKeys(u.keys, axis === 'h' ? d : 0, axis === 'h' ? 0 : d);
+        at += (u.box[hi] - u.box[lo]) + gap;
+      });
+      this.render();
+    }
+
+    // ── Stroke position ──
+    // Slides draws strokes centred on the outline. Inside and outside move
+    // the outline by half the weight; the shape keeps its own outline here,
+    // so the weight and position stay editable.
+    setStrokeAlign(align) {
+      const ts = this.targets().filter((si) => this.shapes[si].paint.strokeOn);
+      if (!ts.length) { this.flashHint('Turn the stroke on first', 2000); return; }
+      const ok = ts.filter((si) => this.shapes[si].subs.every((sp) => sp.closed || sp.nodes.length < 2));
+      if (!ok.length) { this.flashHint('Inside and outside need a closed shape', 2200); return; }
+      this.pushUndo();
+      ok.forEach((si) => { const sh = this.shapes[si]; sh.paint = Object.assign({}, sh.paint, { align }); });
+      if (ok.length < ts.length) this.flashHint('Open lines keep a centred stroke', 2200);
+      this.render();
+    }
+    alignedSubs(s) {
+      const p = s.paint;
+      if (!p.strokeOn || !p.align || p.align === 'center' || typeof GEO === 'undefined') return null;
+      const live = s.subs.filter((sp) => sp.nodes.length >= 2);
+      if (!live.length || !live.every((sp) => sp.closed)) return null;
+      const sig = JSON.stringify(live) + p.align + p.weight + s.toPage.join();
+      if (s._al && s._al.sig === sig) return s._al.subs;
+      let out = null;
+      try {
+        const res = GEO.offsetSubs(this.mapSubs(live, s.toPage), (p.align === 'inside' ? -1 : 1) * p.weight / 2);
+        out = res.empty ? null : this.toLocal(s, res.subs);
+      } catch (err) { console.warn('[svg2slides] stroke offset failed', err); }
+      Object.defineProperty(s, '_al', { value: { sig, subs: out }, writable: true, configurable: true, enumerable: false });
+      return out;
+    }
+
+    // ── Model helpers ──
+    pageScale() { return Math.sqrt(Math.abs(this.ctm[0] * this.ctm[3] - this.ctm[1] * this.ctm[2])); }
+    live(si) { const s = this.shapes[si]; return !!s && s.subs.some((sp) => sp.nodes.length >= 2); }
+    targets() {
+      const set = new Set();
+      this.sel.forEach((k) => set.add(Number(k.split(':')[0])));
+      return (set.size ? [...set] : this.shapes.map((_, i) => i)).filter((si) => this.live(si));
+    }
+    entryOf(id) { return this.resolved.find((e) => (e[0] === 2 || e[0] === 3) && e[1] === id) || null; }
+    parentOf(id) { return this.resolved.find((e) => e[0] === 2 && Array.isArray(e[2]) && e[2].includes(id)) || null; }
+    srcTop() { return SB.topLevelIdOf(this.srcIds[0]) || this.srcIds[0]; }
+    // Paint order inside each slide object: the payload's group tree, depth
+    // first (children are listed bottom to top).
+    dfsOrder() {
+      const byId = new Map(this.resolved.filter((e) => e[0] === 2 || e[0] === 3).map((e) => [e[1], e]));
+      const kids = new Set();
+      this.resolved.forEach((e) => { if (e[0] === 2) (e[2] || []).forEach((k) => kids.add(k)); });
+      const order = new Map();
+      let n = 0;
+      const walk = (id, seen) => {
+        const e = byId.get(id);
+        if (!e || seen.has(id)) return;
+        seen.add(id);
+        if (e[0] === 3) order.set(id, n++);
+        else (e[2] || []).forEach((c) => walk(c, seen));
+      };
+      this.resolved.forEach((e) => { if ((e[0] === 2 || e[0] === 3) && !kids.has(e[1])) walk(e[1], new Set()); });
+      return this.shapes.map((s, i) => (order.has(s.id) ? order.get(s.id) : 1e6 + i));
+    }
+    paintSorted(list) {
+      const rank = this.zRank || [], ord = this.dfsOrder();
+      return list.slice().sort((a, b) => (rank[a] || 0) - (rank[b] || 0) || ord[a] - ord[b] || a - b);
+    }
+    mapSubs(subs, M) {
+      const ap = (p) => (p ? SB.apply(M, p.x, p.y) : null);
+      return subs.map((sp) => ({ closed: sp.closed, nodes: sp.nodes.map((n) => { const q = ap(n); return { x: q.x, y: q.y, in: ap(n.in), out: ap(n.out), smooth: n.smooth }; }) }));
+    }
+    pageSubs(s) { return this.mapSubs(s.subs, s.toPage); }
+    toLocal(s, pageSubs) { return this.mapSubs(pageSubs, SB.matInv(s.toPage) || [1, 0, 0, 1, 0, 0]); }
+    docColors() {
+      const out = [];
+      this.shapes.forEach((s) => { if (this.live(this.shapes.indexOf(s))) { if (s.paint.filled) out.push(s.paint.fill); if (s.paint.strokeOn) out.push(s.paint.stroke); } });
+      return out;
+    }
+
+    // A new shape drawn in page units, stacked just above `ref` and kept in
+    // the same slide object: inside ref's group when it has one, otherwise
+    // ref and the new shapes become a group.
+    addShapeAfter(ref, pageSubs, paint) {
+      const re = this.entryOf(ref.id);
+      if (!re) return null;
+      const id = SB.newId();
+      let parent = this.parentOf(ref.id);
+      let F;
+      if (parent) {
+        F = SB.localToPage(this.resolved, parent);
+      } else {
+        F = ref.fix ? ref.fix.slice() : [1, 0, 0, 1, 0, 0];
+        parent = [2, SB.newId(), [ref.id], [1, 0, 0, 1, 0, 0]];
+        this.resolved.push(parent);
+        this.srcOf[parent[1]] = ref.src;
+      }
+      const props = clone(re[4]);
+      const entry = [3, id, 1, [1, 0, 0, 1, 0, 0], props];
+      this.resolved.splice(this.resolved.indexOf(re) + 1, 0, entry);
+      // After ref and anything already added for it.
+      const kids = parent[2];
+      let at = kids.indexOf(ref.id);
+      while (at + 1 < kids.length && (this.shapes.find((x) => x.id === kids[at + 1]) || {}).addedFor === ref.id) at++;
+      kids.splice(at + 1, 0, id);
+      const shape = { entry, id, src: ref.src, subs: [], toPage: F, paint: Object.assign({}, paint), added: true, addedFor: ref.id };
+      shape.subs = this.toLocal(shape, pageSubs);
+      this.shapes.push(shape);
+      const ri = this.shapes.indexOf(ref);
+      this.zRank.push(this.zRank[ri] !== undefined ? this.zRank[ri] : 0);
+      this.srcOf[id] = ref.src;
+      this.applyView();
+      return shape;
+    }
+
+    // ── Rotate / scale ──
+    // About the centre of what's in scope: selected points (with their
+    // handles), or whole shapes when nothing is selected.
+    scopeBBox() {
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      const all = !this.sel.size;
+      this.eachNode((n, s, si, pi, ni) => {
+        if (!all && !this.sel.has(this.key(si, pi, ni))) return;
+        const q = SB.apply(s.toPage, n.x, n.y);
+        minX = Math.min(minX, q.x); maxX = Math.max(maxX, q.x);
+        minY = Math.min(minY, q.y); maxY = Math.max(maxY, q.y);
+      });
+      return isFinite(minX) ? { minX, minY, maxX, maxY, cx: (minX + maxX) / 2, cy: (minY + maxY) / 2 } : null;
+    }
+    transformScope(M, base) {
+      const keys = this.sel.size ? this.sel : null;
+      this.shapes.forEach((s, si) => {
+        const Ti = SB.matInv(s.toPage);
+        if (!Ti) return;
+        const Lm = SB.matMul(Ti, SB.matMul(M, s.toPage));
+        const src = base ? base[si] : s.subs;
+        s.subs.forEach((sp, pi) => sp.nodes.forEach((n, ni) => {
+          if (keys && !keys.has(this.key(si, pi, ni))) return;
+          const o = src[pi].nodes[ni];
+          const q = SB.apply(Lm, o.x, o.y);
+          const qi = o.in ? SB.apply(Lm, o.in.x, o.in.y) : null;
+          const qo = o.out ? SB.apply(Lm, o.out.x, o.out.y) : null;
+          n.x = q.x; n.y = q.y; n.in = qi; n.out = qo;
+        }));
+      });
+    }
+    about(cx, cy, M) { return SB.matMul([1, 0, 0, 1, cx, cy], SB.matMul(M, [1, 0, 0, 1, -cx, -cy])); }
+    rotateBy(deg) {
+      const b = this.scopeBBox();
+      if (!b) return;
+      this.pushUndo();
+      const r = deg * Math.PI / 180, c = Math.cos(r), sn = Math.sin(r);
+      this.transformScope(this.about(b.cx, b.cy, [c, sn, -sn, c, 0, 0]));
+      this.render();
+    }
+    scaleBy(f) {
+      const b = this.scopeBBox();
+      if (!b) return;
+      this.pushUndo();
+      this.transformScope(this.about(b.cx, b.cy, [f, 0, 0, f, 0, 0]));
+      this.render();
+    }
+
+    // Smart box: shown round two or more selected points.
+    //   corner drag        scale (⇧ keeps proportions, ⌥ from the centre)
+    //   edge drag          stretch one way (⌥ from the centre)
+    //   ⌘ + edge drag      skew (⇧ snaps to 15°)
+    //   ⌘ + corner drag,
+    //   or just outside    rotate (⇧ snaps to 15°)
+    xformBox() {
+      if (this.tool !== 'direct' || this.sel.size < 2) return null;
+      if (this.drag && this.drag.kind !== 'xform') return null;
+      const b = this.drag && this.drag.kind === 'xform' ? this.drag.box0 : this.scopeBBox();
+      if (!b) return null;
+      const a = SB.apply(this.ctm, b.minX, b.minY), z = SB.apply(this.ctm, b.maxX, b.maxY);
+      if (Math.abs(z.x - a.x) < 4 && Math.abs(z.y - a.y) < 4) return null;
+      const pad = 8;
+      const box = { l: Math.min(a.x, z.x) - pad, t: Math.min(a.y, z.y) - pad, r: Math.max(a.x, z.x) + pad, b: Math.max(a.y, z.y) + pad };
+      box.corners = [{ x: box.l, y: box.t }, { x: box.r, y: box.t }, { x: box.r, y: box.b }, { x: box.l, y: box.b }];
+      const mx = (box.l + box.r) / 2, my = (box.t + box.b) / 2;
+      // Edges: 0 top, 1 right, 2 bottom, 3 left. A flat box (a straight run
+      // of points) keeps only the edges that can move something.
+      box.edges = [{ x: mx, y: box.t }, { x: box.r, y: my }, { x: mx, y: box.b }, { x: box.l, y: my }];
+      box.flatX = Math.abs(z.x - a.x) < 4;
+      box.flatY = Math.abs(z.y - a.y) < 4;
+      return box;
+    }
+    drawXform() {
+      const g = this.gXform;
+      if (!g) return;
+      const box = this.drag && this.drag.kind === 'xform' ? null : this.xformBox();
+      if (!box) { g.replaceChildren(); return; }
+      const els = [sv('rect', { x: box.l, y: box.t, width: box.r - box.l, height: box.b - box.t, fill: 'none', stroke: ACCENT, 'stroke-width': 1, 'stroke-dasharray': '4 3', 'stroke-opacity': 0.8 })];
+      const long = (i) => (i % 2 ? box.b - box.t : box.r - box.l) > 40;
+      box.edges.forEach((c, i) => { if (long(i)) els.push(sv('rect', { x: c.x - 3, y: c.y - 3, width: 6, height: 6, fill: '#fff', stroke: ACCENT, 'stroke-width': 1.25 })); });
+      box.corners.forEach((c) => els.push(sv('rect', { x: c.x - 4, y: c.y - 4, width: 8, height: 8, fill: '#fff', stroke: ACCENT, 'stroke-width': 1.5 })));
+      g.replaceChildren(...els);
+    }
+    // where: 'box' (corners and edges) or 'outside' (the rotate zone).
+    hitXform(x, y, where, mods = {}) {
+      const box = this.xformBox();
+      if (!box) return null;
+      const cmd = !!(mods.metaKey || mods.ctrlKey);
+      const outside = x < box.l || x > box.r || y < box.t || y > box.b;
+      for (let i = 0; i < 4; i++) {
+        const c = box.corners[i];
+        const d = Math.hypot(c.x - x, c.y - y);
+        if (where === 'box' && d <= 6) return { kind: cmd ? 'rotate' : 'scale', corner: i, box };
+        if (where === 'outside' && d > 6 && d <= 24 && outside) return { kind: 'rotate', corner: i, box };
+      }
+      if (where !== 'box') return null;
+      // Edges: the whole side, away from the corners.
+      const near = 4;
+      const sides = [
+        { i: 0, on: Math.abs(y - box.t) <= near && x > box.l + 8 && x < box.r - 8 },
+        { i: 2, on: Math.abs(y - box.b) <= near && x > box.l + 8 && x < box.r - 8 },
+        { i: 1, on: Math.abs(x - box.r) <= near && y > box.t + 8 && y < box.b - 8 },
+        { i: 3, on: Math.abs(x - box.l) <= near && y > box.t + 8 && y < box.b - 8 },
+      ];
+      for (const sd of sides) {
+        if (!sd.on) continue;
+        const horiz = sd.i % 2 === 0; // top/bottom
+        if (!cmd && (horiz ? box.flatY : box.flatX)) continue; // nothing to stretch
+        return { kind: cmd ? 'skew' : 'edge', edge: sd.i, box };
+      }
+      return null;
+    }
+    xformCursor(hx) {
+      if (!hx) return '';
+      if (hx.kind === 'rotate') return ROTATE_CURSOR;
+      if (hx.kind === 'scale') return hx.corner % 2 ? 'nesw-resize' : 'nwse-resize';
+      if (hx.kind === 'edge') return hx.edge % 2 ? 'ew-resize' : 'ns-resize';
+      if (hx.kind === 'skew') return hx.edge % 2 ? SKEW_V_CURSOR : SKEW_H_CURSOR;
+      return '';
+    }
+    hoverCursor(e) {
+      const pt = this._hoverPt;
+      if (!pt || this.drag || this.tool !== 'direct' || !this.svg || this.spaceDown) return;
+      const hx = this.hitXform(pt.x, pt.y, 'box', e) || (!this.hitNode(pt.x, pt.y) && this.hitXform(pt.x, pt.y, 'outside', e));
+      const c = this.xformCursor(hx);
+      if (this.svg.style.cursor !== c && !(this.svg.style.cursor === 'grab' && !c)) this.svg.style.cursor = c;
+    }
+    startXform(hit, x, y) {
+      const b = this.scopeBBox();
+      if (!b) return;
+      const inv = SB.matInv(this.ctm);
+      this.drag = {
+        kind: 'xform', mode: hit.kind, corner: hit.corner, edge: hit.edge, start: { x, y }, pushed: false, box0: b,
+        base: clone(this.shapes.map((sh) => sh.subs)), inv,
+        startPage: SB.apply(inv, x, y),
+      };
+      this.render();
+    }
+    moveXform(x, y, e) {
+      const d = this.drag, b = d.box0;
+      const P = SB.apply(d.inv, x, y);
+      const at = (F, M0) => SB.matMul([1, 0, 0, 1, F[0], F[1]], SB.matMul(M0, [1, 0, 0, 1, -F[0], -F[1]]));
+      const snap = (ang) => Math.round(ang / (Math.PI / 12)) * (Math.PI / 12);
+      const safe = (v) => (!Number.isFinite(v) ? 1 : Math.abs(v) < 1e-3 ? (v < 0 ? -1e-3 : 1e-3) : v);
+      let M;
+      if (d.mode === 'rotate') {
+        let ang = Math.atan2(P.y - b.cy, P.x - b.cx) - Math.atan2(d.startPage.y - b.cy, d.startPage.x - b.cx);
+        if (e.shiftKey) ang = snap(ang);
+        const c = Math.cos(ang), sn = Math.sin(ang);
+        M = this.about(b.cx, b.cy, [c, sn, -sn, c, 0, 0]);
+      } else if (d.mode === 'scale') {
+        const cs = [[b.minX, b.minY], [b.maxX, b.minY], [b.maxX, b.maxY], [b.minX, b.maxY]];
+        const C = cs[d.corner];
+        const F = e.altKey ? [b.cx, b.cy] : cs[(d.corner + 2) % 4];
+        let sx = (C[0] - F[0]) ? (P.x - F[0]) / (C[0] - F[0]) : 1;
+        let sy = (C[1] - F[1]) ? (P.y - F[1]) / (C[1] - F[1]) : 1;
+        if (e.shiftKey) { const m = Math.max(Math.abs(sx), Math.abs(sy)); sx = Math.sign(sx || 1) * m; sy = Math.sign(sy || 1) * m; }
+        M = at(F, [safe(sx), 0, 0, safe(sy), 0, 0]);
+      } else {
+        // Edges. E: the dragged side's coordinate; F: the fixed one.
+        const horiz = d.edge % 2 === 0; // top/bottom
+        const E = horiz ? (d.edge === 0 ? b.minY : b.maxY) : (d.edge === 3 ? b.minX : b.maxX);
+        const F = horiz ? (e.altKey ? b.cy : (d.edge === 0 ? b.maxY : b.minY)) : (e.altKey ? b.cx : (d.edge === 3 ? b.maxX : b.minX));
+        const span = E - F;
+        if (d.mode === 'edge') {
+          const f = span ? (horiz ? (P.y - F) / span : (P.x - F) / span) : 1;
+          M = horiz ? at([0, F], [1, 0, 0, safe(f), 0, 0]) : at([F, 0], [safe(f), 0, 0, 1, 0, 0]);
+        } else {
+          // Skew: slide the dragged side along itself; the fixed side stays.
+          let k = span ? (horiz ? (P.x - d.startPage.x) / span : (P.y - d.startPage.y) / span) : 0;
+          if (e.shiftKey) k = Math.tan(Math.max(-Math.PI / 2.4, Math.min(Math.PI / 2.4, snap(Math.atan(k)))));
+          M = horiz ? [1, 0, k, 1, -k * F, 0] : [1, k, 0, 1, 0, -k * F];
+        }
+      }
+      this.transformScope(M, d.base);
+      this.render();
+    }
+
+    // ── Arrange ──
+    // Shapes inside one group of the object: restack within the group here.
+    // Whole objects (or everything being edited): Slides' own Arrange moves
+    // the originals, which stay selected under the editor, and the shapes
+    // stacked above are re-read so the view stays true.
+    arrange(dir) {
+      const ts = this.targets();
+      if (!ts.length) return;
+      const ids = ts.map((si) => this.shapes[si].id);
+      const parents = [...new Set(ids.map((id) => { const p = this.parentOf(id); return p ? p[1] : null; }))];
+      const everything = ts.length === this.shapes.filter((_, i) => this.live(i)).length;
+      if (!everything && parents.length === 1 && parents[0]) {
+        const P = this.entryOf(parents[0]);
+        const list = P[2].slice();
+        const mv = new Set(ids);
+        let next = list;
+        if (dir === 'front') next = [...list.filter((x) => !mv.has(x)), ...list.filter((x) => mv.has(x))];
+        else if (dir === 'back') next = [...list.filter((x) => mv.has(x)), ...list.filter((x) => !mv.has(x))];
+        else if (dir === 'forward') { next = list.slice(); for (let i = next.length - 2; i >= 0; i--) if (mv.has(next[i]) && !mv.has(next[i + 1])) [next[i], next[i + 1]] = [next[i + 1], next[i]]; }
+        else { next = list.slice(); for (let i = 1; i < next.length; i++) if (mv.has(next[i]) && !mv.has(next[i - 1])) [next[i], next[i - 1]] = [next[i - 1], next[i]]; }
+        if (next.join() === list.join()) return;
+        this.pushUndo();
+        P[2] = next;
+        this.render();
+        return;
+      }
+      if (!everything && this.srcIds.length > 1) this.flashHint('Arrange moves everything being edited together. Edit one object to move it alone.', 3500);
+      this.nativeArrange(dir);
+    }
+    async nativeArrange(dir) {
+      if (this._arranging) return;
+      this._arranging = true;
+      try {
+        if (!this.nativeArranged) { this.nativeStart = SB.topLevelOrder().indexOf(this.srcTop()); }
+        this.pushUndo();
+        this.nativeArranged = true;
+        SB.focusTextbox();
+        SB.pressArrange(dir);
+        await SB.sleep(140);
+        this.rebuildCover();
+      } finally {
+        this._arranging = false;
+        this.host.focus();
+      }
+    }
+    async nativeMoveTo(index) {
+      SB.focusTextbox();
+      await SB.moveToIndex(this.srcTop(), index);
+      this.rebuildCover();
+      this.host.focus();
+    }
+    rebuildCover() {
+      this.gDefs.replaceChildren();
+      this.buildCover();
+      this.render();
+    }
+
+    // ── Combine ──
+    booleanOp(op) {
+      const ts = this.paintSorted(this.targets());
+      if (ts.length < 2) { this.flashHint('Select points on two or more shapes, or select none to combine them all', 3000); return; }
+      const input = ts.map((si) => ({ subs: this.pageSubs(this.shapes[si]).map((sp) => Object.assign(sp, { closed: true })), fillRule: 'evenodd' }));
+      let res;
+      try { res = GEO.boolean(op, input); } catch (err) { console.warn('[svg2slides] boolean failed', err); this.flashHint('Couldn’t combine these shapes', 2500); return; }
+      if (res.empty) { this.flashHint(op === 'intersect' ? 'These shapes don’t overlap' : 'Nothing would be left', 2500); return; }
+      this.pushUndo();
+      const bottom = this.shapes[ts[0]];
+      bottom.subs = this.toLocal(bottom, res.subs);
+      ts.slice(1).forEach((si) => { this.shapes[si].subs = []; });
+      this.sel.clear();
+      this.render();
+    }
+
+    groupOp() {
+      const ts = this.paintSorted(this.targets());
+      if (ts.length < 2) { this.flashHint('Select points on two or more shapes to group them', 2500); return; }
+      const ids = ts.map((si) => this.shapes[si].id);
+      const parents = ids.map((id) => this.parentOf(id));
+      const pid = parents[0] ? parents[0][1] : null;
+      if (!parents.every((p) => (p ? p[1] : null) === pid)) { this.flashHint('Pick shapes at the same level to group them', 2500); return; }
+      if (pid && parents[0][2].length === ids.length) { this.flashHint('Already a group', 2000); return; }
+      this.pushUndo();
+      const gid = SB.newId();
+      if (pid) {
+        const P = parents[0];
+        const first = P[2].findIndex((k) => ids.includes(k));
+        const inOrder = P[2].filter((k) => ids.includes(k));
+        P[2] = P[2].filter((k) => !ids.includes(k));
+        P[2].splice(first, 0, gid);
+        this.resolved.push([2, gid, inOrder, [1, 0, 0, 1, 0, 0]]);
+      } else {
+        this.resolved.push([2, gid, ids, [1, 0, 0, 1, 0, 0]]);
+      }
+      this.srcOf[gid] = this.shapes[ts[0]].src;
+      this.render();
+    }
+
+    ungroupOp() {
+      const ts = this.targets();
+      const P = ts.length ? this.parentOf(this.shapes[ts[0]].id) : null;
+      if (!P) { this.flashHint('Nothing here is grouped', 2000); return; }
+      this.pushUndo();
+      const M = Array.isArray(P[3]) ? P[3] : [1, 0, 0, 1, 0, 0];
+      P[2].forEach((k) => { const e = this.entryOf(k); if (e && Array.isArray(e[3])) e[3] = SB.matMul(M, e[3]); });
+      const GP = this.parentOf(P[1]);
+      if (GP) GP[2].splice(GP[2].indexOf(P[1]), 1, ...P[2]);
+      this.resolved = this.resolved.filter((e) => e !== P);
+      this.render();
+    }
+
+    // ── Outline ──
+    strokeStyleOf(src) {
+      const g = SB.elementFor(src);
+      const p = g && [...g.querySelectorAll('path')].find((q) => { const cs = getComputedStyle(q); return cs.stroke && cs.stroke !== 'none' && parseFloat(cs.strokeWidth) > 0; });
+      const cs = p ? getComputedStyle(p) : null;
+      const join = cs ? cs.strokeLinejoin : 'miter';
+      return { cap: cs ? cs.strokeLinecap : 'butt', join: join === 'arcs' || join === 'miter-clip' ? 'miter' : join, miterLimit: cs ? parseFloat(cs.strokeMiterlimit) || 4 : 4 };
+    }
+    outlineStrokeOp() {
+      const ts = this.targets().filter((si) => this.shapes[si].paint.strokeOn);
+      if (!ts.length) { this.flashHint('Nothing here has a stroke', 2000); return; }
+      const made = [];
+      for (const si of ts) {
+        const s = this.shapes[si];
+        let out;
+        try { out = GEO.outlineStroke(this.pageSubs(s), s.paint.weight, this.strokeStyleOf(s.src)).subs; } catch (err) { console.warn('[svg2slides] outline stroke failed', err); continue; }
+        if (out.length) made.push({ s, out });
+      }
+      if (!made.length) { this.flashHint('Couldn’t outline that stroke', 2000); return; }
+      this.pushUndo();
+      made.forEach(({ s, out }) => {
+        if (s.paint.filled) {
+          this.addShapeAfter(s, out, Object.assign({}, s.paint, { fill: s.paint.stroke, filled: true, strokeOn: false }));
+          s.paint = Object.assign({}, s.paint, { strokeOn: false });
+        } else {
+          s.subs = this.toLocal(s, out);
+          s.paint = Object.assign({}, s.paint, { fill: s.paint.stroke, filled: true, strokeOn: false });
+        }
+      });
+      this.sel.clear();
+      this.render();
+    }
+
+    async outlineTextOp() {
+      const ST = self.SVG2S_SHAPES;
+      const srcs = [...new Set(this.targets().map((si) => this.shapes[si].src))].filter((src) => this.textSrcs.has(src));
+      if (!ST || !srcs.length) { this.flashHint('Nothing here has text', 2000); return; }
+      if (this._outlining) return;
+      this._outlining = true;
+      this.rail.classList.add('busy');
+      try {
+        const inv = SB.matInv(SB.pageCTM());
+        const plans = [];
+        for (const src of srcs) plans.push({ src, runs: await ST.textOutlines(src, inv, true) });
+        this.pushUndo();
+        for (const { src, runs } of plans) {
+          const mine = this.shapes.filter((s) => s.src === src && this.live(this.shapes.indexOf(s)));
+          const ids = new Set([src, ...this.shapes.filter((s) => s.src === src).map((s) => s.id)]);
+          const ref = mine.find((s) => this.resolved.some((e) => e[0] === 15 && e[1] === s.id)) || mine[0];
+          if (!ref) continue;
+          const unit = payloadUnits(this.original).find((u) => u.ids.has(src));
+          this.textMemo = this.textMemo || {};
+          if (unit) this.textMemo[src] = { entries: clone(unit.entries), label: ST.describeText ? ST.describeText(src) : '' };
+          runs.forEach((r) => { const g = this.addShapeAfter(ref, r.subs, { fill: r.fill, filled: true, stroke: '#000000', weight: 381, strokeOn: false }); if (g) g.fromText = src; });
+          this.resolved = this.resolved.filter((e) => !((e[0] === 15 || e[0] === 17) && ids.has(e[1])));
+          this.textSrcs.delete(src);
+        }
+        const note = ST.takeNotes && ST.takeNotes();
+        if (note) this.flashHint(note, 5000);
+        this.render();
+      } catch (err) {
+        console.warn('[svg2slides] outline text failed', err);
+        this.flashHint((err && err.userMessage) || 'Couldn’t outline the text', 3500);
+      } finally {
+        this._outlining = false;
+        this.rail.classList.remove('busy');
+        this.host.focus();
+      }
+    }
+
+    // ── Fill and stroke ──
+    repaint(fn) {
+      const ts = this.targets();
+      if (!ts.length) return;
+      this.pushUndo();
+      ts.forEach((si) => { const s = this.shapes[si]; s.paint = Object.assign({}, s.paint, fn(s.paint)); });
+      this.render();
+    }
+    openColor(which, anchor) {
+      if (this.pop) { const was = this.pop.which; this.pop.close(); if (was === which) return; }
+      const ts = this.targets();
+      if (!ts.length) return;
+      const p = this.shapes[ts[0]].paint;
+      const stroke = which === 'stroke';
+      const r = anchor || this.rail.getBoundingClientRect();
+      const pop = RK.colorPopover(this.root, { right: this.rail.getBoundingClientRect().right, top: r.top }, {
+        title: stroke ? 'Stroke' : 'Fill', key: SB.SHORTCUT_LABEL[stroke ? 'strokeColor' : 'fillColor'],
+        value: stroke ? (p.strokeOn ? p.stroke : null) : (p.filled ? p.fill : null),
+        noneLabel: stroke ? 'No stroke' : 'No fill', doc: this.docColors(),
+        weights: stroke ? SB.WEIGHTS : null, weight: p.weight / 381, strokeOn: p.strokeOn,
+        onClose: () => { if (this.pop === pop) this.pop = null; this.host.focus(); },
+      }, (pick) => {
+        if (stroke) {
+          if (pick.none) this.repaint(() => ({ strokeOn: false }));
+          else if (pick.weight) this.repaint(() => ({ strokeOn: true, weight: pick.weight * 381 }));
+          else this.repaint(() => ({ strokeOn: true, stroke: pick.color }));
+        } else if (pick.none) this.repaint(() => ({ filled: false }));
+        else this.repaint(() => ({ filled: true, fill: pick.color }));
+      });
+      pop.which = which;
+      this.pop = pop;
+    }
+    strokeToggle() {
+      const ts = this.targets();
+      if (!ts.length) return;
+      const allOn = ts.every((si) => this.shapes[si].paint.strokeOn);
+      this.repaint(() => ({ strokeOn: !allOn }));
+    }
+    strokeStep(dir) {
+      const ts = this.targets();
+      if (!ts.length) return;
+      const W = SB.WEIGHTS;
+      this.repaint((p) => {
+        const px = p.strokeOn ? p.weight / 381 : 0;
+        let w;
+        if (dir > 0) w = W.find((v) => v > px + 0.25) || W[W.length - 1];
+        else w = [...W].reverse().find((v) => v < px - 0.25);
+        return w ? { strokeOn: true, weight: w * 381 } : { strokeOn: false };
+      });
+    }
+
+    // Dim what can't apply; show the current fill and stroke in the rail.
+    alignUnitsCount() {
+      const si = new Set([...this.sel].map((k) => k.split(':')[0]));
+      if (!this.sel.size) return this.shapes.filter((_, i) => this.live(i)).length;
+      return si.size === 1 ? this.sel.size : si.size;
+    }
+    updateRailState() {
+      if (!this.rk) return;
+      const ts = this.targets();
+      const n = ts.length;
+      const parents = new Set(ts.map((si) => { const p = this.parentOf(this.shapes[si].id); return p ? p[1] : null; }));
+      const rk = this.rk;
+      ['union', 'subtract', 'intersect', 'exclude'].forEach((a) => rk.setDim(a, n < 2));
+      rk.setDim('group', n < 2 || parents.size > 1);
+      rk.setDim('ungroup', !(n && this.parentOf(this.shapes[ts[0]].id)));
+      rk.setDim('outlineStroke', !ts.some((si) => this.shapes[si].paint.strokeOn));
+      rk.setDim('outlineText', !ts.some((si) => this.textSrcs.has(this.shapes[si].src)));
+      ['arrange', 'fill', 'stroke', 'forward', 'backward', 'front', 'back', 'rotL15', 'rotR15', 'scaleUp', 'scaleDown'].forEach((a) => rk.setDim(a, !n));
+      rk.setDim('combine', n < 2);
+      rk.setDim('outline', !ts.some((si) => this.shapes[si].paint.strokeOn || this.textSrcs.has(this.shapes[si].src)));
+      const p = n ? this.shapes[ts[0]].paint : null;
+      rk.setSwatch('fill', p && p.filled ? p.fill : null);
+      rk.setSwatch('stroke', p && p.strokeOn ? p.stroke : null);
+      rk.setDim('weight', !n);
+      rk.setDim('align', n < 1);
+      ['alignLeft', 'alignHCenter', 'alignRight', 'alignTop', 'alignVMiddle', 'alignBottom'].forEach((a) => rk.setDim(a, this.alignUnitsCount() < 2));
+      ['distH', 'distV'].forEach((a) => rk.setDim(a, this.alignUnitsCount() < 3));
+      rk.setDim('strokeAlign', !ts.some((si) => this.shapes[si].paint.strokeOn));
+      rk.setDim('strokeToggle', !n);
+      rk.setIcon('strokeAlign', { center: 'strokeCenter', inside: 'strokeInside', outside: 'strokeOutside' }[(p && p.align) || 'center']);
+      const ws = ts.map((si) => { const q = this.shapes[si].paint; return q.strokeOn ? Math.round(q.weight / 381 * 100) / 100 : 0; });
+      rk.setField('weight', !n ? '' : ws.every((w) => w === ws[0]) ? ws[0] : null);
+    }
+
     // ── Commit / close ──
     buildResolved() {
       const idMap = new Map();
@@ -1684,20 +2836,42 @@ console.log('[svg2slides] svg-editor.js loaded');
       for (const e of this.resolved) {
         if (e[0] === 3 && byId.has(e[1])) {
           const s = byId.get(e[1]);
-          const subs = clone(s.subs);
+          const al = this.alignedSubs(s);
+          const subs = clone(al || s.subs);
           if (!subs.some((sp) => sp.nodes.length >= 2)) { dropped.add(e[1]); continue; }
+          // A masked picture (image fill): its place is set relative to the
+          // path's exact box, so keep the picture where it was as the path
+          // changes (box before and after, in the shape's own units).
+          let picFit = null;
+          if (SB.getProp(e[4], 86) === 1) {
+            const rec0 = SB.pathRecord(e);
+            const old = rec0 && SB.decodePath(rec0[2], rec0[3]);
+            const b0 = old && SB.subsBBox(old), b1 = SB.subsBBox(subs);
+            if (b0 && b1) picFit = SB.imageFillProps(SB.pictureRect(e[4], b0), b1);
+          }
           const norm = SB.normalizeSubs(subs);
+          const design = al ? clone(s.subs).map((sp) => ({ closed: sp.closed, nodes: sp.nodes.map((n) => ({ x: n.x - norm.dx, y: n.y - norm.dy, in: n.in ? { x: n.in.x - norm.dx, y: n.in.y - norm.dy } : null, out: n.out ? { x: n.out.x - norm.dx, y: n.out.y - norm.dy } : null, smooth: n.smooth })) })) : null;
           const { meta, coords } = SB.encodePath(subs);
           const m = e[3];
           const newM = [m[0], m[1], m[2], m[3], m[4] + m[0] * norm.dx + m[2] * norm.dy, m[5] + m[1] * norm.dx + m[3] * norm.dy];
-          const props = clone(e[4]);
+          let props = SB.applyPaint(clone(e[4]), s.paint);
+          if (picFit) {
+            // Keep the picture as the fill unless a colour was chosen here.
+            const p0 = SB.paintFromProps(e[4]);
+            if (s.paint.fill === p0.fill && s.paint.filled === p0.filled) {
+              [14, 15].forEach((k) => { SB.removeProp(props, k); const v = SB.getProp(e[4], k); if (v !== undefined) SB.setProp(props, k, v); });
+            }
+            if (SB.getProp(props, 86) === 1) [84, 85, 79, 80].forEach((k) => SB.setProp(props, k, picFit[k]));
+          }
           const rec = clone(SB.pathRecord(e));
           rec[2] = meta;
           rec[3] = coords;
           SB.setProp(props, 12, [rec]);
           SB.setProp(props, 8, norm.w);
           SB.setProp(props, 9, norm.h);
-          out.push([3, idMap.get(e[1]), SB.typeFor(e[2], subs), newM, props, ...clone(e.slice(5))]);
+          const made = [3, idMap.get(e[1]), SB.typeFor(e[2], subs), newM, props, ...clone(e.slice(5))];
+          out.push(made);
+          if (design && self.SVG2S_SHAPES && self.SVG2S_SHAPES.remember) self.SVG2S_SHAPES.remember(SB.pathFingerprint(made), { kind: 'align', align: s.paint.align, design });
         } else if (e[0] === 2) {
           const kids = (e[2] || []).filter((id) => !dropped.has(id)).map((id) => idMap.get(id) || id);
           if (!kids.length) continue;
@@ -1711,8 +2885,20 @@ console.log('[svg2slides] svg-editor.js loaded');
           out.push(c);
         }
       }
-      // A group left with one child: ungroup it.
-      const final = out.filter((e) => !(e[0] === 2 && e[2].length < 2));
+      // A group left with one child: ungroup it, folding the group's
+      // transform into the child so it stays put.
+      let final = out;
+      for (let guard = 0; guard < 50; guard++) {
+        const g = final.find((e) => e[0] === 2 && e[2].length < 2);
+        if (!g) break;
+        const child = g[2][0];
+        final = final.filter((e) => e !== g);
+        if (child) {
+          const ce = final.find((e) => (e[0] === 2 || e[0] === 3) && e[1] === child);
+          if (ce && Array.isArray(g[3]) && Array.isArray(ce[3])) ce[3] = SB.matMul(g[3], ce[3]);
+          final.forEach((e) => { if (e[0] === 2) e[2] = e[2].map((id) => (id === g[1] ? child : id)); });
+        }
+      }
       // Shapes edited from inside a group paste at the top level, so give
       // their units absolute transforms (see placeFromRendering).
       const fixOf = new Map();
@@ -1737,6 +2923,7 @@ console.log('[svg2slides] svg-editor.js loaded');
     }
 
     onKeyUp(e) {
+      if (['Meta', 'Control', 'Alt', 'Shift'].includes(e.key)) this.hoverCursor(e);
       if (e.key === ' ') {
         e.preventDefault();
         this.spaceDown = false;
@@ -1745,12 +2932,15 @@ console.log('[svg2slides] svg-editor.js loaded');
     }
 
     teardown(restoreOriginals = true) {
+      if (!this._endLater) setTimeout(() => SB.endMacro(), 0);
       cancelAnimationFrame(this._raf);
       if (this.zoomLayer) this.zoomLayer.remove();
       this.zoomLayer = null;
       window.removeEventListener('pointermove', this._mv, true);
       window.removeEventListener('pointerup', this._up, true);
       window.removeEventListener('resize', this.onResize);
+      if (this.pop) this.pop.close();
+      if (this.rk) this.rk.destroy();
       if (restoreOriginals) this.restoreOriginals();
       this.restoreSlidesChrome();
       this.host.remove();
@@ -1763,9 +2953,14 @@ console.log('[svg2slides] svg-editor.js loaded');
 
     close() {
       // Nothing on the slide has changed before Done (conversions happen in
-      // memory), so closing just restores what we hid.
+      // memory), so closing just restores what we hid. The one exception is
+      // Arrange on whole objects, which moves the originals: put them back.
+      const back = this.nativeArranged && this.nativeStart >= 0 ? { top: this.srcTop(), at: this.nativeStart } : null;
+      this._endLater = true;
       this.teardown();
       SB.focusTextbox();
+      const moved = back && SB.topLevelOrder().indexOf(back.top) !== back.at ? SB.moveToIndex(back.top, back.at) : null;
+      Promise.resolve(moved).finally(() => SB.endMacro());
     }
 
     async commit() {
@@ -1788,10 +2983,20 @@ console.log('[svg2slides] svg-editor.js loaded');
       this.rail.classList.add('busy');
       this.hideTip();
       const resolved = this.buildResolved();
+      // Outlined text made here can be restored later from the toolbar.
+      if (this.textMemo && self.SVG2S_SHAPES && self.SVG2S_SHAPES.noteOutlinedText) {
+        resolved.forEach((e) => {
+          if (e[0] !== 3) return;
+          const old = this.idBack && this.idBack.get(e[1]);
+          const sh = old && this.shapes.find((x) => x.id === old);
+          const memo = sh && sh.fromText && this.textMemo[sh.fromText];
+          if (memo) { try { self.SVG2S_SHAPES.noteOutlinedText(resolved, e, memo.entries, memo.label); } catch (err) { console.warn('[svg2slides] text memory', err); } }
+        });
+      }
       const promptAt = this.rail.getBoundingClientRect();
       const nShapes = resolved.filter((e) => e[0] === 3).length;
       const sig = resolved.filter((e) => e[0] === 3).map((e) => SB.getProp(e[4], 8) + 'x' + SB.getProp(e[4], 9)).sort().join(',');
-      const oldIds = [...new Set(this.shapes.map((s) => s.src))];
+      const oldIds = this.srcIds;
       // Where each slide object sits in the stacking order, before we touch
       // anything: the replacements go back into the same slots.
       const order0 = SB.topLevelOrder();
@@ -1822,6 +3027,9 @@ console.log('[svg2slides] svg-editor.js loaded');
       // (still selected, since the overlay blocked all input), paste the
       // edit at the same transform, match Slides' zoom/scroll to the
       // editor's view, then remove the overlay.
+      // Masked pictures only come back if the paste looks like a real copy
+      // of them (see SB.withClip): take one before the originals go.
+      const clip = resolved.some((e) => e[0] === 3 && typeof SB.getProp(e[4], 49) === 'string') ? SB.readClip() : null;
       if (!(await deleteSelected(oldIds))) {
         console.warn('[svg2slides] scripted delete did not remove the original');
         this.teardown(true);
@@ -1829,7 +3037,7 @@ console.log('[svg2slides] svg-editor.js loaded');
         return;
       }
       let ok = true;
-      if (nShapes) ok = await pasteInPlace(resolved, slotFor);
+      if (nShapes) ok = clip ? await SB.withClip(clip, () => pasteInPlace(resolved, slotFor)) : await pasteInPlace(resolved, slotFor);
       if (handoff) await SB.matchSlidesView(handoff.pct, handoff.P, handoff.cx, handoff.cy);
       this.teardown(false);
       SB.focusTextbox();
@@ -1841,6 +3049,11 @@ console.log('[svg2slides] svg-editor.js loaded');
       }
     }
   }
+
+  // Shared with shape-tools.js: the same delete + paste-in-place that Done
+  // uses, so Shape tools results land in the same stacking slots, and the
+  // rail's Edit Shape button opens this editor in the rail's own spot.
+  self.SVG2S_EDIT = { payloadUnits, pasteInPlace, deleteSelected, openEditor, convertAndOpen, isOpen: () => !!editor };
 
   function pasteLabel() {
     return (typeof isMac === 'function' && isMac()) ? '⌘ + V' : 'Ctrl + V';

@@ -2,8 +2,6 @@
 
 Applies to: SVG to Slides Chrome extension, version 1.3.0. Editor keys also apply to version 1.2.0 unless they name a 1.3.0 tool..
 
-Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
-
 All shortcuts, with the Mac and Windows keys side by side. The extension's own shortcuts work while objects are selected and you are not typing in a text box. Five of them work at any time.
 
 > **Note:** The extension's shortcuts are off while the cursor is in a text box, so that typing Option+Shift characters still works. Click the slide or an object first.

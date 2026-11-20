@@ -2,8 +2,6 @@
 
 Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.3.0.
 
-Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
-
 The extension installs from the Chrome Web Store and needs no account. It runs only on Google Slides editor pages. Chrome updates it automatically.
 
 ## Requirements

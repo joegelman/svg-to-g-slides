@@ -45,7 +45,7 @@ PAGES = [
         "faq": [
             ("Does Google Slides support SVG natively?", "Not as an editable format. Slides rasterizes an inserted SVG into a flattened image, so you lose the ability to edit individual paths or recolour parts of it. SVG to Slides converts it into Slides' native shape format instead, so it stays fully editable."),
             ("What happens to gradients and complex curves?", "Solid fills and strokes convert cleanly. Arc commands are converted into smooth curves. Gradients come through in the online converter; in the Chrome extension and add-on they currently collapse to a single solid colour. Tested results are on the <a href=\"/specs#compatibility\">specs page</a>."),
-            ("Is my file uploaded anywhere?", "Depends on the surface. The Chrome extension converts entirely on your device using an embedded WebAssembly engine, so your file usually never leaves the browser. The online converter and add-on send the file to our backend for conversion. See the <a href=\"/privacy\">privacy policy</a> for specifics."),
+            ("Is my file uploaded anywhere?", "Depends on the surface. The Chrome extension converts every file inside your browser, and nothing is uploaded. The online converter and add-on send the file to our backend for conversion. See the <a href=\"/privacy\">privacy policy</a> for specifics."),
             ("Is it free?", "Yes. " + FREE_LINE),
         ],
         "related": ["does-google-slides-support-svg", "insert-svg-into-google-slides", "recolor-svg-in-google-slides"],
@@ -68,7 +68,7 @@ PAGES = [
         "sections": [
             ("Reshape it after you insert it", [
                 "Double-click any shape and click <b>Edit Shape</b>. A vector editor opens on the slide at the shape&rsquo;s exact size, so you can drag its points and curve handles, add or remove points, round corners, and undo as you go. Click <b>Done</b> and the shape updates in place.",
-                "It works on Slides&rsquo; own shapes, lines and WordArt too. <a href=\"/whats-new\">What&rsquo;s new in 1.2</a>.",
+                "It works on Slides&rsquo; own shapes, lines and WordArt too. <a href=\"/whats-new\">What&rsquo;s new</a>.",
             ]),
             ("Import an SVG without installing anything", [
                 "<b>Web uploader.</b> Upload one or more SVG files at <a href=\"/convert\">svgslid.es/convert</a> and get a Google Drive link to a Slides-ready file, one slide per SVG. Good for bulk conversion.",
@@ -98,7 +98,7 @@ PAGES = [
             ("Can I insert SVG icons into Google Slides?", "Yes. Drag up to 25 SVG icons onto a slide at once. Each one becomes editable shapes you can recolour and resize without losing quality."),
             ("How many SVGs can I insert at once?", "Up to 25 per drop with the Chrome extension. For larger batches, use the bulk converter at svgslid.es/convert."),
             ("Does it cost anything?", FREE_LINE),
-            ("Is my file uploaded anywhere?", "The Chrome extension converts on your device using an embedded WebAssembly engine, so your file usually never leaves the browser. The web converter and add-on send the file to our backend for conversion."),
+            ("Is my file uploaded anywhere?", "The Chrome extension converts every file inside your browser, and nothing is uploaded. The web converter and add-on send the file to our backend for conversion."),
         ],
         "related": ["does-google-slides-support-svg", "svg-to-google-slides-converter", "recolor-svg-in-google-slides"],
     },
@@ -291,7 +291,7 @@ Google Slides doesn't support SVG files. Your options are to flatten them into P
 {faq}
 
 ## Privacy
-The Chrome extension converts on your device with an embedded WebAssembly engine; your file usually never leaves the browser. Details: {site}/privacy
+The Chrome extension converts every file inside your browser; nothing is uploaded. Details: {site}/privacy
 """
 
 

@@ -4,8 +4,6 @@ Article ID: Q100112. Last reviewed: November 20, 2026.
 
 Applies to: SVG to Slides Chrome extension, version 1.3.0.
 
-Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
-
 Mask image with shape needs exactly one image and one shape or group selected, an image that is not rotated, and a mask that is a shape and not live text. The message under the toolbar says which condition failed.
 
 ## Symptoms

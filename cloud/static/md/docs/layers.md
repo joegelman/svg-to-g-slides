@@ -2,8 +2,6 @@
 
 Applies to: SVG to Slides Chrome extension, version 1.3.0.
 
-Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
-
 Press Option+1 to list every object on the current slide, front first. Click a row to select the object. Drag rows to restack, double-click to rename, and use the eye to hide an object while you work.
 
 ![The Layers panel docked at the left of Google Slides, listing two text layers, a group named Vacay logo with two shapes inside, an image named Beach photo, and two greyed theme objects marked M](https://svgslid.es/static/docs/img/layers-panel.jpg)

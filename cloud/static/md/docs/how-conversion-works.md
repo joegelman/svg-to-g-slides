@@ -2,8 +2,6 @@
 
 Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.3.0; SVG to Slides Web Uploader; SVG to Slides Workspace Add-on for Google Slides.
 
-Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
-
 Conversion turns every drawable element of the SVG into a path, and every path into one Slides shape with one fill. The extension and the add-on write the shapes in Slides' own form. The Web Uploader writes a presentation file.
 
 ## Stages

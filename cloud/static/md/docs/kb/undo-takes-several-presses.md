@@ -4,8 +4,6 @@ Article ID: Q100109. Last reviewed: November 20, 2026.
 
 Applies to: SVG to Slides Chrome extension, version 1.3.0.
 
-Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
-
 A combine, outline or mask is several steps inside Slides. The extension undoes them in one press only while the slide is as it left it. If you changed the slide afterwards, Slides' own undo takes over and goes one step per press. Keep pressing COMMAND+Z until the original returns.
 
 ## Symptoms

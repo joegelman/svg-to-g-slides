@@ -2,8 +2,6 @@
 
 Applies to: SVG to Slides Chrome extension, versions 1.2.0 and 1.3.0. The box, exact values and the two-column editor toolbar: version 1.3.0..
 
-Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
-
 Edit Shape opens a vector editor on the slide at the shape's exact size and position. Drag points and curve handles, add or remove points, then click **Done**. The shape updates in place and returns to its place in the stack.
 
 **To edit a shape's points**

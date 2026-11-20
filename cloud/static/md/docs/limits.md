@@ -2,8 +2,6 @@
 
 Applies to: SVG to Slides Chrome extension, version 1.3.0; SVG to Slides Web Uploader; SVG to Slides Workspace Add-on for Google Slides.
 
-Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
-
 The limits stated across this library, gathered in one place. Each one links to the topic that explains it.
 
 ## Inserting

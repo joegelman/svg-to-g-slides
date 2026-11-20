@@ -2,8 +2,6 @@
 
 Applies to: SVG to Slides Chrome extension, version 1.3.0.
 
-Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
-
 Snapping pulls pen points and dragged points onto other points, the slide's edges and centre, whole pixels, or a grid. The magnet button in the editor's toolbar sets it. Points and pixels are on to start.
 
 ![The Snapping pop-out beside the editor toolbar with three toggle buttons and a grid size field reading 10 px](https://svgslid.es/static/docs/img/snapping-menu.jpg)

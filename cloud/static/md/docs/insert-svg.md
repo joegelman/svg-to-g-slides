@@ -2,8 +2,6 @@
 
 Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.3.0. Click to place: version 1.2.0 and later. Pasting SVG code: version 1.3.0..
 
-Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
-
 Drag one or more .svg files from your computer onto an open Google Slides tab, then click where they go. Every path lands as its own native shape. Paths from one file arrive as a group.
 
 **To insert an SVG file**

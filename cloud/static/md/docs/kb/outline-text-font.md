@@ -4,8 +4,6 @@ Article ID: Q100113. Last reviewed: November 20, 2026.
 
 Applies to: SVG to Slides Chrome extension, version 1.3.0.
 
-Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
-
 Outline text reads letter shapes from the font. It downloads Google fonts from Google Fonts and asks Chrome for access to fonts installed on your computer. If neither works, allow font access when Chrome asks, or set the text in a Google font and outline it again.
 
 ## Symptoms

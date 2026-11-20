@@ -79,13 +79,56 @@ const SB = (() => {
     return unwrap(dt.getData(MIME));
   }
 
+  // Every format a copy of the selection carries (an image brings an
+  // image clip with it: what lets a paste fetch the picture).
+  const IMAGE_CLIP = 'application/x-vnd.google-docs-image-clip+wrapped';
+  function readClip() {
+    const tb = textbox();
+    if (!tb) return null;
+    const dt = new DataTransfer();
+    tb.dispatchEvent(new ClipboardEvent('copy', { clipboardData: dt, bubbles: true, cancelable: true }));
+    const out = {};
+    [...dt.types].forEach((t) => { out[t] = dt.getData(t); });
+    return out[MIME] ? out : null;
+  }
+  // Pastes made inside fn go out the way a real copy of `clip` would: the
+  // copy's own wrapper (document id, tokens) with our objects as both its
+  // resolved and unresolved lists, plus its image clip. A bare payload
+  // that names a stored picture shows Slides' broken-image sign ("There
+  // was a problem retrieving the specified image"); with the wrapper and
+  // image clip of a copy of that picture, Slides fetches it (checked live
+  // on a copy of the Vacay deck, also after deleting the original and
+  // reloading).
+  let pasteClip = null;
+  async function withClip(clip, fn) {
+    const prev = pasteClip;
+    pasteClip = clip;
+    try { return await fn(); } finally { pasteClip = prev; }
+  }
+  function clipWrap(resolved) {
+    try {
+      const w = JSON.parse(pasteClip[MIME]);
+      const data = JSON.parse(w.data);
+      const page = currentPageGroup();
+      const pid = page ? page.id.replace(/^editor-/, '') : null;
+      data.resolved = resolved;
+      data.unresolved = resolved.map((e) => (pid ? JSON.parse(JSON.stringify(e)).concat([pid]) : e));
+      w.data = JSON.stringify(data);
+      return JSON.stringify(w);
+    } catch {
+      return wrap(resolved);
+    }
+  }
+
   function paste(resolved) {
     const tb = textbox();
     if (!tb) return false;
     tb.focus();
     const dt = new DataTransfer();
-    dt.setData(MIME, wrap(resolved));
+    dt.setData(MIME, pasteClip ? clipWrap(resolved) : wrap(resolved));
+    if (pasteClip && pasteClip[IMAGE_CLIP]) dt.setData(IMAGE_CLIP, pasteClip[IMAGE_CLIP]);
     tb.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true }));
+    tick();
     return true;
   }
 
@@ -96,6 +139,189 @@ const SB = (() => {
     const opts = { key, code: key, keyCode: KEYCODES[key] || 0, which: KEYCODES[key] || 0, bubbles: true, cancelable: true };
     tb.dispatchEvent(new KeyboardEvent('keydown', opts));
     tb.dispatchEvent(new KeyboardEvent('keyup', opts));
+    if (key === 'Delete' || key === 'Backspace') tick();
+    return true;
+  }
+
+  // ── One undo step for our multi-step changes ───────────────────────────
+  // A combine, align, Done in Edit Shape and the like reach Slides as
+  // several steps (delete, paste, Arrange presses, menu picks). We note the
+  // slide as it was before and after; ⌘Z right after one of ours walks
+  // Slides' own undo back to the "before" state in one go, and ⌘⇧Z walks it
+  // forward again. Slides' history stays its own, so everything past ours
+  // undoes as normal.
+  let macro = null;
+  const undoStack = [], redoStack = [];
+  let replaying = false;
+  function hashStr(str) {
+    let h1 = 2166136261 >>> 0, h2 = 5381;
+    for (let i = 0; i < str.length; i++) { const c = str.charCodeAt(i); h1 = Math.imul(h1 ^ c, 16777619) >>> 0; h2 = (Math.imul(h2, 33) + c) >>> 0; }
+    return h1.toString(16) + h2.toString(16);
+  }
+  // What the current slide shows: each object in stacking order, with its
+  // drawn outlines, paint and text.
+  function slideSig() {
+    const page = currentPageGroup();
+    if (!page) return null;
+    const parts = [page.id];
+    topLevelOrder().forEach((id) => {
+      const g = elementFor(id);
+      if (!g) return;
+      let t = id;
+      g.querySelectorAll('path, text, image').forEach((n) => {
+        t += '|' + n.tagName + (n.getAttribute('d') || '').replace(/(\d+\.\d)\d+/g, '$1') + (n.getAttribute('fill') || '') + (n.getAttribute('stroke') || '') +
+          (n.getAttribute('stroke-width') || '') + (n.getAttribute('transform') || '').replace(/(\d+\.\d)\d+/g, '$1') + (n.tagName === 'text' ? n.textContent : '');
+      });
+      parts.push(hashStr(t));
+    });
+    return parts.join(',');
+  }
+  function tick() { if (macro && !replaying) macro.steps++; }
+  // Where our last action left the slide: after a macro (s1) or before it
+  // (s0). With no input of the person's own since, that is where the slide
+  // still is, even if Slides redrew it slightly differently.
+  let here = null;
+  let lastOursAt = 0;
+  let lastUserInput = 0;
+  const quiet = () => !(lastUserInput > lastOursAt);
+  // Two places in the stack are the same slide state when one macro started
+  // right where the one before it ended.
+  function same(a, b) {
+    if (!a || !b) return false;
+    if (a.m === b.m) return a.side === b.side;
+    const [x, y] = a.side === 's0' ? [a, b] : [b, a];
+    return x.side === 's0' && y.side === 's1' && x.m.prev === y.m && x.m.prevContig;
+  }
+  function at(m, side) {
+    if (!m) return false;
+    if (slideSig() === m[side]) return true;
+    return quiet() && same(here, { m, side });
+  }
+  function beginMacro(label) {
+    if (replaying) return;
+    if (macro) { macro.depth++; return; }
+    const prev = undoStack[undoStack.length - 1] || null;
+    macro = { label, s0: slideSig(), steps: 0, depth: 1, prev, prevContig: !!prev && at(prev, 's1') };
+  }
+  function endMacro() {
+    if (!macro || replaying) return;
+    if (--macro.depth > 0) return;
+    const m = macro;
+    macro = null;
+    m.s1 = slideSig();
+    if (!m.s0 || !m.s1 || m.s0 === m.s1) return; // nothing changed
+    lastOursAt = Date.now();
+    // One Slides step needs no help, but the slide is somewhere new now.
+    if (m.steps < 2) { here = null; return; }
+    undoStack.push(m);
+    if (undoStack.length > 30) undoStack.shift();
+    redoStack.length = 0;
+    here = { m, side: 's1' };
+    settle(m, 's1');
+  }
+  // Slides keeps drawing for a moment after the last paste (text, fonts,
+  // the kept frame of outlined text), so the picture is retaken until it
+  // stops changing.
+  async function settle(m, side) {
+    let last = m[side];
+    for (let i = 0; i < 20; i++) {
+      await sleep(100);
+      if (replaying || macro || !quiet() || !here || here.m !== m || here.side !== side) return;
+      const now = slideSig();
+      if (now === last) break;
+      last = now;
+    }
+    if (here && here.m === m && here.side === side && quiet()) share(m, side, last);
+  }
+  // Record a picture for a place in the stack, and for its twin (the end of
+  // the macro before, or the start of the one after).
+  function share(m, side, sig) {
+    m[side] = sig;
+    if (side === 's0' && m.prevContig && m.prev) m.prev.s1 = sig;
+    if (side === 's1') {
+      const next = redoStack.find((r) => r.prev === m && r.prevContig) || undoStack.find((u) => u.prev === m && u.prevContig);
+      if (next) next.s0 = sig;
+    }
+  }
+  // The person's own input. Our own shortcuts, our toolbar and the undo
+  // keys and buttons don't count.
+  function noteInput(e) {
+    if (!e.isTrusted || replaying) return;
+    if (e.type === 'keydown') {
+      if (['Meta', 'Control', 'Alt', 'Shift', 'CapsLock'].includes(e.key)) return;
+      if ((e.metaKey || e.ctrlKey) && (e.code === 'KeyZ' || e.code === 'KeyY')) return;
+      if (matchShortcut(e)) return;
+    }
+    const path = e.composedPath ? e.composedPath() : [];
+    if (path.some((n) => n && (n.id === 'svg2slides-shape-tools' || n.id === 'undoButton' || n.id === 'redoButton'))) return;
+    lastUserInput = Date.now();
+  }
+  document.addEventListener('pointerdown', noteInput, true);
+  document.addEventListener('keydown', noteInput, true);
+  setInterval(() => {
+    const ifr = iframe();
+    let doc = null;
+    try { doc = ifr && ifr.contentDocument; } catch { doc = null; }
+    if (!doc || doc.__svgxInput) return;
+    doc.__svgxInput = true;
+    doc.addEventListener('keydown', noteInput, true);
+    doc.addEventListener('pointerdown', noteInput, true);
+  }, 1500);
+  function undoKey(redo) {
+    const tb = textbox();
+    if (!tb) return;
+    const o = redo
+      ? (MAC ? { key: 'z', code: 'KeyZ', keyCode: 90, metaKey: true, shiftKey: true } : { key: 'y', code: 'KeyY', keyCode: 89, ctrlKey: true })
+      : Object.assign({ key: 'z', code: 'KeyZ', keyCode: 90 }, MAC ? { metaKey: true } : { ctrlKey: true });
+    o.which = o.keyCode; o.bubbles = true; o.cancelable = true;
+    tb.dispatchEvent(new KeyboardEvent('keydown', o));
+    tb.dispatchEvent(new KeyboardEvent('keyup', o));
+  }
+  async function walk(m, redo) {
+    const from = redo ? 's0' : 's1', side = redo ? 's1' : 's0';
+    if (!at(m, from)) return false;
+    const to = m[side];
+    replaying = true;
+    let ok = false;
+    try {
+      focusTextbox();
+      // Never more presses than our steps: if the slide never matches, stop
+      // there rather than undo something that wasn't ours.
+      let done = 0;
+      for (let i = 0; i < m.steps; i++) {
+        const before = slideSig();
+        undoKey(redo);
+        for (let w = 0; w < 25 && slideSig() === before; w++) await sleep(40);
+        if (slideSig() === to) { ok = true; break; }
+        if (slideSig() === before) break; // history ran out
+        done++;
+      }
+      // Every one of our steps went through: that is the other state, even
+      // if Slides draws it a little differently now.
+      if (!ok && done === m.steps) ok = true;
+    } finally {
+      replaying = false;
+    }
+    lastOursAt = Date.now();
+    if (!ok) { here = null; return false; }
+    here = { m, side };
+    share(m, side, slideSig());
+    settle(m, side);
+    return true;
+  }
+  // Called on ⌘Z / ⌘⇧Z.
+  function canUndoMacro() { const m = undoStack[undoStack.length - 1]; return !!(m && !replaying && !macro && at(m, 's1')); }
+  function canRedoMacro() { const m = redoStack[redoStack.length - 1]; return !!(m && !replaying && !macro && at(m, 's0')); }
+  async function undoMacro() {
+    if (!canUndoMacro()) return false;
+    const m = undoStack.pop();
+    if (await walk(m, false)) redoStack.push(m);
+    return true;
+  }
+  async function redoMacro() {
+    if (!canRedoMacro()) return false;
+    const m = redoStack.pop();
+    if (await walk(m, true)) undoStack.push(m);
     return true;
   }
 
@@ -212,9 +438,16 @@ const SB = (() => {
     });
     return best;
   }
+  // Looked up often (once per object in a slide signature), so kept for a
+  // moment.
+  let pageMemo = null, pageMemoAt = 0;
   function currentPageGroup() {
+    const now = performance.now();
+    if (pageMemo && now - pageMemoAt < 40 && pageMemo.isConnected) return pageMemo;
     const bg = currentPageBg();
-    return bg && bg.parentNode && bg.parentNode.closest ? bg.parentNode.closest('g[id^="editor-"]') : null;
+    pageMemo = bg && bg.parentNode && bg.parentNode.closest ? bg.parentNode.closest('g[id^="editor-"]') : null;
+    pageMemoAt = now;
+    return pageMemo;
   }
 
   function pageCTM() {
@@ -226,7 +459,16 @@ const SB = (() => {
     return c ? [c.a, c.b, c.c, c.d, c.e, c.f] : null;
   }
 
+  // Theme objects are drawn on every page that uses them with the same id
+  // (a slide, its layout in the theme builder), and pages seen earlier stay
+  // in the DOM. Prefer the one on the page in view.
   function elementFor(id) {
+    const page = currentPageGroup();
+    if (page) {
+      if (page.id === 'editor-' + id) return page;
+      const g = page.querySelector('[id="editor-' + String(id).replace(/["\\]/g, '') + '"]');
+      if (g) return g;
+    }
     return document.getElementById('editor-' + id);
   }
 
@@ -347,7 +589,7 @@ const SB = (() => {
       else pressArrange(cur > t ? 'backward' : 'forward');
       await sleep(30);
       const after = topLevelOrder().indexOf(id);
-      if (after === cur) { if (++stuck > 3) return false; await sleep(80); } else stuck = 0;
+      if (after === cur) { if (++stuck > 3) return false; await sleep(80); } else { stuck = 0; tick(); }
     }
     return false;
   }
@@ -526,6 +768,48 @@ const SB = (() => {
 
   // Shift local coords so their bbox starts at 0,0; returns the shift and
   // the new width/height (props 8/9).
+  // The exact box around a path (curves at their extremes, not their
+  // control points): what Slides fits an image fill to (checked live: an
+  // arch whose handles reach y=0 got its picture from y=12500, the curve's
+  // real top).
+  function subsBBox(subs) {
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    const add = (x, y) => { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; };
+    const ext = (a, b, c, d) => { // roots of the cubic's derivative in (0, 1)
+      const A = -a + 3 * b - 3 * c + d, B = 2 * (a - 2 * b + c), C = b - a;
+      const ts = [];
+      if (Math.abs(A) < 1e-12) { if (Math.abs(B) > 1e-12) ts.push(-C / B); }
+      else { const D = B * B - 4 * A * C; if (D >= 0) { const q = Math.sqrt(D); ts.push((-B + q) / (2 * A), (-B - q) / (2 * A)); } }
+      return ts.filter((t) => t > 0 && t < 1);
+    };
+    const at = (a, b, c, d, t) => { const u = 1 - t; return u * u * u * a + 3 * u * u * t * b + 3 * u * t * t * c + t * t * t * d; };
+    subs.forEach((sp) => {
+      const n = sp.nodes, L = n.length;
+      n.forEach((p) => add(p.x, p.y));
+      const segs = sp.closed ? L : L - 1;
+      for (let i = 0; i < segs; i++) {
+        const a = n[i], d = n[(i + 1) % L];
+        if (!a.out && !d.in) continue;
+        const b = a.out || a, c = d.in || d;
+        [...ext(a.x, b.x, c.x, d.x), ...ext(a.y, b.y, c.y, d.y)].forEach((t) => add(at(a.x, b.x, c.x, d.x, t), at(a.y, b.y, c.y, d.y, t)));
+      }
+    });
+    return isFinite(x0) ? { x: x0, y: y0, w: x1 - x0, h: y1 - y0 } : null;
+  }
+  // An image-filled shape's picture is placed by props 84/85 (offset) and
+  // 79/80 (size), as fractions of the path's exact box. Given the picture's
+  // rect and the box (same units), the four values; Slides keeps 4
+  // decimals.
+  function imageFillProps(pic, box) {
+    const r4 = (v) => Math.round(v * 1e4) / 1e4;
+    const w = Math.max(box.w, 1e-9), h = Math.max(box.h, 1e-9);
+    return { 84: r4((pic.x - box.x) / w), 85: r4((pic.y - box.y) / h), 79: r4(pic.w / w), 80: r4(pic.h / h) };
+  }
+  function pictureRect(props, box) {
+    const g = (k, d) => { const v = getProp(props, k); return typeof v === 'number' ? v : d; };
+    return { x: box.x + g(84, 0) * box.w, y: box.y + g(85, 0) * box.h, w: g(79, 1) * box.w, h: g(80, 1) * box.h };
+  }
+
   function normalizeSubs(subs) {
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     const visit = (p) => {
@@ -783,14 +1067,130 @@ const SB = (() => {
     return { resolved: out, converted, srcOf };
   }
 
+  // ── Paint props (fill / stroke) ───────────────────────────────────────
+  // 14 = filled (1/0), 15 = fill hex. Stroke: our shapes and converted
+  // ones use 18 = 1 with 19 = colour and 22 = weight (page units, 381 =
+  // 1 px), and 18 = 0 + 23 = 0 for none (verified live, Nov 2026). Slides'
+  // own polylines carry 19/22 with no 18 at all.
+  function removeProp(props, key) {
+    for (let i = 0; i + 1 < props.length; i += 2) if (props[i] === key) { props.splice(i, 2); i -= 2; }
+    return props;
+  }
+  function paintFromProps(props) {
+    const fill = getProp(props, 15), stroke = getProp(props, 19), w = getProp(props, 22), on = getProp(props, 18);
+    return {
+      fill: typeof fill === 'string' ? fill : '#9e9e9e',
+      filled: getProp(props, 14) !== 0,
+      stroke: typeof stroke === 'string' ? stroke : '#000000',
+      weight: typeof w === 'number' && w > 0 ? w : 381,
+      strokeOn: on === 1 || (on === undefined && typeof stroke === 'string'),
+    };
+  }
+  function applyPaint(props, p) {
+    setProp(props, 14, p.filled ? 1 : 0);
+    setProp(props, 15, p.fill);
+    if (p.strokeOn) {
+      removeProp(props, 23);
+      setProp(props, 18, 1);
+      setProp(props, 19, p.stroke);
+      setProp(props, 22, Math.max(1, Math.round(p.weight)));
+    } else {
+      setProp(props, 18, 0);
+      setProp(props, 23, 0);
+    }
+    return props;
+  }
+
+  // ── Shortcuts (shared by the editor and the Shape tools rail) ─────────
+  // Rotate, resize, arrange and group reuse Slides' own keys, so they mean
+  // the same thing inside and outside Edit Shape. The rest follow Figma
+  // where Slides leaves the key free.
+  const MAC = /Mac|iPhone|iPad/.test(navigator.platform || '');
+  function matchShortcut(e) {
+    const prim = MAC ? e.metaKey : e.ctrlKey;
+    const c = e.code, k = e.key;
+    const altOnly = e.altKey && !e.metaKey && !e.ctrlKey;
+    if (altOnly && (k === 'ArrowLeft' || k === 'ArrowRight')) {
+      return (k === 'ArrowLeft' ? 'rotL' : 'rotR') + (e.shiftKey ? '1' : '15');
+    }
+    const scaleMods = MAC ? (e.metaKey && e.ctrlKey && !e.altKey) : (e.ctrlKey && e.altKey && !e.metaKey);
+    if (scaleMods && !e.shiftKey && c === 'KeyK') return 'scaleUp';
+    if (scaleMods && !e.shiftKey && c === 'KeyJ') return 'scaleDown';
+    if (prim && !e.altKey && (k === 'ArrowUp' || k === 'ArrowDown')) {
+      return k === 'ArrowUp' ? (e.shiftKey ? 'front' : 'forward') : (e.shiftKey ? 'back' : 'backward');
+    }
+    if (prim && e.altKey && c === 'KeyG') return e.shiftKey ? 'ungroup' : 'group';
+    if (prim && e.altKey && !e.shiftKey && c === 'KeyO') return 'outlineStroke';
+    if (prim && e.altKey && !e.shiftKey && c === 'KeyT') return 'outlineText';
+    if (prim && !e.altKey && !e.shiftKey && c === 'Backslash') return 'palette';
+    // Show / hide our toolbar (next to ⌘\, Figma hides its UI on backslash)
+    // and the Layers panel (Figma's ⌥1).
+    if (altOnly && !e.shiftKey && c === 'Backslash') return 'toggleRail';
+    if (altOnly && !e.shiftKey && c === 'Digit1') return 'layers';
+    if (altOnly && e.shiftKey && c === 'KeyM') return 'themeBuilder'; // M for master
+    // Align and distribute: Figma's keys.
+    if (altOnly && !e.shiftKey) {
+      const al = ({ KeyA: 'alignLeft', KeyD: 'alignRight', KeyW: 'alignTop', KeyS: 'alignBottom', KeyH: 'alignHCenter', KeyV: 'alignVMiddle' })[c];
+      if (al) return al;
+    }
+    if (altOnly && e.shiftKey) {
+      return ({ KeyU: 'union', KeyS: 'subtract', KeyI: 'intersect', KeyE: 'exclude', Slash: 'strokeToggle',
+        BracketLeft: 'strokeThinner', BracketRight: 'strokeThicker', KeyF: 'fillColor', KeyL: 'strokeColor',
+        KeyP: 'pen', KeyH: 'distH', KeyV: 'distV', KeyK: 'mask' })[c] || null;
+    }
+    return null;
+  }
+  const K = MAC
+    ? { alt: '⌥', shift: '⇧', cmd: '⌘', ctrl: '⌃', join: '' }
+    : { alt: 'Alt+', shift: 'Shift+', cmd: 'Ctrl+', ctrl: 'Ctrl+', join: '' };
+  const SHORTCUT_LABEL = {
+    rotL15: K.alt + '←', rotR15: K.alt + '→', rotL1: K.alt + K.shift + '←', rotR1: K.alt + K.shift + '→',
+    scaleUp: MAC ? '⌘⌃K' : 'Ctrl+Alt+K', scaleDown: MAC ? '⌘⌃J' : 'Ctrl+Alt+J',
+    forward: K.cmd + '↑', backward: K.cmd + '↓', front: K.shift + K.cmd + '↑', back: K.shift + K.cmd + '↓',
+    group: MAC ? '⌘⌥G' : 'Ctrl+Alt+G', ungroup: MAC ? '⇧⌘⌥G' : 'Ctrl+Alt+Shift+G',
+    outlineStroke: MAC ? '⌥⌘O' : 'Ctrl+Alt+O', outlineText: MAC ? '⌥⌘T' : 'Ctrl+Alt+T',
+    union: K.alt + K.shift + 'U', subtract: K.alt + K.shift + 'S', intersect: K.alt + K.shift + 'I', exclude: K.alt + K.shift + 'E',
+    strokeToggle: K.alt + K.shift + '/', strokeThinner: K.alt + K.shift + '[', strokeThicker: K.alt + K.shift + ']',
+    fillColor: K.alt + K.shift + 'F', strokeColor: K.alt + K.shift + 'L', pen: K.alt + K.shift + 'P',
+    alignLeft: K.alt + 'A', alignHCenter: K.alt + 'H', alignRight: K.alt + 'D',
+    alignTop: K.alt + 'W', alignVMiddle: K.alt + 'V', alignBottom: K.alt + 'S',
+    distH: K.alt + K.shift + 'H', distV: K.alt + K.shift + 'V',
+    palette: K.cmd + '\\',
+    toggleRail: K.alt + '\\',
+    layers: K.alt + '1',
+    themeBuilder: K.alt + K.shift + 'M',
+    mask: K.alt + K.shift + 'K',
+  };
+
+  // A stable id for a path's geometry, independent of object ids (Slides
+  // reassigns those on paste) and position (the transform isn't included).
+  // Used to recognise our own results later: outlined text, offset strokes.
+  function pathFingerprint(entry) {
+    const rec = pathRecord(entry);
+    if (!rec) return null;
+    const str = rec[2].join(',') + '|' + rec[3].map((v) => Math.round(v)).join(',');
+    let h1 = 0x811c9dc5, h2 = 0x01000193;
+    for (let i = 0; i < str.length; i++) {
+      const c = str.charCodeAt(i);
+      h1 = Math.imul(h1 ^ c, 16777619) >>> 0;
+      h2 = Math.imul(h2 + c, 2246822519) >>> 0;
+    }
+    return h1.toString(16).padStart(8, '0') + h2.toString(16).padStart(8, '0') + ':' + rec[3].length;
+  }
+  // Slides' own border weights, in px.
+  const WEIGHTS = [1, 2, 3, 4, 8, 12, 16, 24];
+
   return {
     MIME, iframe, textbox, focusTextbox, wrap, unwrap,
-    readSelection, paste, pressKey, sleep, waitForSelection,
+    readSelection, readClip, withClip, hasClip: () => !!pasteClip, paste, pressKey, sleep, waitForSelection,
     getProp, setProp, newId, pathRecord, isEditableShape,
     matMul, matInv, apply, localToPage, pageCTM, elementFor, currentPageGroup, visibleWorkspaceRect,
     topLevelOrder, topLevelIdOf, pressArrange, moveToIndex,
     ZOOM_MIN, ZOOM_MAX, zoomPctFromCTM, setSlidesZoom, scrollPagePointTo, matchSlidesView,
-    decodePath, encodePath, normalizeSubs, typeFor, svgPathD,
+    decodePath, encodePath, normalizeSubs, typeFor, svgPathD, subsBBox, imageFillProps, pictureRect,
     convertibleKind, convertSelection, KIND_NOTE, parseRenderedD, solveAffine,
+    removeProp, paintFromProps, applyPaint, matchShortcut, SHORTCUT_LABEL, WEIGHTS, IS_MAC: MAC, pathFingerprint,
+    beginMacro, endMacro, tick, slideSig, undoMacro, redoMacro, canUndoMacro, canRedoMacro, isReplaying: () => replaying,
+    isRecording: () => !!macro, nativeUndo: (redo) => { focusTextbox(); undoKey(!!redo); },
   };
 })();

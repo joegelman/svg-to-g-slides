@@ -2,13 +2,13 @@
 
 Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.3.0; SVG to Slides Web Uploader; SVG to Slides Workspace Add-on.
 
-Version 1.3.0 is the newest version of the Chrome extension. It is not in the Chrome Web Store yet, and the store installs version 1.2.0. Version 1.3.0 adds a toolbar with a pen, image masks, shape combining, a Layers panel and one-press undo, and it is 92% smaller than 1.2.0. Each release has a technical changelog below.
+Version 1.3.0 is the current release of the Chrome extension. It adds a toolbar with a pen, image masks, shape combining, a Layers panel and one-press undo, and it is 92% smaller than 1.2.0. Each release has a technical changelog below.
 
 ## Chrome extension versions
 
 | Version | Date | What it added | Download | Installed | Chrome permissions |
 |---|---|---|---|---|---|
-| [1.3.0](https://svgslid.es/docs/release-notes/1-3-0.md) | Not in the Chrome Web Store yet | Toolbar, pen, snapping, image masks, combine, one-press undo, instant align, Layers, outline stroke and text, command palette, full-precision points, JavaScript converter | 392 KB | 1.1 MB | storage |
+| [1.3.0](https://svgslid.es/docs/release-notes/1-3-0.md) | November 2026 | Toolbar, pen, snapping, image masks, combine, one-press undo, instant align, Layers, outline stroke and text, command palette, full-precision points, JavaScript converter | 392 KB | 1.1 MB | storage |
 | [1.2.0](https://svgslid.es/docs/release-notes/1-2-0.md) | November 2026 | Edit Shape, round corners, editing Slides' own shapes, click to insert, exact placement | 5.8 MB | 14 MB | storage, one host permission |
 | [1.0.1](https://svgslid.es/docs/release-notes/1-0.md) | July 2026 | Removed an unused permission |  |  | One host permission |
 | [1.0.0](https://svgslid.es/docs/release-notes/1-0.md) | July 2026 | First release: drag SVG files onto a slide |  |  |  |

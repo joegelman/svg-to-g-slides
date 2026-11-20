@@ -14,7 +14,7 @@ _Free forever. Every feature, no daily cap, no account, no Pro tier._
 
 ## Reshape it after you insert it
 - Double-click any shape and click Edit Shape. A vector editor opens on the slide at the shape’s exact size, so you can drag its points and curve handles, add or remove points, round corners, and undo as you go. Click Done and the shape updates in place.
-- It works on Slides’ own shapes, lines and WordArt too. What’s new in 1.2.
+- It works on Slides’ own shapes, lines and WordArt too. What’s new.
 
 ## Import an SVG without installing anything
 - Web uploader. Upload one or more SVG files at svgslid.es/convert and get a Google Drive link to a Slides-ready file, one slide per SVG. Good for bulk conversion.
@@ -57,4 +57,4 @@ Up to 25 per drop with the Chrome extension. For larger batches, use the bulk co
 Free forever. Every feature, no daily cap, no account, no Pro tier.
 
 ### Is my file uploaded anywhere?
-The Chrome extension converts on your device using an embedded WebAssembly engine, so your file usually never leaves the browser. The web converter and add-on send the file to our backend for conversion.
+The Chrome extension converts every file inside your browser, and nothing is uploaded. The web converter and add-on send the file to our backend for conversion.

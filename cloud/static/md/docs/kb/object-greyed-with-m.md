@@ -4,8 +4,6 @@ Article ID: Q100111. Last reviewed: November 20, 2026.
 
 Applies to: SVG to Slides Chrome extension, version 1.3.0.
 
-Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
-
 The M marks a theme object: one that belongs to the slide's layout or master. It cannot be changed on the slide. Click its row twice to open Slides' theme builder on the layout or master that holds it.
 
 ## Summary

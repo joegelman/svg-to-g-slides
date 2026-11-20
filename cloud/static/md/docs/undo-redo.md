@@ -2,8 +2,6 @@
 
 Applies to: SVG to Slides Chrome extension, version 1.3.0.
 
-Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
-
 One press of Command+Z undoes a whole change made by the extension, even when the change took several steps inside Slides. Shift+Command+Z or Command+Y redoes it in one press.
 
 ## Changes that undo in one press

@@ -2,8 +2,6 @@
 
 Applies to: SVG to Slides Chrome extension, versions 1.2.0 and 1.3.0.
 
-Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
-
 Drag an .svg file onto a slide, click where it goes, and it lands as native shapes. This topic walks through the first insert and the three things most people do next.
 
 **To put an SVG on a slide**

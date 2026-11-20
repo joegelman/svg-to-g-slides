@@ -14,6 +14,12 @@
     return n;
   }
 
+  // Shortcut chip in the platform's own notation (⌥⇧P on a Mac, Alt+Shift+P elsewhere).
+  function key(act) {
+    const k = (typeof SB !== 'undefined' && SB.SHORTCUT_LABEL && SB.SHORTCUT_LABEL[act]) || '';
+    return k ? el('span', { class: 'k' }, k) : '';
+  }
+
   function show(version) {
     const r = (typeof SB !== 'undefined' && SB.visibleWorkspaceRect) ? SB.visibleWorkspaceRect()
       : { left: 0, top: 0, right: innerWidth, bottom: innerHeight };
@@ -43,7 +49,9 @@
       .x { position: absolute; top: 10px; right: 10px; width: 28px; height: 28px; border-radius: 14px;
            display: flex; align-items: center; justify-content: center; cursor: pointer; color: #444746;
            font-size: 18px; line-height: 1; }
-      .x:hover { background: rgba(68,71,70,.08); }`;
+      .x:hover { background: rgba(68,71,70,.08); }
+      .k { display: inline-block; font: 500 11px/16px ${FONT}; color: #444746; background: #f1f3f4; border-radius: 4px; padding: 0 5px; white-space: nowrap; }
+      .also { color: #444746; font-size: 12px; line-height: 17px; margin: 0 0 12px; }`;
     const close = el('div', { class: 'x', role: 'button', 'aria-label': 'Close' }, '×');
     const more = el('a', { class: 'btn text', href: URL_WHATS_NEW, target: '_blank', rel: 'noopener' }, 'See it in action');
     const ok = el('div', { class: 'btn tonal', role: 'button' }, 'Got it');
@@ -52,9 +60,12 @@
       el('div', { class: 't' }, 'SVG to Slides got an upgrade'),
       el('div', { class: 'v' }, 'Version ' + version),
       el('ul', {},
-        el('li', {}, el('b', {}, 'Edit Shape. '), 'Double-click any shape to drag its points and curve handles, or round its corners.'),
-        el('li', {}, el('b', {}, 'Any shape. '), 'Works on Slides’ own shapes, lines and WordArt too.'),
-        el('li', {}, el('b', {}, 'One click to insert. '), 'Drop an SVG, click where it goes. It lands right there.')),
+        el('li', {}, el('b', {}, 'Pen. '), 'Draw curves anywhere on the slide, snapped to a grid you size. ', key('pen')),
+        el('li', {}, el('b', {}, 'Mask with any shape. '), 'Put a shape or outlined text over a picture, select both. ', key('mask')),
+        el('li', {}, el('b', {}, 'Combine and outline. '), 'Union, subtract, intersect, exclude. Turn strokes and text into shapes.'),
+        el('li', {}, el('b', {}, 'Layers. '), 'Open nested groups, rename and hide. Theme objects open in the theme builder. ', key('layers')),
+        el('li', {}, el('b', {}, 'Every command, one search away. '), key('palette'))),
+      el('div', { class: 'also' }, 'Also: paste SVG code, instant align, one-step undo, and a 92% smaller extension.'),
       el('div', { class: 'row' }, more, ok));
     root.append(style, card);
     card.style.left = Math.max(12, r.left + 16) + 'px';

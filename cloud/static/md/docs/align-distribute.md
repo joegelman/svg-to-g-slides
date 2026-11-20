@@ -2,8 +2,6 @@
 
 Applies to: SVG to Slides Chrome extension, version 1.3.0.
 
-Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
-
 The align and distribute commands move objects in one step, straight to the result, and leave images intact. One object on its own, an image included, aligns to the slide's edges.
 
 ## Commands

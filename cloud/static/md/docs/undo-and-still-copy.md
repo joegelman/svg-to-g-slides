@@ -2,8 +2,6 @@
 
 Applies to: SVG to Slides Chrome extension, version 1.3.0.
 
-Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
-
 A combine, an outline, a mask or an Edit Shape session reaches Slides as several steps: remove, insert, restack. The extension shows a still copy of the slide while they run, so you see only the result, and it counts the steps so that one Command+Z undoes them all.
 
 ## The still copy

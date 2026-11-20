@@ -6,19 +6,21 @@ Tested November 11, 2026.
 
 - **Product:** SVG to Slides
 - **What it does:** Converts SVG files into native, editable Google Slides shapes. Every SVG path becomes its own shape.
-- **Ways to use it:** Chrome extension (drag and drop onto a slide), web uploader (returns a Google Drive file), Google Slides add-on (dialog inside Slides)
+- **Ways to use it:** Chrome extension (drag and drop onto a slide, or paste SVG code), web uploader (returns a Google Drive file), Google Slides add-on (dialog inside Slides)
 - **Price:** Free. No daily cap, no Pro tier.
 - **Account:** None for the extension. The web uploader takes an optional Google account email to share the file to.
 - **Google permissions:** Chrome extension: none. Add-on: reads the current presentation's page size, shows a dialog, and calls the converter.
 - **Files per drop:** Up to 25 SVGs per drop in the extension. The web uploader takes a batch and makes one slide per SVG.
-- **Where conversion runs:** Extension: in your browser, with a WebAssembly engine. Web uploader and add-on: on the svgslid.es backend.
+- **Where conversion runs:** Extension: inside your browser, with a JavaScript converter. Nothing is uploaded. Web uploader and add-on: on the svgslid.es backend.
+- **Chrome permissions:** Extension 1.3.0: access to Google Slides pages, where its tools run, and storage, to remember your settings. No access to other sites.
+- **Extension size:** Version 1.3.0: 392 KB to download, 1.1 MB installed. That is 92% smaller than 1.2.
 - **File retention:** Web uploader files are deleted after 7 days. Make a copy in Drive to keep one.
 - **Gradients:** Kept by the web uploader. The extension and add-on fill the shape with the gradient's first colour.
 - **Text:** Web uploader: converted to outlined shapes, not editable text. Extension and add-on: not converted.
 - **Placement:** The extension fits each SVG to about a fifth of the slide, centred where you click. The add-on fits it to the current slide.
-- **Editing:** Chrome extension: double-click any shape and click Edit Shape to move its points and curve handles on the slide, or round its corners by dragging or typing a radius. Works on Slides' own shapes, lines and WordArt by converting them to custom shapes first. SVG shapes made only of straight lines also support Slides' own Edit points.
+- **Editing:** Chrome extension: double-click any shape and click Edit Shape to move its points and curve handles on the slide, or round its corners by dragging or typing a radius. Works on Slides' own shapes, lines and WordArt by converting them to custom shapes first. SVG shapes made only of straight lines also support Slides' own Edit points. Version 1.3 adds a toolbar on the slide with a pen, snapping, exact strokes, outline stroke and outline text, image masks, union, subtract, intersect and exclude, align and distribute, a Layers panel and a command palette. Each tool has a topic in the documentation.
 - **Also works in:** Google Drawings
-- **Current versions:** Chrome extension 1.2.0 (what’s new)
+- **Current versions:** Chrome extension 1.3.0 (what’s new, release notes)
 - **Source code:** github.com/joegelman/svg-to-g-slides (source-available, PolyForm Strict 1.0.0)
 - **Built by:** Joe Gelman. Contact: joe@glmn.co
 

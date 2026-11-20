@@ -50,4 +50,4 @@ Yes. Add converted logos and icons to your theme layouts and reuse them across s
 Yes. Free forever. Every feature, no daily cap, no account, no Pro tier.
 
 ## Privacy
-The Chrome extension converts on your device with an embedded WebAssembly engine; your file usually never leaves the browser. Details: https://svgslid.es/privacy
+The Chrome extension converts every file inside your browser; nothing is uploaded. Details: https://svgslid.es/privacy

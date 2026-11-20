@@ -35,7 +35,7 @@ Not as an editable format. Slides rasterizes an inserted SVG into a flattened im
 Solid fills and strokes convert cleanly. Arc commands are converted into smooth curves. Gradients come through in the online converter; in the Chrome extension and add-on they currently collapse to a single solid colour. Tested results are on the specs page.
 
 ### Is my file uploaded anywhere?
-Depends on the surface. The Chrome extension converts entirely on your device using an embedded WebAssembly engine, so your file usually never leaves the browser. The online converter and add-on send the file to our backend for conversion. See the privacy policy for specifics.
+Depends on the surface. The Chrome extension converts every file inside your browser, and nothing is uploaded. The online converter and add-on send the file to our backend for conversion. See the privacy policy for specifics.
 
 ### Is it free?
 Yes. Free forever. Every feature, no daily cap, no account, no Pro tier.

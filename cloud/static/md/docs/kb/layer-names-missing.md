@@ -4,8 +4,6 @@ Article ID: Q100110. Last reviewed: November 20, 2026.
 
 Applies to: SVG to Slides Chrome extension, version 1.3.0.
 
-Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
-
 Layer names are kept in Chrome on the computer where you set them. They are not saved in the presentation, so other people and other computers show the default names.
 
 ## Symptoms

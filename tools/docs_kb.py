@@ -463,7 +463,7 @@ There is no round button and no toolbar at the left of the slide.
 
 | Cause | Do this |
 |---|---|
-| The installed version is earlier than 1.3.0. | Check the version. See [[install#check-version]]. Chrome updates on its own. |
+| The installed version is earlier than 1.3.0. | Check the version. See [[install#check-version]]. Chrome updates on its own once the Chrome Web Store has published the new version. |
 | The tab was open before the extension was installed or updated. | Reload the tab. |
 | The toolbar is closed. | It is one round button when closed. Click it, or press <<Option+\\>>. |
 | Edit Shape is open. | The editor's own toolbar takes the same place. Click **Done** or **Cancel**. |

@@ -2,8 +2,6 @@
 
 Applies to: SVG to Slides Chrome extension, version 1.3.0.
 
-Availability: Version 1.3.0 is not in the Chrome Web Store yet. The store installs version 1.2.0. See [what each version has](https://svgslid.es/docs/release-notes.md#matrix).
-
 The Paint section of the toolbar sets fill colour, stroke colour, stroke weight in pixels and stroke position. Numbers can be typed or changed by dragging.
 
 ## Colours

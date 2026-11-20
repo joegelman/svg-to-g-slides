@@ -1,8 +1,7 @@
-console.log('[svg2slides] content.js loaded, isPyodideReady() =', typeof isPyodideReady === 'function' ? isPyodideReady() : '(isPyodideReady undefined — pyodide-bridge.js may not have loaded)');
+console.log('[svg2slides] content.js loaded, local converter =', !!self.SVG2S_CONVERT);
 
 // Injected into Google Slides editor tabs only (see manifest.json's
-// content_scripts.matches). shared.js (BACKEND, readFilesAsBase64,
-// estimatePlacement, ASSUMED_* constants) and pyodide-bridge.js load first —
+// content_scripts.matches). shared.js (estimatePlacement, ASSUMED_* constants) and svg-convert.js load first —
 // see manifest.json.
 //
 // Flow: dropping an .svg shows a small 50%-opacity ghost preview (+ a
@@ -346,20 +345,6 @@ function shiftBundlePosition(bundle, deltaXPt, deltaYPt) {
   return { [_CLIP_MIME]: JSON.stringify(wrapper) };
 }
 
-function convertViaServer(files, placement) {
-  return readFilesAsBase64(files).then((payload) => {
-    return fetch(BACKEND + '/insert-svg-clip-at', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ files: payload, ...placement }),
-    });
-  }).then(async (res) => {
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.detail || 'Server error');
-    return json.clip;
-  });
-}
-
 // ── Main flow: two clicks, zero DOM elements, cursor-only feedback ────────
 // Click 1 places (starts eager conversion, no gesture needed for that).
 // Click 2, once ready, triggers the actual copy — kept as a genuinely
@@ -385,7 +370,7 @@ let placeholderPlacement = null;
 let insertGeneration = 0;
 
 function beginInsertFlow(files, startX, startY) {
-  console.log('[svg2slides] beginInsertFlow, isPyodideReady() =', isPyodideReady());
+  console.log('[svg2slides] beginInsertFlow, local converter =', !!self.SVG2S_CONVERT);
   const myGeneration = ++insertGeneration;
 
   if (pendingMousedownHandler) {
@@ -420,9 +405,8 @@ function beginInsertFlow(files, startX, startY) {
     box_w_pt: ASSUMED_SLIDE_W_PT * INSERT_FIT_FRACTION,
     box_h_pt: ASSUMED_SLIDE_H_PT * INSERT_FIT_FRACTION,
   };
-  const convert = isPyodideReady()
-    ? convertViaPyodide(files, placeholderPlacement)
-    : convertViaServer(files, placeholderPlacement);
+  // Converted here in the page (svg-convert.js); nothing leaves the browser.
+  const convert = self.SVG2S_CONVERT.convertFiles(files, placeholderPlacement);
   convert.then((b) => {
     if (myGeneration !== insertGeneration) {
       console.log('[svg2slides] conversion for a superseded drop resolved — discarding');

@@ -124,7 +124,7 @@
   "2026-11-20"
  ],
  "doc:kb/toolbar-does-not-appear": [
-  "8353821d2e6e9dcf",
+  "f79c5dad9b102ce0",
   "2026-11-20"
  ],
  "doc:kb/undo-takes-several-presses": [
@@ -180,7 +180,7 @@
   "2026-11-20"
  ],
  "doc:release-notes": [
-  "c339d77be456ea01",
+  "92511827add3eff8",
   "2026-11-20"
  ],
  "doc:release-notes/1-0": [
@@ -192,7 +192,7 @@
   "2026-11-20"
  ],
  "doc:release-notes/1-3-0": [
-  "222414a1c18a8aff",
+  "8f087c854ea4d778",
   "2026-11-20"
  ],
  "doc:round-corners": [
@@ -288,12 +288,12 @@
   "2026-10-13"
  ],
  "url:/": [
-  "c2479815a5f34b9a",
-  "2026-11-14"
+  "41d5138c87f7b1b5",
+  "2026-11-20"
  ],
  "url:/about": [
-  "57b83775a2645e33",
-  "2026-11-14"
+  "91cdd2ae85d8d089",
+  "2026-11-20"
  ],
  "url:/blog": [
   "d8a1c006c040c8c1",
@@ -364,7 +364,7 @@
   "2026-11-10"
  ],
  "url:/docs": [
-  "0fab71add6f71ecb",
+  "938f904553b9c57c",
   "2026-11-20"
  ],
  "url:/docs/a-z-index": [
@@ -376,19 +376,19 @@
   "2026-11-20"
  ],
  "url:/docs/align-distribute": [
-  "41954d0f973719d3",
+  "624819e873cb375b",
   "2026-11-20"
  ],
  "url:/docs/combine-shapes": [
-  "df256a03b7303185",
+  "764de6db66a054aa",
   "2026-11-20"
  ],
  "url:/docs/command-palette": [
-  "f822b6cbff0809c4",
+  "fb630ce4de2f91a0",
   "2026-11-20"
  ],
  "url:/docs/commands": [
-  "15f30ecc449e1a0a",
+  "1c72f91e6aacdac7",
   "2026-11-20"
  ],
  "url:/docs/conventions": [
@@ -404,11 +404,11 @@
   "2026-11-20"
  ],
  "url:/docs/edit-shape": [
-  "0ec2292b30389857",
+  "8b64817c68152039",
   "2026-11-20"
  ],
  "url:/docs/fill-stroke": [
-  "fb2a579ead8e0af5",
+  "c6058361897316af",
   "2026-11-20"
  ],
  "url:/docs/glossary": [
@@ -416,7 +416,7 @@
   "2026-11-20"
  ],
  "url:/docs/how-conversion-works": [
-  "981f9589e6348616",
+  "b99bea9c70e7a178",
   "2026-11-20"
  ],
  "url:/docs/how-shapes-reach-the-slide": [
@@ -424,11 +424,11 @@
   "2026-11-20"
  ],
  "url:/docs/insert-svg": [
-  "0e2f2236f7bf20fb",
+  "6ef240db30492fdc",
   "2026-11-20"
  ],
  "url:/docs/install": [
-  "a6353f4847f52a9c",
+  "bbfdf7e3b468fde2",
   "2026-11-20"
  ],
  "url:/docs/kb": [
@@ -436,7 +436,7 @@
   "2026-11-20"
  ],
  "url:/docs/kb/cannot-mask-image": [
-  "2f059584b1024cd8",
+  "4e7174b0734be6f1",
   "2026-11-20"
  ],
  "url:/docs/kb/colours-arrive-black": [
@@ -452,7 +452,7 @@
   "2026-11-20"
  ],
  "url:/docs/kb/layer-names-missing": [
-  "c5d3b9cd62aad0e6",
+  "f736e46cd1f8f7cc",
   "2026-11-20"
  ],
  "url:/docs/kb/line-icon-inserts-nothing": [
@@ -464,11 +464,11 @@
   "2026-11-20"
  ],
  "url:/docs/kb/object-greyed-with-m": [
-  "39685eea1f529599",
+  "70b1e9802d5147a7",
   "2026-11-20"
  ],
  "url:/docs/kb/outline-text-font": [
-  "75c13e16ae23b2f0",
+  "b6b85bc3fd1bf6b0",
   "2026-11-20"
  ],
  "url:/docs/kb/press-command-v-prompt": [
@@ -488,11 +488,11 @@
   "2026-11-20"
  ],
  "url:/docs/kb/toolbar-does-not-appear": [
-  "fbb5e9ad81e7ebb3",
+  "a5e719b517c9073d",
   "2026-11-20"
  ],
  "url:/docs/kb/undo-takes-several-presses": [
-  "8a537d72e8464a0a",
+  "a766c584a22dfad7",
   "2026-11-20"
  ],
  "url:/docs/kb/web-uploader-link-expired": [
@@ -500,51 +500,51 @@
   "2026-11-20"
  ],
  "url:/docs/kb/which-version": [
-  "b17c7a6c0a5c77f2",
+  "a099ca404cd8cb1e",
   "2026-11-20"
  ],
  "url:/docs/keyboard-shortcuts": [
-  "a73fac7f4bff0939",
+  "9573b492cac67062",
   "2026-11-20"
  ],
  "url:/docs/layers": [
-  "882eacf68948915b",
+  "47d84c9a052ac6ea",
   "2026-11-20"
  ],
  "url:/docs/limits": [
-  "fb5d0f2599529158",
+  "981a445b09baace5",
   "2026-11-20"
  ],
  "url:/docs/mask-image": [
-  "cc0b4be9a258a446",
+  "5accfda60f551dc7",
   "2026-11-20"
  ],
  "url:/docs/outline-stroke-text": [
-  "fbaf136180cf7858",
+  "36cff4ee1fd8b597",
   "2026-11-20"
  ],
  "url:/docs/overview": [
-  "d60e562c72238541",
+  "67e06b777a40950d",
   "2026-11-20"
  ],
  "url:/docs/pen": [
-  "f0a08e5f8f4ae61b",
+  "22d44057fee4a673",
   "2026-11-20"
  ],
  "url:/docs/permissions-privacy": [
-  "e4acc3602f0047a0",
+  "14c7cc2218c83238",
   "2026-11-20"
  ],
  "url:/docs/point-precision": [
-  "29efca1827f7bd74",
+  "6d4a322186f18182",
   "2026-11-20"
  ],
  "url:/docs/quick-start": [
-  "274ccbacff15a1f4",
+  "c5c3bd5885171823",
   "2026-11-20"
  ],
  "url:/docs/release-notes": [
-  "3632c2c30fd8aceb",
+  "a087bd9ccb59f8a8",
   "2026-11-20"
  ],
  "url:/docs/release-notes/1-0": [
@@ -556,7 +556,7 @@
   "2026-11-20"
  ],
  "url:/docs/release-notes/1-3-0": [
-  "0a0a2cf375759ecf",
+  "7d50e684419946af",
   "2026-11-20"
  ],
  "url:/docs/round-corners": [
@@ -564,7 +564,7 @@
   "2026-11-20"
  ],
  "url:/docs/snapping": [
-  "53ced01dd1f2da50",
+  "46e5288da48aa6dd",
   "2026-11-20"
  ],
  "url:/docs/svg-compatibility": [
@@ -572,19 +572,19 @@
   "2026-11-20"
  ],
  "url:/docs/theme-objects": [
-  "1a00df7e3da94521",
+  "9ea265ab7b411057",
   "2026-11-20"
  ],
  "url:/docs/toolbar": [
-  "7d0ed5faceea9c11",
+  "52fbff80db72e813",
   "2026-11-20"
  ],
  "url:/docs/undo-and-still-copy": [
-  "4f49f7960a82f0f0",
+  "08c628ee461cdf50",
   "2026-11-20"
  ],
  "url:/docs/undo-redo": [
-  "3de44fe4e1d8953a",
+  "bed0d2933d7cc5a5",
   "2026-11-20"
  ],
  "url:/docs/web-uploader": [
@@ -608,8 +608,8 @@
   "2026-11-10"
  ],
  "url:/guides/insert-svg-into-google-slides": [
-  "31702a45a67da06b",
-  "2026-11-14"
+  "79836c10f2309b10",
+  "2026-11-20"
  ],
  "url:/guides/recolor-svg-in-google-slides": [
   "c9dedb688d3dfe1e",
@@ -624,16 +624,16 @@
   "2026-11-10"
  ],
  "url:/guides/svg-vs-png-google-slides": [
-  "111fbc82a9ca79d9",
-  "2026-11-10"
+  "9ae1ea3088ed1b86",
+  "2026-11-20"
  ],
  "url:/privacy": [
-  "4774f8d7c395fc3c",
-  "2026-11-14"
+  "6d727749b666693e",
+  "2026-11-20"
  ],
  "url:/specs": [
-  "2fb3b813588298f3",
-  "2026-11-16"
+  "9cf81f9c2dedbfb0",
+  "2026-11-20"
  ],
  "url:/support": [
   "016eca9ba9faa8c1",
@@ -644,7 +644,7 @@
   "2026-11-10"
  ],
  "url:/whats-new": [
-  "4bbfdacaf4160987",
-  "2026-11-14"
+  "8573547a74f79c95",
+  "2026-11-20"
  ]
 }
