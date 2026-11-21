@@ -425,6 +425,23 @@ WHATS_NEW_CSS = """
 .wn th{font:600 13px var(--display);color:var(--mute)}
 .wn kbd{font:500 13px/1 ui-monospace,SFMono-Regular,Menlo,monospace;background:var(--tint);border-radius:6px;padding:3px 6px;white-space:nowrap}
 .wn ul{padding-left:1.2em}.wn li{margin:0 0 .5em}
+.wn .val{margin:.2em 0 .9em;padding:10px 14px;border-left:3px solid var(--blue);background:var(--tint);border-radius:0 10px 10px 0;font-weight:600;font-size:16px;line-height:1.5}
+.wnhero{max-width:980px;margin:8px auto 0;padding:0 20px}.wnhero .clip{margin:0}.wnhero .cap{text-align:center;margin-top:10px}
+.wnstats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;max-width:980px;margin:18px auto 0;padding:0 20px}
+.wnstats div{padding:18px;border-radius:14px;background:var(--tint)}
+.wnstats b{display:block;font:800 clamp(28px,4vw,40px)/1 var(--display);color:var(--blue-ink)}
+.wnstats span{display:block;margin-top:8px;font-size:14px;line-height:1.4;color:var(--mute)}
+.glance{max-width:980px;margin:56px auto 0;padding:0 20px}.glance h2{text-align:center;margin:0 0 6px}.glance .sub{text-align:center;color:var(--mute);margin:0 0 22px}
+.glance .gg{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.glance .gt{display:block;text-decoration:none;color:var(--fg);border:1px solid var(--rule);border-radius:14px;overflow:hidden;background:#fff}
+.glance .gt:hover,.glance .gt:focus-visible{border-color:var(--blue)}
+.glance .gt img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;background:#F9FAFD}
+.glance .gt b{display:block;padding:12px 14px 2px;font:800 16px var(--display)}
+.glance .gt span{display:block;padding:0 14px 14px;font-size:14px;line-height:1.45;color:var(--mute)}
+.wnband{max-width:980px;margin:40px auto 0;padding:0 20px;text-align:center}
+.wnband .ctas{justify-content:center}.wnband p{margin:0 0 14px;color:var(--mute)}
+@media (max-width:900px){.glance .gg{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:520px){.wnstats{grid-template-columns:1fr}.glance .gg{grid-template-columns:1fr}}
 """
 
 EDITOR_KEYS = [
@@ -486,10 +503,23 @@ def whats_new_page(ctx):
   <section class="wrap phero">
     <div class="kick">What&rsquo;s new</div>
     <h1>Draw, outline, mask and combine in Google Slides&trade;.</h1>
+    <p class="lede">Version 1.3 adds drawing tools to the extension, so you can build, reshape and mask graphics without leaving the deck. Free, and nothing is uploaded.</p>
+    <div class="ctas"><a class="btn btn-primary" href="{cws('whats-new', 'hero')}" data-cta="hero"><img src="/static/chrome-glyph.svg" alt="">Add to Chrome, free</a><a class="btn btn-ghost" href="#glance">See what&rsquo;s in 1.3</a></div>
   </section>
+  <div class="wn wnhero">{lot('hero', 'SVG to Slides 1.3', 'Every clip on this page is drawn as a vector animation, using the Vacay.com pitch deck we use for demos.')}</div>
+  <div class="wnstats">
+    <div><b>92%</b><span>smaller extension: 14&nbsp;MB to 1.1&nbsp;MB installed</span></div>
+    <div><b>0 uploads</b><span>SVGs convert in your browser and never leave it</span></div>
+    <div><b>Free</b><span>No account, no Pro tier</span></div>
+  </div>
+  <section class="glance" id="glance">
+    <h2>What you can do now</h2>
+    <p class="sub">Each one links to the clip and the details.</p>
+    <div class="gg"><a class="gt" href="#pen"><img src="/static/whats-new/tile-pen.webp" width="720" height="405" loading="lazy" alt="Drawing a curve with the pen in Google Slides"><b>Draw curves</b><span>Draw the shapes the shape menu doesn&rsquo;t have. Points and handles snap to a grid.</span></a><a class="gt" href="#outline"><img src="/static/whats-new/tile-beach.webp" width="720" height="405" loading="lazy" alt="Letters of the word BEACH filled with a beach photo"><b>Outline text</b><span>Turn text into shapes, then use the letters as a mask.</span></a><a class="gt" href="#mask"><img src="/static/whats-new/tile-mask.webp" width="720" height="405" loading="lazy" alt="A photo masked by an arch shape"><b>Mask with any shape</b><span>Crop a picture to any shape. It stays exactly where it was.</span></a><a class="gt" href="#combine"><img src="/static/whats-new/tile-combine.webp" width="720" height="405" loading="lazy" alt="Shapes combined into a cloud"><b>Combine shapes</b><span>Union, subtract, intersect, exclude. Undo in one press.</span></a><a class="gt" href="#layers"><img src="/static/whats-new/tile-layers.webp" width="720" height="405" loading="lazy" alt="The Layers panel open on nested groups"><b>Reach into groups</b><span>Select and rename anything, even three groups deep.</span></a><a class="gt" href="#theme"><img src="/static/whats-new/tile-theme.webp" width="720" height="405" loading="lazy" alt="A theme object edited on a slide"><b>Edit the theme once</b><span>Change a theme object and every slide that uses it follows.</span></a><a class="gt" href="#palette"><img src="/static/whats-new/tile-palette.webp" width="720" height="405" loading="lazy" alt="The command palette open over a slide"><b>Search every command</b><span>Every command with its shortcut, one search away.</span></a><a class="gt" href="#paste"><img src="/static/whats-new/tile-paste.webp" width="720" height="405" loading="lazy" alt="A logo pasted onto a slide as shapes"><b>Paste SVG code</b><span>Copy SVG from any site. Paste it as editable shapes.</span></a></div>
+  </section>
+  <div class="wnband"><p>Chrome updates the extension on its own. Check chrome://extensions for 1.3.0.</p><div class="ctas"><a class="btn btn-primary" href="{cws('whats-new', 'mid')}" data-cta="mid"><img src="/static/chrome-glyph.svg" alt="">Add to Chrome, free</a></div></div>
   <article class="about wn">
     <p>SVG to Slides started as a way to drop SVG files onto a slide as real shapes. Version 1.3 turns it into a set of drawing tools that work on any shape in the deck: a pen that draws curves and snaps them to a grid, exact stroke weights, text you can outline and use as a mask, union and subtract, a layers panel that reaches into nested groups and theme objects, and a command palette that lists all of it. The extension also got 92% smaller, and it no longer talks to a server.</p>
-    {lot('hero', 'SVG to Slides 1.3', 'Every clip on this page is drawn as a vector animation, using the Vacay.com pitch deck we use for demos.')}
     <div class="rel">Version 1.3.0 &middot; November 2026</div>
     <h2 id="contents">In this release</h2>
     <ul>
@@ -504,6 +534,7 @@ def whats_new_page(ctx):
     </ul>
 
     <h2 id="toolbar">One toolbar</h2>
+    <p class="val">Everything in one place, at the left edge of the canvas.</p>
     <p>Everything sits in one toolbar at the left edge of the slide canvas. Closed, it is a single round button; click it or press <kbd>&#8997;&#92;</kbd>. It remembers whether you left it open.</p>
     <ul>
       <li><b>Top:</b> Layers, Edit Shape, Pen, and the command palette.</li>
@@ -514,6 +545,7 @@ def whats_new_page(ctx):
     </ul>
 
     <h2 id="pen">Draw with the pen</h2>
+    <p class="val">Draw the shapes the shape menu doesn&rsquo;t have, with points and handles that snap to a grid.</p>
     <p>Slides gives you a shape menu. The pen gives you the shapes that aren&rsquo;t in it.</p>
     {lot('pen', 'Drawing a curved wave shape with the pen while points and handles snap to a 20 pixel grid', 'Click for corners, drag for curves. Every point and handle lands on the grid.')}
     <ol>
@@ -528,6 +560,7 @@ def whats_new_page(ctx):
     <p>New paths start as a 2&nbsp;px dark stroke with no fill, then take the paint of the last one you drew. Click the end point of any open path to carry on drawing it. Click a middle point to remove it, or a segment to add one.</p>
 
     <h2 id="snapping">Snapping</h2>
+    <p class="val">Clean geometry without eyeballing it: snap to points, whole pixels or a grid you size.</p>
     <p>The magnet button in the editor controls snapping for the pen, for dragged points and for curve handles.</p>
     <ul>
       <li><b>Points:</b> other points, the horizontal and vertical lines through them, and the slide&rsquo;s edges and centre. Pink guides and a small &times; show what caught.</li>
@@ -538,6 +571,7 @@ def whats_new_page(ctx):
     </ul>
 
     <h2 id="stroke">Exact strokes</h2>
+    <p class="val">Exact weights, and a stroke inside or outside the shape without changing its visual size.</p>
     {lot('stroke', 'Filling the wave, scrubbing its stroke weight from 2 to 14 pixels, moving the stroke inside and outside, then typing 8', 'Option-drag to scrub, type to be exact.')}
     <ul>
       <li><b>Weight in pixels.</b> The toolbar&rsquo;s weight field takes any value. Hold <kbd>&#8997;</kbd> and drag on it to scrub; add <kbd>&#8679;</kbd> to move in steps of 10.</li>
@@ -548,6 +582,7 @@ def whats_new_page(ctx):
     </ul>
 
     <h2 id="outline">Outline text, then use it</h2>
+    <p class="val">Text becomes shapes, one per letter, with the font&rsquo;s exact curves.</p>
     {lot('beach', 'Typing BEACH in a heavy condensed font, outlining it, and masking a beach photo with the letters', 'Type, outline (Option-Command-T), select both, mask (Option-Shift-K).')}
     <p><b>Outline text</b> (<kbd>&#8997;&#8984;T</kbd>) turns a text box into shapes with the font&rsquo;s exact curves. From there it&rsquo;s a shape like any other: reshape it in Edit Shape, combine it, or use it as a mask, as above. <b>Outline stroke</b> (<kbd>&#8997;&#8984;O</kbd>) does the same for lines and borders.</p>
     <ul>
@@ -556,6 +591,7 @@ def whats_new_page(ctx):
     </ul>
 
     <h2 id="mask">Mask any image with any shape</h2>
+    <p class="val">Crop a picture to any shape, or to outlined text. The picture doesn&rsquo;t move.</p>
     <p>Put a shape (or a group of shapes, or outlined text) over a picture, select both, and press <kbd>&#8997;&#8679;K</kbd>. The shape on top cuts out the picture under it.</p>
     {lot('mask', 'Masking a photo of a couple on a beach with an arch shape', 'Any shape works, not just the crop shapes in Slides&rsquo; menu.')}
     <ul>
@@ -566,17 +602,21 @@ def whats_new_page(ctx):
     </ul>
 
     <h2 id="combine">Union, subtract, intersect, exclude</h2>
+    <p class="val">Build one shape out of many, then undo it in one press.</p>
     {lot('combine', 'Four shapes combined into one cloud with Union, then undone and redone in one press each', 'Union, then Command-Z and Shift-Command-Z.')}
     <p>Select two or more shapes and pick a combine command from the toolbar or with <kbd>&#8997;&#8679;U</kbd>, <kbd>&#8997;&#8679;S</kbd>, <kbd>&#8997;&#8679;I</kbd> or <kbd>&#8997;&#8679;E</kbd>. Subtract cuts every shape on top out of the bottom one. The commands also work inside Edit Shape, on the shapes you have points selected in, or on every shape in the editor when no points are selected.</p>
 
     <h2 id="undo">One undo step</h2>
+    <p class="val">A change that takes several steps in Slides undoes in one.</p>
     <p>A combine, an outline, a stroke-position change or a whole pen session takes several steps in Slides. Press <kbd>&#8984;Z</kbd> right after one of them and the extension walks Slides back the whole way in one press. <kbd>&#8679;&#8984;Z</kbd> or <kbd>&#8984;Y</kbd> walks forward, through a chain of the extension&rsquo;s changes. It never presses undo more times than the change took, and if you edit the slide yourself in between, Slides&rsquo; own undo takes over. Text editing keeps Slides&rsquo; normal undo.</p>
 
     <h2 id="align">Align and distribute, instantly</h2>
+    <p class="val">Align a single photo to the slide edges. Objects move once, straight to the result.</p>
     {lot('align', 'Aligning a single photo to the left, top and bottom edges of the slide', 'One photo, three edges, no in-between frames.')}
     <p>Align and distribute run Slides&rsquo; own commands behind a still copy of the slide, so objects move once, straight to the result. Because nothing is deleted or pasted, images stay intact. And a single object, image included, now aligns to the slide: left, centre, right, top, middle or bottom.</p>
 
     <h2 id="layers">Layers and nested groups</h2>
+    <p class="val">Select, rename and hide anything on the slide, even deep inside groups.</p>
     {lot('layers', 'Opening three levels of nested groups in the Layers panel, Command-clicking the plane icon on the slide, and renaming it', 'Three levels down, Command-click, rename.')}
     <p>Press <kbd>&#8997;1</kbd> for a list of every object on the slide, front first. It docks over the filmstrip and follows the slide you&rsquo;re on.</p>
     <ul>
@@ -589,22 +629,27 @@ def whats_new_page(ctx):
     </ul>
 
     <h2 id="theme">Theme objects and the theme builder</h2>
+    <p class="val">Change a theme object once and every slide that uses it follows.</p>
     {lot('theme', 'Clicking a theme object twice to open it in the theme builder, recolouring it, and seeing every slide update', 'Click twice, change it once, every slide that uses it follows.')}
     <p>Logos, footers and backgrounds that come from the theme can&rsquo;t be selected on a normal slide, which is why they seem stuck. Layers shows them greyed with an <b>M</b>. Click one: a note says it lives on the theme. Click again within five seconds and the theme builder opens on the layout or master that holds it, with the object selected. Change it there, press <kbd>&#8997;&#8679;M</kbd> (or close the builder) to go back, and every slide that uses that layout or master shows the change.</p>
 
     <h2 id="palette">Command palette</h2>
+    <p class="val">Every command, searchable, with its shortcut beside it.</p>
     {lot('palette', 'Opening the command palette, scrolling through every command group, and searching for mask', 'Command-Backslash, type, Enter.')}
     <p><kbd>&#8984;&#92;</kbd> opens a searchable list of every command, grouped the way the toolbar is, with its shortcut beside it. Type to filter, use the arrow keys, press <kbd>Enter</kbd> to run, and <kbd>Esc</kbd> or <kbd>&#8984;&#92;</kbd> again to close.</p>
 
     <h2 id="paste">Paste SVG code</h2>
+    <p class="val">Paste SVG code from any site and get shapes you can recolour and edit.</p>
     {lot('paste', 'Copying a logo&rsquo;s SVG element from browser developer tools and pasting it onto a slide as shapes', 'Copy element in DevTools, Command-V in Slides.')}
     <p>You don&rsquo;t need a file. Copy SVG markup from anywhere (a site&rsquo;s logo via <b>Inspect &rsaquo; Copy &rsaquo; Copy element</b>, a code editor, an icon library&rsquo;s &ldquo;copy SVG&rdquo; button) and press <kbd>&#8984;V</kbd> on a slide. The extension recognises SVG code on the clipboard and sends it through the same converter as a dropped file, so it lands as native shapes you can recolour and edit. Use logos you have the right to use.</p>
 
     <h2 id="lossless">Small SVGs keep their detail</h2>
+    <p class="val">Small icons keep their detail when you enlarge them.</p>
     {lot('lossless', 'A small palm icon dropped on a slide, enlarged, then viewed at 400%', 'Dropped small, enlarged, still sharp.')}
     <p>Slides stores a pasted shape&rsquo;s points exactly as they arrive and resizes it by changing its transform. So an icon dropped at 12&nbsp;px used to carry 12&nbsp;px worth of detail forever, and enlarging it showed lumps on the curves. Now every shape&rsquo;s points are written in a large frame of their own and scaled down to size, so enlarging it later has all the detail it needs.</p>
 
     <h2 id="size">92% smaller, and nothing leaves your browser</h2>
+    <p class="val">14&nbsp;MB to 1.1&nbsp;MB, and your SVGs are never uploaded.</p>
     {lot('light', 'The extension size dropping from 14 megabytes to 1.1', '')}
     <p>Until now the extension carried a copy of Python, compiled to WebAssembly, to run its converter on every Slides tab. The converter is now plain JavaScript inside the extension. The installed extension went from 14&nbsp;MB to 1.1&nbsp;MB, and the download from 5.8&nbsp;MB to under 400&nbsp;KB. The server fallback is gone too, along with the permission it needed: SVGs are converted in your browser and never uploaded. What it asks Chrome for now: access to Google Slides pages, where its tools run, and <b>storage</b>, for your settings.</p>
 
@@ -680,7 +725,7 @@ def whats_new_page(ctx):
     <div class="ctas"><a class="btn btn-primary" href="{cws('whats-new', 'close')}" data-cta="close"><img src="/static/chrome-glyph.svg" alt="">Add to Chrome, free</a><a class="btn btn-ghost" href="/guides/insert-svg-into-google-slides">Read the guide</a></div>
   </section>"""
     ld = [{"@context": "https://schema.org", "@type": "WebPage", "name": "What's new in SVG to Slides", "url": C.SITE + "/whats-new",
-           "about": {"@id": C.SITE + "/#app"}, "dateModified": "2026-11-20"},
+           "about": {"@id": C.SITE + "/#app"}, "dateModified": "2026-11-21"},
           ctx["crumbs"]([("What's new", "/whats-new")])]
     doc = shell(title="What's New in 1.3: Pen, Outline Text, Masks, Layers and Theme Objects in Google Slides | SVG to Slides",
                 desc="SVG to Slides 1.3 adds a pen with curves and grid snapping, exact strokes, outline text, masks with any shape, union and subtract, layers with nested groups and theme objects, a command palette and SVG code paste to Google Slides.",
