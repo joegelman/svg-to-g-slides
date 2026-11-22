@@ -4,6 +4,11 @@ html,body{margin:0;height:100%;background:#f8fafd;font-family:Arial}
 #workspace{position:absolute;inset:0}
 .docs-texteventtarget-iframe{position:absolute;left:-1000px;top:0;width:10px;height:10px}
 </style></head><body>
+<div id="tb" style="position:absolute;left:230px;top:10px;display:flex;gap:6px">
+ <div id="fillColorMenuButton" style="width:28px;height:28px;background:#ddd" title="fill"></div>
+ <div id="lineColorMenuButton" style="width:28px;height:28px;background:#ccc" title="border"></div>
+ <div id="textColorButton" style="width:28px;height:28px;background:#bbb" title="text"></div>
+</div>
 <div id="workspace-container"><div id="workspace">
 <svg id="stage" width="960" height="540" style="position:absolute;left:40px;top:30px;background:#fff" xmlns="http://www.w3.org/2000/svg">
  <g id="editor-p" transform="scale(0.0026246719)"><g id="editor-p-bg"><rect width="365760" height="205740" fill="#ffffff"/></g></g>
@@ -34,11 +39,47 @@ FAKE.img='data:image/svg+xml;base64,'+btoa('<svg xmlns="http://www.w3.org/2000/s
 document.getElementById('stage').addEventListener('mousedown',e=>{const g=e.target.closest&&e.target.closest('g[id^="editor-"]');const id=g&&g.id!=='editor-p'&&!g.id.endsWith('-bg')?g.id.slice(7):null;
   if(!id){FAKE.sel=[];}else if(e.shiftKey){FAKE.sel=FAKE.sel.includes(id)?FAKE.sel.filter(x=>x!==id):[...FAKE.sel,id];}else FAKE.sel=[id]; FAKE.render();},true);
 addEventListener('load',()=>{const d=document.querySelector('iframe').contentDocument;
-  d.addEventListener('copy',e=>{const ents=FAKE.objs.filter(o=>FAKE.sel.includes(o[1])); if(!ents.length)return; e.clipboardData.setData(MIME,JSON.stringify({data:JSON.stringify({resolved:ents,unresolved:ents})}));
+  d.addEventListener('copy',e=>{ if(FAKE.textRange){e.clipboardData.setData('text/plain','Some words\n');e.preventDefault();return;} const ents=FAKE.objs.filter(o=>FAKE.sel.includes(o[1])); if(!ents.length)return; e.clipboardData.setData(MIME,JSON.stringify({data:JSON.stringify({resolved:ents,unresolved:ents})}));
     if(ents.some(o=>typeof P(o[4],49)==='string')) e.clipboardData.setData('application/x-vnd.google-docs-image-clip+wrapped','{"data":"{}"}'); e.preventDefault();});
   d.addEventListener('paste',e=>{const s=e.clipboardData.getData(MIME); if(!s)return; const r=JSON.parse(JSON.parse(s).data).resolved; FAKE.pastes.push(r); const made=[];
     for(const en of r){ if(en[0]!==3)continue; const c=JSON.parse(JSON.stringify(en)); c[1]='f'+(++FAKE.n); FAKE.objs.push(c); made.push(c[1]); } FAKE.sel=made; FAKE.render();});
-  d.addEventListener('keydown',e=>{ if(e.key==='Delete'||e.key==='Backspace'){FAKE.objs=FAKE.objs.filter(o=>!FAKE.sel.includes(o[1]));FAKE.sel=[];FAKE.render();} });
+  const FMT=[14,15,16,60,61,62,73,145,18,19,20,22];
+  d.addEventListener('keydown',e=>{ const mod=e.metaKey||e.ctrlKey;
+    if(e.key==='Delete'||e.key==='Backspace'){FAKE.objs=FAKE.objs.filter(o=>!FAKE.sel.includes(o[1]));FAKE.sel=[];FAKE.render();}
+    else if(e.key==='Escape'){ if(FAKE.textRange)FAKE.textRange=false; else {FAKE.sel=[];FAKE.render();} }
+    else if(mod&&e.altKey&&e.key.toLowerCase()==='c'){ const o=targets()[0]; if(o){FAKE.format={}; FMT.forEach(k=>{const v=P(o[4],k); if(v!==undefined)FAKE.format[k]=JSON.parse(JSON.stringify(v));});} }
+    else if(mod&&e.altKey&&e.key.toLowerCase()==='v'){ if(FAKE.format)targets().forEach(o=>{FMT.forEach(k=>delP(o[4],k)); for(const k in FAKE.format)o[4].push(+k,JSON.parse(JSON.stringify(FAKE.format[k])));}); FAKE.fmtPastes=(FAKE.fmtPastes||0)+1; FAKE.render(); }
+    else if(mod&&e.key.toLowerCase()==='a'){ FAKE.sel=FAKE.objs.filter(o=>o[0]===3).map(o=>o[1]); FAKE.render(); } });
   FAKE.ready=true;});
+// Slides' colour menus and custom colour dialog, as far as the tools drive them:
+// toolbar button → menu (the fill one has Solid / Gradient tabs and opens on
+// whichever was used last) → "+" → dialog with a hex field → OK. The fill
+// field takes #rrggbbaa; border and text take #rrggbb.
+FAKE.tab='Gradient'; FAKE.native=[]; FAKE.textRange=false; FAKE.textColour=null;
+const setP=(props,k,v)=>{for(let i=0;i+1<props.length;i+=2)if(props[i]===k){props[i+1]=v;return;}props.push(k,v);};
+const delP=(props,k)=>{for(let i=0;i+1<props.length;i+=2)if(props[i]===k){props.splice(i,2);return;}};
+const closeMenus=()=>document.querySelectorAll('.goog-menu,.docs-material-gm-dialog').forEach(n=>n.remove());
+const targets=()=>FAKE.objs.filter(o=>FAKE.sel.includes(o[1]));
+['fill','stroke','text'].forEach(which=>{const id={fill:'fillColorMenuButton',stroke:'lineColorMenuButton',text:'textColorButton'}[which];
+  document.getElementById(id).addEventListener('mousedown',()=>{ if(document.querySelector('.goog-menu')){closeMenus();return;}
+    const m=document.createElement('div'); m.className='goog-menu goog-menu-vertical'; m.style.cssText='position:absolute;left:230px;top:44px;width:200px;background:#fff;border:1px solid #999;z-index:5;padding:6px';
+    if(which==='fill'){ ['Solid','Gradient'].forEach(t=>{const b=document.createElement('div'); b.setAttribute('role','tab'); b.textContent=t; b.setAttribute('aria-selected',String(FAKE.tab===t)); b.style.cssText='display:inline-block;padding:2px 8px';
+        b.addEventListener('mousedown',()=>{FAKE.tab=t; m.querySelectorAll('[role=tab]').forEach(x=>x.setAttribute('aria-selected',String(x.textContent===t))); m.querySelector('.solid').style.display=t==='Solid'?'block':'none'; m.querySelector('.grad').style.display=t==='Gradient'?'block':'none';}); m.append(b);}); }
+    const solid=document.createElement('div'); solid.className='solid'; solid.style.display=which!=='fill'||FAKE.tab==='Solid'?'block':'none';
+    const add=document.createElement('div'); add.className='docs-customcolorpalette-add-custom-color-button'; add.textContent='+'; add.style.cssText='width:20px;height:20px;background:#eee';
+    const tr=document.createElement('div'); tr.className='goog-menuitem'; tr.textContent='Transparent';
+    tr.addEventListener('mousedown',()=>{targets().forEach(o=>{ if(which==='fill'){setP(o[4],14,0);} else {setP(o[4],18,0);} }); FAKE.native.push(which+':none'); closeMenus(); FAKE.render();});
+    add.addEventListener('mousedown',()=>{ const d=document.createElement('div'); d.className='docs-material-gm-dialog color-dialog'; d.style.cssText='position:absolute;left:460px;top:120px;width:240px;background:#fff;border:1px solid #666;z-index:6;padding:10px';
+      const inp=document.createElement('input'); inp.className='docs-material-hsv-color-picker-input docs-material-hex-input'; inp.value=which==='fill'?'#ff0000ff':'#000000';
+      const ok=document.createElement('div'); ok.className='docs-material-button'; ok.textContent='OK'; const ca=document.createElement('div'); ca.className='docs-material-button'; ca.textContent='Cancel';
+      ok.addEventListener('mousedown',()=>{ const v=inp.value.trim(); const good=which==='fill'?/^#[0-9a-f]{8}$/i.test(v):/^#[0-9a-f]{6}$/i.test(v); FAKE.native.push(which+':'+v+(good?'':' (rejected)'));
+        if(good){ const hex=v.slice(0,7).toUpperCase(), al=which==='fill'?Math.round(parseInt(v.slice(7),16)/255*100)/100:1;
+          if(which==='text'){FAKE.textColour=hex; targets().forEach(o=>FAKE.runs&&FAKE.runs[o[1]]&&FAKE.runs[o[1]].forEach(r=>setP(r[6],4,hex)));}
+          else targets().forEach(o=>{ if(which==='fill'){setP(o[4],14,1);setP(o[4],15,hex);delP(o[4],16);if(al<0.995)setP(o[4],16,al);[60,61,62,73].forEach(k=>delP(o[4],k));} else {setP(o[4],18,1);setP(o[4],19,hex);} }); }
+        closeMenus(); FAKE.render(); });
+      ca.addEventListener('mousedown',closeMenus); d.append(inp,ca,ok); m.style.display='none'; document.body.append(d); });
+    solid.append(add,tr); const grad=document.createElement('div'); grad.className='grad sketchy-gradientmenuitems-custom-palette'; grad.style.display=which==='fill'&&FAKE.tab==='Gradient'?'block':'none';
+    const add2=document.createElement('div'); add2.className='docs-customcolorpalette-add-custom-color-button'; add2.textContent='+g'; grad.append(add2);
+    m.append(solid,grad); document.body.append(m); });});
 window.chrome={storage:{local:{get:(k,cb)=>cb&&cb({}),set:()=>{}}},runtime:{getURL:x=>x,sendMessage:()=>{},onMessage:{addListener:()=>{}}}};
 </script></body></html>

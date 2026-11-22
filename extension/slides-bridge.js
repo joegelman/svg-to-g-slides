@@ -1102,11 +1102,39 @@ const SB = (() => {
       stroke: typeof stroke === 'string' ? stroke : '#000000',
       weight: typeof w === 'number' && w > 0 ? w : 381,
       strokeOn: on === 1 || (on === undefined && typeof stroke === 'string'),
+      // Opacity (16 fill, 20 stroke) and a gradient fill (60 kind, 61 stops,
+      // 62 angle in radians, 73 radial start), so Edit Shape shows and keeps them.
+      fillAlpha: typeof getProp(props, 16) === 'number' ? getProp(props, 16) : 1,
+      strokeAlpha: typeof getProp(props, 20) === 'number' ? getProp(props, 20) : 1,
+      grad: (getProp(props, 60) === 1 || getProp(props, 60) === 2) && Array.isArray(getProp(props, 61)) && getProp(props, 61).length >= 2
+        ? { kind: getProp(props, 60), stops: getProp(props, 61).map((x) => [String(x[0]), +x[1] || 0]), angle: +getProp(props, 62) || 0, centre: getProp(props, 73) || 0 } : null,
     };
+  }
+  // The SVG gradient that draws the way Slides draws `grad` in a w × h frame
+  // at (x, y): a line through the middle, w·|cos| + h·|sin| long; a radial
+  // from the middle (radius: half the diagonal) or a corner (the diagonal).
+  function gradientGeometry(grad, x, y, w, h) {
+    if (grad.kind === 1) {
+      const c = Math.cos(grad.angle), sn = Math.sin(grad.angle), L = w * Math.abs(c) + h * Math.abs(sn), cx = x + w / 2, cy = y + h / 2;
+      return { tag: 'linearGradient', attrs: { x1: cx - L / 2 * c, y1: cy - L / 2 * sn, x2: cx + L / 2 * c, y2: cy + L / 2 * sn } };
+    }
+    const D = Math.hypot(w, h);
+    const [cx, cy, r] = [[x + w / 2, y + h / 2, D / 2], [x, y, D], [x + w, y, D], [x, y + h, D], [x + w, y + h, D]][grad.centre || 0];
+    return { tag: 'radialGradient', attrs: { cx, cy, r } };
   }
   function applyPaint(props, p) {
     setProp(props, 14, p.filled ? 1 : 0);
     setProp(props, 15, p.fill);
+    if (p.fillAlpha !== undefined) { removeProp(props, 16); if (p.fillAlpha < 0.995) setProp(props, 16, Math.round(p.fillAlpha * 100) / 100); }
+    if (p.strokeAlpha !== undefined) { removeProp(props, 20); if (p.strokeAlpha < 0.995) setProp(props, 20, Math.round(p.strokeAlpha * 100) / 100); }
+    if (p.grad !== undefined) {
+      [60, 61, 62, 73, 145].forEach((k) => removeProp(props, k));
+      if (p.grad && p.filled) {
+        setProp(props, 145, 1); setProp(props, 15, p.grad.stops[0][0]);
+        setProp(props, 60, p.grad.kind); setProp(props, 61, p.grad.stops); setProp(props, 62, p.grad.kind === 1 ? Math.round(p.grad.angle * 1e4) / 1e4 : 1.5708);
+        if (p.grad.kind === 2) setProp(props, 73, p.grad.centre || 0);
+      }
+    }
     if (p.strokeOn) {
       removeProp(props, 23);
       setProp(props, 18, 1);
@@ -1207,7 +1235,7 @@ const SB = (() => {
     ZOOM_MIN, ZOOM_MAX, zoomPctFromCTM, setSlidesZoom, scrollPagePointTo, matchSlidesView,
     decodePath, encodePath, normalizeSubs, typeFor, svgPathD, subsBBox, imageFillProps, pictureRect,
     convertibleKind, convertSelection, KIND_NOTE, parseRenderedD, solveAffine,
-    removeProp, paintFromProps, applyPaint, matchShortcut, SHORTCUT_LABEL, WEIGHTS, IS_MAC: MAC, pathFingerprint,
+    removeProp, paintFromProps, applyPaint, gradientGeometry, matchShortcut, SHORTCUT_LABEL, WEIGHTS, IS_MAC: MAC, pathFingerprint,
     beginMacro, endMacro, tick, slideSig, undoMacro, redoMacro, canUndoMacro, canRedoMacro, isReplaying: () => replaying,
     isRecording: () => !!macro, nativeUndo: (redo) => { focusTextbox(); undoKey(!!redo); },
   };

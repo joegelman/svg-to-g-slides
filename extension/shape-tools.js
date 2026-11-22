@@ -465,6 +465,31 @@ console.log('[svg2slides] shape-tools.js loaded');
     const has = face.wMax === undefined ? weight : face.wMax;
     return { bold: weight >= 600 && has < 600, italic: !!italic && face.italic === false };
   }
+  // What Chrome really drew the text with: the faces the page has loaded
+  // for that family (Slides registers its fonts as "docs-<Family>", one
+  // FontFace per weight and style it has). CSS picks the nearest weight; if
+  // that is under 600 and 600 or more was asked for, the bold on the slide
+  // is Chrome's own fattening of that face, whatever Google Fonts could
+  // serve at 700. Null for system fonts (nothing registered).
+  function pageFace(cssFamily, weight, italic) {
+    const fam = firstFamily(cssFamily).toLowerCase();
+    let faces = [];
+    try { faces = [...document.fonts].filter((f) => String(f.family).replace(/["']/g, '').toLowerCase() === fam && f.status === 'loaded'); } catch { faces = []; }
+    if (!faces.length) return null;
+    const num = (v) => (v === 'bold' ? 700 : v === 'normal' ? 400 : parseInt(v, 10) || 400);
+    const all = faces.map((f) => { const p = String(f.weight || '400').trim().split(/\s+/).map(num); return { lo: Math.min(...p), hi: Math.max(...p), italic: /italic|oblique/.test(f.style || '') }; });
+    const styled = all.filter((f) => f.italic === !!italic);
+    const pool = styled.length ? styled : all;
+    const inside = pool.find((f) => weight >= f.lo && weight <= f.hi);
+    let pick = inside;
+    if (!pick) {
+      const above = pool.filter((f) => f.lo > weight).sort((a, b) => a.lo - b.lo), below = pool.filter((f) => f.hi < weight).sort((a, b) => b.hi - a.hi);
+      pick = weight > 500 ? (above[0] || below[0]) : weight < 400 ? (below[0] || above[0]) : (weight === 400 ? (pool.find((f) => f.lo <= 500 && f.hi >= 500) || below[0] || above[0]) : (pool.find((f) => f.lo <= 400 && f.hi >= 400) || below[0] || above[0]));
+    }
+    if (!pick) return null;
+    const used = Math.min(pick.hi, Math.max(pick.lo, weight));
+    return { used, italic: pick.italic, bold: weight >= 600 && pick.hi < 600, slant: !!italic && !pick.italic };
+  }
   function fakeBoldEm(sizePx) {
     const k = sizePx <= 9 ? 1 / 24 : sizePx >= 36 ? 1 / 32 : 1 / 24 + (1 / 32 - 1 / 24) * (sizePx - 9) / 27;
     return k / 2;                       // outward growth, as a share of the em
@@ -481,7 +506,8 @@ console.log('[svg2slides] shape-tools.js loaded');
       try {
         const r = GEO.offsetSubs(GEO.unionAll(subs), growEm * font.unitsPerEm, { join: 'round' });
         if (r && !r.empty && r.subs.length) subs = r.subs;
-      } catch (err) { /* keep the regular outline */ }
+        else notes.add('Some bold letters could not be fattened and came out regular weight');
+      } catch (err) { console.warn('[svg2slides] synthetic bold failed', err); notes.add('Some bold letters could not be fattened and came out regular weight'); }
       m.set(key, subs);
     }
     return m.get(key);
@@ -536,7 +562,9 @@ console.log('[svg2slides] shape-tools.js loaded');
       const fill = hex(cs.fill) || '#000000';
       const Mt = toPage(t, inv);
       if (!Mt) continue;
-      const faces = await facesFor(family, weight, italic);
+      const pf = pageFace(cs.fontFamily, parseInt(cs.fontWeight, 10) || 400, italic);
+      // Ask for the face Chrome used, not the one that was asked of it.
+      const faces = await facesFor(family, pf && pf.bold ? pf.used : weight, pf ? pf.italic : italic);
       const str = t.textContent;
       const n = t.getNumberOfChars();
       for (let i = 0; i < n && i < str.length; i++) {
@@ -548,7 +576,7 @@ console.log('[svg2slides] shape-tools.js loaded');
         const g = await glyphFor(faces, cp);
         if (!g || !g.glyph || !g.glyph.path) continue;
         const s = size / g.font.unitsPerEm;
-        const syn = synthFor(g.face, weight, italic);
+        const syn = pf ? { bold: pf.bold, italic: pf.slant } : synthFor(g.face, weight, italic);
         if (syn.bold) notes.add(`${family} has no bold of its own, so the bold is drawn the way Chrome draws it`);
         const m = SB.matMul(Mt, [s, 0, syn.italic ? 0.25 * s : 0, -s, pos.x, pos.y]);
         const subs = mapSubs(glyphSubs(g.font, g.glyph, syn.bold ? fakeBoldEm(size) : 0), m);
@@ -2210,36 +2238,40 @@ console.log('[svg2slides] shape-tools.js loaded');
     await sleep(200);
     return true;
   }
-  // ── Colour picker and gradient builder ──────────────────────────────────
-  // The toolbar's own fill and stroke panel. The colour well is the
-  // browser's (input type=color, plus the EyeDropper where Chrome has it);
-  // around it: hex and opacity fields, the colours already on the slide,
-  // recent colours, and for fills a gradient bar with any number of stops
-  // (click the bar to add one, drag to move, drag away or Delete to remove),
-  // an angle, and where a radial gradient starts. Nothing touches the slide
-  // until ✓ (or ↵); ✕ (or Esc) closes it unchanged.
-  // What Slides stores (checked live, Nov 2026): fill on 14, colour 15,
-  // opacity 16; stroke on 18, colour 19, opacity 20, weight 22; gradient
-  // kind 60 (1 linear, 2 radial), stops 61 [[hex, 0..1], …] which must
-  // start at 0 and end at 1 or Slides drops them, angle 62 in radians
-  // clockwise from left→right, radial start 73 (0 middle, 1 top left,
-  // 2 top right, 3 bottom left, 4 bottom right).
+  // ── Fill, stroke and text colour ────────────────────────────────────────
+  // The panel itself is RK.paintPanel (shared with Edit Shape). This is
+  // what it reads from and writes to the slide. Nothing is deleted to
+  // change a colour:
+  //   solid colour, opacity   Slides' own custom colour dialog, driven
+  //                           unseen (toolbar button → "+" → hex field,
+  //                           which takes #rrggbbaa → OK). The object
+  //                           stays the object: same id, animation, link.
+  //   none                    Slides' own "Transparent".
+  //   gradient                Slides' paint format: a copy of the shape
+  //                           with the new fill is pasted, its format
+  //                           copied (⌘⌥C), the copy removed, and the
+  //                           format pasted onto the original (⌘⌥V).
+  //                           Paint format also evens out mixed text
+  //                           styles, so a shape whose text has more than
+  //                           one style is replaced the old way instead
+  //                           (delete and paste; that loses an animation),
+  //                           and the panel says so.
+  // All checked live, Nov 22 2026. What Slides stores: fill on 14, colour
+  // 15, opacity 16; stroke on 18, colour 19, opacity 20, weight 22;
+  // gradient kind 60 (1 linear, 2 radial), stops 61 [[hex, 0..1], …] which
+  // must start at 0 and end at 1, angle 62 in radians clockwise from
+  // left→right, radial start 73 (0 middle, 1–4 the corners); text colour is
+  // prop 4 of a run's style record [17, id, null, from, to, [], props].
   let cpop = null;
   const RECENT_KEY = 'paintRecent';
   let recentColours = [];
   try { chrome.storage.local.get(RECENT_KEY, (v) => { recentColours = (v && v[RECENT_KEY]) || []; }); } catch { /* storage unavailable */ }
-  const normHex = (raw) => {
-    let h = String(raw || '').trim().replace(/^#/, '');
-    if (/^[0-9a-f]{3}$/i.test(h)) h = h.split('').map((c) => c + c).join('');
-    if (/^[0-9a-f]{8}$/i.test(h)) return { hex: '#' + h.slice(0, 6).toUpperCase(), alpha: Math.round(parseInt(h.slice(6), 16) / 255 * 100) / 100 };
-    return /^[0-9a-f]{6}$/i.test(h) ? { hex: '#' + h.toUpperCase() } : null;
-  };
-  const mixHex = (a, b, t) => '#' + [1, 3, 5].map((i) => Math.round(parseInt(a.slice(i, i + 2), 16) * (1 - t) + parseInt(b.slice(i, i + 2), 16) * t).toString(16).padStart(2, '0')).join('').toUpperCase();
-  function stopColourAt(stops, pos) {
-    const st = stops.slice().sort((a, b) => a.pos - b.pos);
-    if (pos <= st[0].pos) return st[0].hex;
-    for (let i = 1; i < st.length; i++) if (pos <= st[i].pos) return st[i].pos - st[i - 1].pos < 1e-6 ? st[i].hex : mixHex(st[i - 1].hex, st[i].hex, (pos - st[i - 1].pos) / (st[i].pos - st[i - 1].pos));
-    return st[st.length - 1].hex;
+  const normHex = RK.normHex, mixHex = RK.mixHex;
+  function noteRecent(list) {
+    const used = list.map((h) => normHex(h)).filter(Boolean).map((c) => c.hex);
+    if (!used.length) return;
+    recentColours = [...new Set([...used, ...recentColours])].slice(0, 9);
+    try { chrome.storage.local.set({ [RECENT_KEY]: recentColours }); } catch { /* storage unavailable */ }
   }
   // The stops as Slides wants them: in order, first at 0, last at 1.
   function slidesStops(stops) {
@@ -2295,236 +2327,294 @@ console.log('[svg2slides] shape-tools.js loaded');
     const page = SB.currentPageGroup();
     const seen = new Map();
     if (page) {
-      page.querySelectorAll('path, text').forEach((n) => ['fill', 'stroke'].forEach((a) => {
-        const c = normHex(hex(n.getAttribute(a) || '') || '');
+      page.querySelectorAll('path, text, stop').forEach((n) => ['fill', 'stroke', 'stop-color'].forEach((a) => {
+        const raw = n.getAttribute(a) || (a === 'fill' && n.tagName === 'text' ? getComputedStyle(n).fill : '');
+        if (!raw || /^url\(/.test(raw) || SELECTION_BLUE.test(raw)) return;
+        const c = normHex(hex(raw) || '');
         if (c) seen.set(c.hex, (seen.get(c.hex) || 0) + 1);
       }));
     }
-    return [...seen.entries()].sort((a, b) => b[1] - a[1]).map((x) => x[0]).slice(0, 16);
+    return [...seen.entries()].sort((a, b) => b[1] - a[1]).map((x) => x[0]).slice(0, 27);
   }
   function closePaint() {
     if (!cpop) return;
     const c = cpop;
     cpop = null;
-    window.removeEventListener('pointerdown', c.away, true);
-    c.node.remove();
-    rk.setOn(c.which, false);
-    SB.focusTextbox();
+    c.close();
+  }
+  // Is a stretch of text highlighted (the cursor is in a text box with a
+  // range selected)? A copy then carries the words and no object data.
+  function textRangeSelected() {
+    const tb = SB.textbox();
+    if (!tb) return false;
+    const dt = new DataTransfer();
+    tb.dispatchEvent(new ClipboardEvent('copy', { clipboardData: dt, bubbles: true, cancelable: true }));
+    return !dt.getData(SB.MIME) && dt.getData('text/plain').replace(/\n$/, '').length > 0;
+  }
+
+  // Slides' own custom colour dialog, unseen: `which` is fill, stroke or
+  // text. Acts on whatever is selected (objects, or a highlighted stretch
+  // of text). The fill dialog's hex field takes #rrggbbaa; the border and
+  // text ones take #rrggbb only (no opacity there). Returns true once the
+  // dialog has closed on OK. Checked live for all three, Nov 22 2026.
+  const COLOUR_BUTTON = { fill: 'fillColorMenuButton', stroke: 'lineColorMenuButton', text: 'textColorButton' };
+  async function nativeColour(which, st) {
+    const b = toolbarButton(COLOUR_BUTTON[which]);
+    if (!b) return false;
+    const hide = document.createElement('style');
+    hide.textContent = '.goog-menu, .goog-menu *, .docs-material-gm-dialog, .docs-material-gm-dialog *, .modal-dialog-bg, .docs-material-gm-dialog-bg { opacity: 0 !important; transition: none !important; }';
+    document.documentElement.appendChild(hide);
+    const shown = (n) => n && n.getBoundingClientRect().width > 0 && getComputedStyle(n).display !== 'none' && getComputedStyle(n).visibility !== 'hidden';
+    const until = async (f, ms) => { const t = performance.now(); let v; while (!(v = f()) && performance.now() - t < ms) await sleep(16); return v; };
+    const field = () => [...document.querySelectorAll('input.docs-material-hex-input')].filter(shown).pop(); // earlier dialogs stay in the page, hidden
+    try {
+      pressEl(b);
+      const menu = await until(() => [...document.querySelectorAll('.goog-menu')].find((m) => shown(m) && m.querySelector('.docs-customcolorpalette-add-custom-color-button')), 700);
+      if (!menu) return false;
+      // The fill menu opens on whichever of Solid / Gradient was used last.
+      const solid = [...menu.querySelectorAll('[role="tab"]')].find((t) => /^\s*Solid\s*$/.test(t.textContent || ''));
+      if (solid && solid.getAttribute('aria-selected') !== 'true') { pressEl(solid); await sleep(60); }
+      const add = [...menu.querySelectorAll('.docs-customcolorpalette-add-custom-color-button')].find((n) => shown(n) && !n.closest('[class*="gradientmenuitems"]'))
+        || [...menu.querySelectorAll('.docs-customcolorpalette-add-custom-color-button')].find(shown);
+      if (!add) { pressEl(b); return false; }
+      pressEl(add);
+      const inp = await until(field, 900);
+      if (!inp) return false;
+      const withAlpha = inp.value.trim().length > 7;
+      inp.focus();
+      inp.value = (withAlpha ? hex8(st) : st.hex).toLowerCase();
+      inp.dispatchEvent(new InputEvent('input', { bubbles: true }));
+      inp.dispatchEvent(new Event('change', { bubbles: true }));
+      inp.dispatchEvent(new KeyboardEvent('keyup', { bubbles: true, key: 'f' }));
+      await sleep(80);
+      const dlg = inp.closest('.docs-material-gm-dialog') || inp.closest('[role="dialog"]') || document;
+      const ok = [...dlg.querySelectorAll('.docs-material-button, button, [role="button"]')].find((n) => shown(n) && /^\s*OK\s*$/.test(n.textContent || ''));
+      if (!ok) return false;
+      pressEl(ok);
+      SB.tick();
+      await until(() => !field(), 900);
+      await sleep(80);
+      return !field();
+    } finally {
+      // Never leave a dialog or menu open and invisible.
+      const left = field();
+      if (left) {
+        const dlg = left.closest('.docs-material-gm-dialog') || document;
+        const cancel = [...dlg.querySelectorAll('.docs-material-button, button, [role="button"]')].find((n) => /^\s*Cancel\s*$/.test(n.textContent || ''));
+        if (cancel) pressEl(cancel);
+      }
+      hide.remove();
+    }
+  }
+  const hex8 = (st) => st.hex + Math.round(Math.min(1, Math.max(0, st.alpha)) * 255).toString(16).padStart(2, '0');
+  // Text of one object: are its letters all one style? (Paint format would
+  // make them so.) Paragraph-only records (alignment, spacing) don't count.
+  const CHAR_KEYS = new Set([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+  function charRuns(resolved, id) {
+    return resolved.filter((e) => e[0] === 17 && e[1] === id && Array.isArray(e[6]) && e[6].some((k, i) => i % 2 === 0 && CHAR_KEYS.has(k)));
+  }
+  const oneTextStyle = (resolved, id) => new Set(charRuns(resolved, id).map((e) => JSON.stringify(e[6]))).size <= 1;
+  // Give one object a look through Slides' paint format: paste `model` (a
+  // copy of it with the new look), copy its format, remove it, paste the
+  // format on the original. The original is never deleted.
+  async function paintFormat(id, model) {
+    SB.paste(model);
+    const shapeId = model.find((e) => e[0] === 3)[1];
+    const temp = await SB.waitForSelection((x) => x.filter((e) => e[0] === 3).length === 1 && !entryById(x, id));
+    if (!temp) return false;
+    keyCombo('c', 'KeyC', 67, Object.assign({ altKey: true }, PRIMARY));
+    await sleep(120);
+    const tempId = topIdsOf(temp)[0];
+    SB.pressKey('Delete');
+    await sleep(160);
+    if (SB.elementFor(tempId)) { SB.pressKey('Delete'); await sleep(160); }
+    if (!(await selectIds([id]))) return false;
+    keyCombo('v', 'KeyV', 86, Object.assign({ altKey: true }, PRIMARY));
+    await sleep(220);
+    void shapeId;
+    return true;
+  }
+  // A stand-alone copy of one shape (and its text) at the top level.
+  function modelOf(resolved, e, change) {
+    const c = clone(e);
+    const id = SB.newId();
+    c[1] = id;
+    c[3] = SB.localToPage(resolved, e) || c[3];
+    change(c[4]);
+    return [c, ...resolved.filter((x) => (x[0] === 15 || x[0] === 17) && x[1] === e[1]).map((x) => { const t = clone(x); t[1] = id; return t; })];
   }
   function applyPaintState(which, st) {
-    return run(which === 'fill' ? 'fill' : 'stroke colour', async () => {
-      const sel = requireSelection();
-      let n = 0;
-      const out = sel.map((e) => {
-        if (!paintable(e)) return e;
-        const c = clone(e);
-        writePaint(c[4], which, st);
-        n++;
-        return c;
-      });
-      if (!n) throw userError('Nothing selected can take a ' + (which === 'fill' ? 'fill' : 'stroke'));
-      await replaceSelection(sel, out);
-      const used = st.mode === 'solid' ? [st.hex] : st.mode === 'none' ? [] : st.stops.map((x) => x.hex);
-      if (used.length) {
-        recentColours = [...new Set([...used, ...recentColours])].slice(0, 12);
-        try { chrome.storage.local.set({ [RECENT_KEY]: recentColours }); } catch { /* storage unavailable */ }
+    return run(which === 'text' ? 'text colour' : which === 'fill' ? 'fill' : 'stroke colour', async () => {
+      touched = true;
+      if (which === 'text') {
+        SB.focusTextbox();
+        if (!(await nativeColour('text', st))) throw userError('Couldn’t reach Slides’ text colour here. Use the Slides menu.');
+        noteRecent([st.hex]);
+        return;
       }
+      const sel = requireSelection();
+      const ids = topIdsOf(sel);
+      const shapes = sel.filter(paintable);
+      if (!shapes.length) throw userError('Nothing selected can take a ' + (which === 'fill' ? 'fill' : 'stroke'));
+      // Slides' border dialog has no opacity, so a see-through stroke goes the paint-format way below.
+      if (st.mode === 'solid' && (which === 'fill' || st.alpha >= 0.995)) {
+        if (!(await nativeColour(which, st))) throw userError('Couldn’t reach Slides’ colour dialog here (is its toolbar button hidden under ⋮?). Use the Slides menu.');
+        noteRecent([st.hex]);
+        return;
+      }
+      if (st.mode === 'none') {
+        if (!(await pickFromMenu(which, (n) => /^\s*Transparent\s*$/.test(n.textContent || '')))) throw userError('Couldn’t turn the ' + (which === 'fill' ? 'fill' : 'stroke') + ' off here. Use the Slides menu.');
+        return;
+      }
+      // Gradient: paint format where the text allows it.
+      const safe = shapes.filter((e) => oneTextStyle(sel, e[1]));
+      const rest = shapes.filter((e) => !safe.includes(e));
+      await frozenWhile(null, async () => {
+        for (const e of safe) {
+          const ok = await paintFormat(e[1], modelOf(sel, e, (props) => writePaint(props, which, st)));
+          if (!ok) throw userError('Slides wouldn’t take the change on one of the shapes');
+        }
+      });
+      if (rest.length) {
+        if (!(await selectIds(rest.map((e) => e[1])))) throw userError('Couldn’t select the shapes with mixed text to change them');
+        const part = requireSelection();
+        const out = part.map((e) => { if (!paintable(e)) return e; const c = clone(e); writePaint(c[4], which, st); return c; });
+        await replaceSelection(part, out);
+        notes.add(rest.length === 1 ? 'One shape has text in more than one style, so it was replaced to take the gradient (an animation on it is lost)' : `${rest.length} shapes have text in more than one style, so they were replaced to take the gradient (animations on them are lost)`);
+      } else {
+        await selectIds(ids);
+      }
+      noteRecent(st.mode === 'solid' ? [st.hex] : st.stops.map((x) => x.hex));
+      toastNotes();
     });
   }
+
+  // ── Replace a colour everywhere on the slide (or the deck) ─────────────
+  // With nothing selected the panel asks which colour on the slide to
+  // change and what to. Every use of it changes: fills, strokes, gradient
+  // stops and text.
+  const sameHex = (a, b) => typeof a === 'string' && typeof b === 'string' && a.toUpperCase() === b.toUpperCase();
+  async function replaceOnSlide(from, st) {
+    SB.focusTextbox();
+    SB.pressKey('Escape'); await sleep(40);
+    SB.pressKey('Escape'); await sleep(40);
+    // Select all means the slide's objects only once the canvas has had a
+    // click; straight after a filmstrip click it means the slides (checked live).
+    const blank = emptyCanvasPoint();
+    if (blank) { clickAt(blank, false); await sleep(120); }
+    keyCombo('a', 'KeyA', 65, PRIMARY);
+    const all = await SB.waitForSelection((x) => x.some((e) => e[0] === 3), [60, 120, 250, 500]);
+    if (!all) return 0;
+    const shapes = all.filter(paintable);
+    const fills = shapes.filter((e) => SB.getProp(e[4], 14) !== 0 && !SB.getProp(e[4], 60) && sameHex(SB.getProp(e[4], 15), from)).map((e) => e[1]);
+    const strokes = shapes.filter((e) => SB.getProp(e[4], 18) !== 0 && sameHex(SB.getProp(e[4], 19), from)).map((e) => e[1]);
+    const grads = shapes.filter((e) => SB.getProp(e[4], 60) && (SB.getProp(e[4], 61) || []).some((x) => sameHex(x[0], from)));
+    const texty = all.filter((e) => e[0] === 3).map((e) => ({ e, runs: charRuns(all, e[1]) })).filter((x) => x.runs.some((r) => sameHex(SB.getProp(r[6], 4), from)));
+    // All of an object's text in the colour: Slides' text colour does it.
+    // Only some of it: that object is replaced with the runs recoloured.
+    const wholeText = texty.filter((x) => x.runs.every((r) => sameHex(SB.getProp(r[6], 4), from))).map((x) => x.e[1]);
+    const partText = texty.filter((x) => !wholeText.includes(x.e[1])).map((x) => x.e[1]);
+    let n = 0;
+    if (fills.length && await selectIds(fills) && await nativeColour('fill', st)) n += fills.length;
+    if (strokes.length && await selectIds(strokes) && await nativeColour('stroke', st)) n += strokes.length;
+    if (wholeText.length && await selectIds(wholeText) && await nativeColour('text', st)) n += wholeText.length;
+    const swapStops = (props) => SB.setProp(props, 61, SB.getProp(props, 61).map((x) => (sameHex(x[0], from) ? [st.hex, x[1]] : x)));
+    for (const e of grads) {
+      if (oneTextStyle(all, e[1]) && !ancestorsOf(e[1]).length) { if (await paintFormat(e[1], modelOf(all, e, swapStops))) n++; }
+      else partText.includes(e[1]) || partText.push(e[1]);
+    }
+    if (partText.length && await selectIds([...new Set(partText.map((id) => SB.topLevelIdOf(id) || id))])) {
+      const part = SB.readSelection();
+      if (part) {
+        const out = part.map((e) => {
+          if (e[0] === 17 && partText.includes(e[1]) && Array.isArray(e[6]) && sameHex(SB.getProp(e[6], 4), from)) { const c = clone(e); SB.setProp(c[6], 4, st.hex); return c; }
+          if (e[0] === 3 && partText.includes(e[1]) && SB.getProp(e[4], 60)) { const c = clone(e); swapStops(c[4]); return c; }
+          return e;
+        });
+        if (await replaceSelectionNow(part, out, { reselect: false })) { n += partText.length; notes.add('Objects with text in several colours were replaced to change part of it (animations on them are lost)'); }
+      }
+    }
+    SB.focusTextbox();
+    SB.pressKey('Escape'); await sleep(40);
+    return n;
+  }
+  function replaceColour(st) {
+    return run('replace colour', async () => {
+      touched = true;
+      let n = 0, slides = 1;
+      if (!st.deck) {
+        n = await replaceOnSlide(st.from, st);
+      } else {
+        // One slide after another, by its thumbnail in the filmstrip.
+        const thumbs = () => [...document.querySelectorAll('.punch-filmstrip-thumbnail')];
+        const total = thumbs().length;
+        const home = SB.currentPageGroup() && SB.currentPageGroup().id;
+        let homeIndex = -1;
+        slides = 0;
+        for (let i = 0; i < total; i++) {
+          const t = thumbs()[i];
+          if (!t) break;
+          const before = SB.currentPageGroup() && SB.currentPageGroup().id;
+          t.scrollIntoView({ block: 'nearest' });
+          const r = t.getBoundingClientRect();
+          const target = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2) || t;
+          clickAt({ x: r.left + r.width / 2, y: r.top + r.height / 2, t: target }, false);
+          let now = before;
+          for (let k = 0; k < 40; k++) { await sleep(50); now = SB.currentPageGroup() && SB.currentPageGroup().id; if (now !== before) break; }
+          if (now === home) homeIndex = i;
+          if (i > 0 && now === before && total > 1) continue; // the slide didn't open: leave it alone
+          await sleep(150);
+          n += await replaceOnSlide(st.from, st);
+          slides++;
+          hintShow(`Replacing colour: slide ${i + 1} of ${total}`);
+        }
+        if (homeIndex >= 0 && thumbs()[homeIndex]) {
+          const t = thumbs()[homeIndex], r = t.getBoundingClientRect();
+          clickAt({ x: r.left + r.width / 2, y: r.top + r.height / 2, t: document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2) || t }, false);
+          await sleep(200);
+        }
+        hintShow('');
+      }
+      noteRecent([st.hex]);
+      notes.add(n ? `Changed ${st.from} in ${n} place${n === 1 ? '' : 's'}${st.deck ? ` on ${slides} slide${slides === 1 ? '' : 's'}` : ''}` : `Nothing on ${st.deck ? 'these slides' : 'this slide'} uses ${st.from} in a way that could be changed`);
+      toastNotes();
+    });
+  }
+  function hintShow(msg) {
+    if (msg) toast(msg, 60000);
+    else if (hint) hint.classList.remove('show');
+  }
+
   async function openPaint(which) {
-    if (cpop) { const same = cpop.which === which; closePaint(); if (same) return; }
+    if (cpop) { const same = cpop.act === which; closePaint(); if (same) return; }
     if (busy || adjust) return;
+    const btn = rail.querySelector(`[data-act="${which}"]`);
+    const br = (btn && btn.getBoundingClientRect().width ? btn : rail).getBoundingClientRect();
+    const base = { anchor: { left: br.left, right: br.right, top: br.top }, slide: slideColours(), recent: recentColours, act: which,
+      tips: (n) => rk.attachTips(n, 'right'), onClose: () => { cpop = null; rk.setOn(which, false); SB.focusTextbox(); } };
+    const open = (o) => { cpop = Object.assign(RK.paintPanel(root, Object.assign({}, base, o)), { act: which }); rk.setOn(which, true); };
+    // Highlighted text: the colour goes to the text, not its box.
+    if (textRangeSelected()) {
+      if (which === 'stroke') { showSlidesMenu('stroke'); return; }
+      open({ which: 'text', title: 'Text colour', modes: [['solid', 'Solid']], noAlpha: true, state: { mode: 'solid', hex: '#000000', alpha: 1 },
+        onMenu: () => { const b = toolbarButton(COLOUR_BUTTON.text); if (b) pressEl(b); },
+        onDone: (keep, st) => { if (keep) applyPaintState('text', st); } });
+      return;
+    }
     await outOfText();
     const sel = SB.readSelection();
     const shapes = (sel || []).filter(paintable);
-    // What a delete-and-paste would change or lose goes to Slides' own menu.
-    const raw = SB.readSelectionRaw();
-    const viaSlides = !shapes.length || SB.placeholderIds(raw).length || topIdsOf(sel).some((id) => pickedFromGroup(sel, id));
-    if (viaSlides) { showSlidesMenu(which); return; }
-    const st = Object.assign({ stops: null, angle: 90, centre: 0, sel: 0 }, readPaint(shapes[0], which));
-    if (!st.stops) st.stops = [{ hex: st.hex, pos: 0 }, { hex: mixHex(st.hex, '#000000', 0.45), pos: 1 }];
-    const start = JSON.stringify(st);
+    if (!topIdsOf(sel).length) {
+      // Nothing selected: change a colour wherever the slide uses it.
+      open({ which: 'replace', title: 'Replace a colour', modes: [['solid', 'Solid']], state: { mode: 'solid', hex: '#4285F4', alpha: 1 },
+        replace: { deck: document.querySelectorAll('.punch-filmstrip-thumbnail').length > 1 },
+        onDone: (keep, st) => { if (keep && st.from) replaceColour(st); } });
+      return;
+    }
+    if (!shapes.length) { showSlidesMenu(which); return; }
     const modes = which === 'fill' ? [['solid', 'Solid'], ['linear', 'Linear'], ['radial', 'Radial'], ['none', 'None']] : [['solid', 'Solid'], ['none', 'None']];
-    const tabs = el('div', { class: 'tabs', role: 'tablist' }, ...modes.map(([m, label]) => el('button', { type: 'button', role: 'tab', 'data-mode': m }, label)));
-    const bar = el('div', { class: 'gbar', 'data-tip': 'Click to add a stop · drag to move · drag away or Delete to remove' });
-    const prevFill = el('i');
-    const prev = el('div', { class: 'prev' }, prevFill);
-    const well = el('input', { type: 'color', 'aria-label': 'Colour', 'data-tip': 'Open the colour picker' });
-    const hexIn = el('input', { type: 'text', class: 'hex', spellcheck: 'false', maxlength: '9', 'aria-label': 'Hex colour', 'data-tip': 'Hex: 3, 6 or 8 digits (8 sets opacity too)' });
-    const alphaIn = el('input', { type: 'number', min: '0', max: '100', step: '1', 'aria-label': 'Opacity, percent' });
-    const drop = el('button', { type: 'button', class: 'ib', 'aria-label': 'Pick a colour from the screen', 'data-tip': 'Pick a colour from the screen' }, icon([['M14.9 3.3a2 2 0 0 1 1.8 3.2l-2 2 .7.7-1.1 1.1-.7-.7-5.2 5.2-2.9.7-.9.9-1-1 .9-.9.7-2.9 5.2-5.2-.7-.7 1.1-1.1.7.7 2-2a2 2 0 0 1 1.4-.6ZM11.5 8.9 6.6 13.8l-.4 1.4 1.4-.4 4.9-4.9Z']]));
-    const posIn = el('input', { type: 'number', min: '0', max: '100', step: '1', 'aria-label': 'Stop position, percent' });
-    const angIn = el('input', { type: 'number', step: '1', 'aria-label': 'Angle in degrees' });
-    const dial = el('div', { class: 'dial', 'data-tip': 'Drag to turn · ⇧ snaps to 15°' }, el('i'));
-    const rev = el('button', { type: 'button', class: 'tx', 'data-tip': 'Reverse the stops' }, 'Reverse');
-    const delStop = el('button', { type: 'button', class: 'tx', 'data-tip': 'Remove the selected stop', 'data-key': 'Delete' }, 'Remove stop');
-    const centre = el('div', { class: 'cgrid', role: 'radiogroup', 'aria-label': 'Where the gradient starts' },
-      ...[[1, 'Top left'], [2, 'Top right'], [0, 'Middle'], [3, 'Bottom left'], [4, 'Bottom right']].map(([v, label]) => el('button', { type: 'button', 'data-c': v, 'aria-label': label, 'data-tip': 'Starts: ' + label.toLowerCase() })));
-    const swSlide = el('div', { class: 'sws' }), swRecent = el('div', { class: 'sws' });
-    const bNo = el('button', { type: 'button', class: 'pb no', 'aria-label': 'Cancel', 'data-tip': 'Cancel', 'data-key': 'Esc' }), bOk = el('button', { type: 'button', class: 'pb ok', 'aria-label': 'Apply', 'data-tip': 'Apply', 'data-key': '↵' });
-    [[bNo, 'M5.5 5.5l9 9M14.5 5.5l-9 9'], [bOk, 'M4.5 10.5l3.6 3.6 7.4-8']].forEach(([b, d]) => {
-      const g = sv('svg', { viewBox: '0 0 20 20', 'aria-hidden': 'true' });
-      g.append(sv('path', { d, fill: 'none', stroke: 'currentColor', 'stroke-width': '2.2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
-      b.append(g);
-    });
-    const more = el('button', { type: 'button', class: 'tx', 'data-tip': 'Open Slides’ own ' + (which === 'fill' ? 'fill' : 'border') + ' colour menu (theme colours live there)' }, 'Slides menu');
-    const rowColour = el('div', { class: 'row' }, well, hexIn, el('label', { class: 'f', 'data-tip': 'Opacity · ⌥-drag to scrub' }, alphaIn, el('span', {}, '%')), drop);
-    const rowStop = el('div', { class: 'row g' }, el('label', { class: 'f', 'data-tip': 'Position of the selected stop · ⌥-drag to scrub' }, el('span', {}, 'Stop'), posIn, el('span', {}, '%')), delStop, rev);
-    const rowLin = el('div', { class: 'row g lin' }, dial, el('label', { class: 'f', 'data-tip': 'Angle: 0° runs left to right, 90° top to bottom · ⌥-drag to scrub' }, angIn, el('span', {}, '°')),
-      ...[0, 45, 90, 180].map((a) => el('button', { type: 'button', class: 'tx', 'data-ang': a }, a + '°')));
-    const rowRad = el('div', { class: 'row g rad' }, el('span', { class: 'cap' }, 'Starts from'), centre);
-    const node = el('div', { class: 'cpop', role: 'dialog', 'aria-label': which === 'fill' ? 'Fill' : 'Stroke colour', tabindex: '-1' },
-      el('div', { class: 'hd' }, el('span', {}, which === 'fill' ? 'Fill' : 'Stroke'), tabs),
-      prev, bar, rowColour, rowStop, rowLin, rowRad,
-      el('div', { class: 'cap sl' }, 'On this slide'), swSlide, el('div', { class: 'cap rc' }, 'Recent'), swRecent,
-      el('div', { class: 'ft' }, more, el('span', { class: 'sp' }), bNo, bOk));
-    if (!('EyeDropper' in window)) drop.style.display = 'none';
-    const cur = () => (st.mode === 'linear' || st.mode === 'radial' ? st.stops[st.sel] : st);
-    const cssStops = () => st.stops.slice().sort((a, b) => a.pos - b.pos).map((x) => `${x.hex} ${Math.round(x.pos * 1000) / 10}%`).join(', ');
-    const rgba = (h, a) => `rgba(${parseInt(h.slice(1, 3), 16)}, ${parseInt(h.slice(3, 5), 16)}, ${parseInt(h.slice(5, 7), 16)}, ${a})`;
-    const sync = () => {
-      const grad = st.mode === 'linear' || st.mode === 'radial';
-      node.dataset.mode = st.mode;
-      tabs.querySelectorAll('button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.mode === st.mode)));
-      const c = cur();
-      well.value = c.hex.toLowerCase();
-      if (root.activeElement !== hexIn) hexIn.value = c.hex.replace('#', '');
-      if (root.activeElement !== alphaIn) alphaIn.value = String(Math.round(st.alpha * 100));
-      if (grad) {
-        if (root.activeElement !== posIn) posIn.value = String(Math.round(c.pos * 100));
-        if (root.activeElement !== angIn) angIn.value = String(st.angle);
-        dial.firstChild.style.transform = `rotate(${st.angle}deg)`;
-        delStop.disabled = st.stops.length <= 2;
-        centre.querySelectorAll('button').forEach((b) => b.setAttribute('aria-checked', String(+b.dataset.c === st.centre)));
-        bar.style.background = `linear-gradient(to right, ${cssStops()})`;
-        bar.replaceChildren(...st.stops.map((x, i) => {
-          const h = el('button', { type: 'button', class: 'st' + (i === st.sel ? ' on' : ''), 'data-i': i, 'aria-label': `Stop at ${Math.round(x.pos * 100)}%` });
-          h.style.left = x.pos * 100 + '%';
-          h.style.setProperty('--c', x.hex);
-          return h;
-        }));
-      }
-      const at = [['50% 50%', 'farthest-corner'], ['0 0', 'farthest-corner'], ['100% 0', 'farthest-corner'], ['0 100%', 'farthest-corner'], ['100% 100%', 'farthest-corner']][st.centre || 0];
-      prevFill.style.opacity = st.mode === 'none' ? 1 : st.alpha;
-      prev.classList.toggle('none', st.mode === 'none');
-      prevFill.style.background = st.mode === 'none' ? '' : st.mode === 'solid' ? st.hex
-        : st.mode === 'linear' ? `linear-gradient(${st.angle + 90}deg, ${cssStops()})` : `radial-gradient(circle ${at[1]} at ${at[0]}, ${cssStops()})`;
-    };
-    const swatch = (h) => { const b = el('button', { type: 'button', class: 'sw', 'data-hex': h, 'aria-label': h, 'data-tip': h }); b.style.background = h; return b; };
-    const fillSwatches = () => {
-      const a = slideColours(), b = recentColours.filter((h) => normHex(h));
-      swSlide.replaceChildren(...a.map(swatch)); swRecent.replaceChildren(...b.map(swatch));
-      node.querySelector('.sl').style.display = swSlide.style.display = a.length ? '' : 'none';
-      node.querySelector('.rc').style.display = swRecent.style.display = b.length ? '' : 'none';
-    };
-    const setColour = (h, a) => {
-      cur().hex = h;
-      if (a !== undefined) st.alpha = a;
-      if (st.mode === 'none') st.mode = 'solid';
-      sync();
-    };
-    tabs.addEventListener('click', (e) => {
-      const b = e.target.closest('button');
-      if (!b) return;
-      const was = st.mode;
-      st.mode = b.dataset.mode;
-      // Going solid ↔ gradient carries the colour in hand across.
-      if ((st.mode === 'linear' || st.mode === 'radial') && was === 'solid' && st.stops.length === 2 && JSON.parse(start).mode !== 'linear' && JSON.parse(start).mode !== 'radial') st.stops[0].hex = st.hex;
-      if (st.mode === 'solid' && (was === 'linear' || was === 'radial')) st.hex = st.stops[st.sel].hex;
-      sync();
-    });
-    well.addEventListener('input', () => setColour(well.value.toUpperCase()));
-    hexIn.addEventListener('input', () => { const c = normHex(hexIn.value); if (c) setColour(c.hex, c.alpha); });
-    hexIn.addEventListener('blur', () => sync());
-    hexIn.addEventListener('focus', () => setTimeout(() => hexIn.select(), 0));
-    alphaIn.addEventListener('input', () => { const v = parseFloat(alphaIn.value); if (Number.isFinite(v)) { st.alpha = Math.min(1, Math.max(0, v / 100)); sync(); } });
-    posIn.addEventListener('input', () => { const v = parseFloat(posIn.value); if (Number.isFinite(v)) { st.stops[st.sel].pos = Math.min(1, Math.max(0, v / 100)); sync(); } });
-    angIn.addEventListener('input', () => { const v = parseFloat(angIn.value); if (Number.isFinite(v)) { st.angle = v; sync(); } });
-    RK.scrub(alphaIn.parentNode, alphaIn, { step: 1, min: 0, max: 100 });
-    RK.scrub(posIn.parentNode, posIn, { step: 1, min: 0, max: 100 });
-    RK.scrub(angIn.parentNode, angIn, { step: 1 });
-    rowLin.addEventListener('click', (e) => { const b = e.target.closest('[data-ang]'); if (b) { st.angle = +b.dataset.ang; sync(); } });
-    centre.addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { st.centre = +b.dataset.c; sync(); } });
-    rev.addEventListener('click', () => { st.stops.forEach((x) => { x.pos = Math.round((1 - x.pos) * 1e4) / 1e4; }); sync(); });
-    const removeStop = () => { if (st.stops.length <= 2) return; st.stops.splice(st.sel, 1); st.sel = Math.min(st.sel, st.stops.length - 1); sync(); };
-    delStop.addEventListener('click', removeStop);
-    dial.addEventListener('pointerdown', (e) => {
-      e.preventDefault();
-      const r = dial.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
-      const turn = (ev) => {
-        let a = Math.atan2(ev.clientY - cy, ev.clientX - cx) * 180 / Math.PI;
-        a = ev.shiftKey ? Math.round(a / 15) * 15 : Math.round(a);
-        st.angle = (a + 360) % 360;
-        sync();
-      };
-      const end = () => { window.removeEventListener('pointermove', turn, true); window.removeEventListener('pointerup', end, true); };
-      window.addEventListener('pointermove', turn, true);
-      window.addEventListener('pointerup', end, true);
-      turn(e);
-    });
-    bar.addEventListener('pointerdown', (e) => {
-      if (e.button !== 0) return;
-      e.preventDefault();
-      const r = bar.getBoundingClientRect();
-      const posOf = (ev) => Math.min(1, Math.max(0, (ev.clientX - r.left) / r.width));
-      const h = e.target.closest('.st');
-      if (h) st.sel = +h.dataset.i;
-      else { const pos = Math.round(posOf(e) * 100) / 100; st.stops.push({ hex: stopColourAt(st.stops, pos), pos }); st.sel = st.stops.length - 1; }
-      sync();
-      const held = st.stops[st.sel];
-      let gone = false;
-      const mv = (ev) => {
-        const away = Math.abs(ev.clientY - (r.top + r.height / 2)) > 36 && st.stops.length > 2;
-        if (away && !gone) { gone = true; st.stops.splice(st.stops.indexOf(held), 1); st.sel = 0; }
-        else if (!away && gone) { gone = false; st.stops.push(held); }
-        if (!gone) { held.pos = Math.round(posOf(ev) * 1000) / 1000; st.sel = st.stops.indexOf(held); }
-        sync();
-      };
-      const end = () => { window.removeEventListener('pointermove', mv, true); window.removeEventListener('pointerup', end, true); };
-      window.addEventListener('pointermove', mv, true);
-      window.addEventListener('pointerup', end, true);
-    });
-    [swSlide, swRecent].forEach((w) => w.addEventListener('click', (e) => { const b = e.target.closest('.sw'); if (b) setColour(b.dataset.hex); }));
-    drop.addEventListener('click', async () => {
-      try { const r = await new window.EyeDropper().open(); const c = normHex(r && r.sRGBHex); if (c) setColour(c.hex); } catch { /* closed without a pick */ }
-    });
-    const done = (keep) => {
-      const changed = JSON.stringify(Object.assign({}, st, { sel: 0 })) !== JSON.stringify(Object.assign(JSON.parse(start), { sel: 0 }));
-      closePaint();
-      if (keep && changed) applyPaintState(which, clone(st));
-    };
-    bNo.addEventListener('click', () => done(false));
-    bOk.addEventListener('click', () => done(true));
-    more.addEventListener('click', () => { closePaint(); showSlidesMenu(which); });
-    node.addEventListener('keydown', (e) => {
-      e.stopPropagation();
-      const typing = e.target.tagName === 'INPUT' && e.target.type !== 'color';
-      if (e.key === 'Escape') { e.preventDefault(); done(false); }
-      else if (e.key === 'Enter') { e.preventDefault(); if (typing) e.target.blur(); done(true); }
-      else if (!typing && (e.key === 'Delete' || e.key === 'Backspace') && (st.mode === 'linear' || st.mode === 'radial')) { e.preventDefault(); removeStop(); }
-      else if (!typing && (e.key === 'ArrowLeft' || e.key === 'ArrowRight') && (st.mode === 'linear' || st.mode === 'radial')) {
-        e.preventDefault();
-        const x = st.stops[st.sel];
-        x.pos = Math.min(1, Math.max(0, Math.round((x.pos + (e.key === 'ArrowLeft' ? -1 : 1) * (e.shiftKey ? 0.1 : 0.01)) * 100) / 100));
-        sync();
-      }
-    });
-    ['keyup', 'keypress', 'mousedown', 'pointerdown', 'click', 'wheel'].forEach((t) => node.addEventListener(t, (e) => e.stopPropagation()));
-    const away = (e) => { if (cpop && !e.composedPath().includes(node) && !(e.composedPath().some((n) => n && n.dataset && n.dataset.act === which))) done(false); };
-    root.append(node);
-    rk.attachTips(node, 'right');
-    rk.setOn(which, true);
-    cpop = { node, which, away };
-    fillSwatches();
-    sync();
-    // Beside the button that opened it, kept on screen.
-    const btn = rail.querySelector(`[data-act="${which}"]`);
-    const br = (btn && btn.getBoundingClientRect().width ? btn : rail).getBoundingClientRect();
-    const pr = node.getBoundingClientRect();
-    node.style.left = Math.min(window.innerWidth - pr.width - 8, br.right + 10) + 'px';
-    node.style.top = Math.max(8, Math.min(window.innerHeight - pr.height - 8, br.top - 12)) + 'px';
-    setTimeout(() => window.addEventListener('pointerdown', away, true), 0);
-    node.focus({ preventScroll: true });
+    open({ which, title: which === 'fill' ? 'Fill' : 'Stroke', modes, state: readPaint(shapes[0], which),
+      onMenu: () => showSlidesMenu(which), onDone: (keep, st) => { if (keep) applyPaintState(which, st); } });
   }
 
   let lastStroke = null; // colour to bring back when stroke goes on again
@@ -2704,59 +2794,6 @@ console.log('[svg2slides] shape-tools.js loaded');
     .hint { position: fixed; z-index: 2147482999; pointer-events: none; background: ${GM.tooltip}; color: ${GM.onTooltip};
             font: 400 12px/16px ${FONT}; padding: 6px 10px; border-radius: 4px; max-width: 320px; opacity: 0; transition: opacity .2s; }
     .hint.show { opacity: .95; }
-    .cpop { position: fixed; z-index: 4; width: 292px; box-sizing: border-box; padding: 12px; background: #fff; color: #1f1f1f; border-radius: 12px;
-            box-shadow: 0 2px 6px 2px rgba(60,64,67,.15), 0 1px 2px rgba(60,64,67,.3); font: 400 12px/16px ${FONT}; outline: none; }
-    .cpop * { box-sizing: border-box; font: inherit; }
-    .cpop .hd { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-weight: 500; font-size: 13px; margin-bottom: 10px; }
-    .cpop .tabs { display: flex; background: ${GM.surface}; border-radius: 8px; padding: 2px; }
-    .cpop .tabs button { border: 0; background: none; padding: 3px 8px; border-radius: 6px; cursor: pointer; color: ${GM.icon}; font-size: 12px; font-weight: 500; }
-    .cpop .tabs button[aria-selected="true"] { background: #fff; color: #1f1f1f; box-shadow: 0 1px 2px rgba(60,64,67,.3); }
-    .cpop .prev { height: 44px; border-radius: 8px; border: 1px solid ${GM.outline}; margin-bottom: 10px; overflow: hidden;
-                  background: repeating-conic-gradient(#e3e3e3 0% 25%, #fff 0% 50%) 0 0 / 12px 12px; }
-    .cpop .prev i { display: block; width: 100%; height: 100%; }
-    .cpop .prev.none i { background: linear-gradient(to top right, transparent calc(50% - 1px), #d93025 calc(50% - 1px), #d93025 calc(50% + 1px), transparent calc(50% + 1px)), #fff; }
-    .cpop .gbar { position: relative; height: 16px; border-radius: 8px; border: 1px solid ${GM.outline}; margin: 4px 7px 18px; cursor: copy; }
-    .cpop .st { position: absolute; top: 10px; width: 14px; height: 14px; margin-left: -7px; padding: 0; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; border: 2px solid #fff;
-                background: var(--c); box-shadow: 0 0 0 1px ${GM.outline}, 0 1px 2px rgba(0,0,0,.3); cursor: ew-resize; }
-    .cpop .st.on { box-shadow: 0 0 0 2px #1a73e8, 0 1px 2px rgba(0,0,0,.3); z-index: 1; }
-    .cpop .row { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
-    .cpop .row.g .tx { padding: 0 6px; }
-    .cpop .row.rad { gap: 12px; }
-    .cpop input[type="color"] { width: 30px; height: 28px; padding: 0; border: 1px solid ${GM.outline}; border-radius: 6px; background: none; cursor: pointer; flex: none; }
-    .cpop input[type="color"]::-webkit-color-swatch-wrapper { padding: 2px; }
-    .cpop input[type="color"]::-webkit-color-swatch { border: 0; border-radius: 3px; }
-    .cpop input[type="text"], .cpop input[type="number"] { height: 28px; border: 1px solid ${GM.outline}; border-radius: 6px; padding: 0 6px; background: #fff; color: inherit; min-width: 0; }
-    .cpop input:focus { outline: 2px solid #a8c7fa; outline-offset: -1px; }
-    .cpop input::-webkit-inner-spin-button, .cpop input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-    .cpop .hex { flex: 1; text-transform: uppercase; font-family: 'Roboto Mono', Menlo, monospace; }
-    .cpop .f { display: flex; align-items: center; gap: 4px; color: ${GM.icon}; }
-    .cpop .f input { width: 46px; text-align: right; }
-    .cpop .ib { width: 28px; height: 28px; border: 0; border-radius: 6px; background: none; cursor: pointer; display: grid; place-items: center; color: ${GM.icon}; flex: none; }
-    .cpop .ib:hover, .cpop .tx:hover { background: ${GM.hover}; }
-    .cpop .ib svg { width: 18px; height: 18px; fill: currentColor; }
-    .cpop .tx { border: 1px solid ${GM.outline}; background: none; height: 26px; padding: 0 8px; border-radius: 6px; cursor: pointer; color: #1f1f1f; white-space: nowrap; }
-    .cpop .tx[disabled] { opacity: .4; pointer-events: none; }
-    .cpop .dial { width: 26px; height: 26px; border-radius: 50%; border: 1px solid ${GM.outline}; position: relative; cursor: grab; flex: none; }
-    .cpop .dial i { position: absolute; left: 50%; top: 50%; width: 11px; height: 2px; margin-top: -1px; background: #1a73e8; border-radius: 1px; transform-origin: 0 50%; }
-    .cpop .cgrid { display: grid; grid-template-columns: repeat(3, 14px); grid-template-rows: repeat(3, 14px); gap: 2px; }
-    .cpop .cgrid button { border: 1px solid ${GM.outline}; background: #fff; border-radius: 3px; padding: 0; cursor: pointer; }
-    .cpop .cgrid button[data-c="1"] { grid-area: 1 / 1; } .cpop .cgrid button[data-c="2"] { grid-area: 1 / 3; } .cpop .cgrid button[data-c="0"] { grid-area: 2 / 2; }
-    .cpop .cgrid button[data-c="3"] { grid-area: 3 / 1; } .cpop .cgrid button[data-c="4"] { grid-area: 3 / 3; }
-    .cpop .cgrid button[aria-checked="true"] { background: #1a73e8; border-color: #1a73e8; }
-    .cpop .cap { color: ${GM.icon}; font-size: 11px; margin: 2px 0 6px; }
-    .cpop .sws { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
-    .cpop .sw { width: 20px; height: 20px; border-radius: 50%; border: 1px solid rgba(0,0,0,.18); padding: 0; cursor: pointer; }
-    .cpop .sw:hover { transform: scale(1.15); }
-    .cpop .ft { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
-    .cpop .ft .sp { flex: 1; }
-    .cpop .pb { width: 28px; height: 28px; border-radius: 50%; border: 0; padding: 0; display: grid; place-items: center; cursor: pointer; background: ${GM.surface}; color: #1f1f1f; }
-    .cpop .pb svg { width: 16px; height: 16px; }
-    .cpop .pb.ok { background: #0b57d0; color: #fff; }
-    .cpop .pb:hover { filter: brightness(.94); }
-    .cpop .gbar, .cpop .row.g { display: none; }
-    .cpop[data-mode="linear"] .gbar, .cpop[data-mode="radial"] .gbar { display: block; }
-    .cpop[data-mode="linear"] .row.g:not(.rad), .cpop[data-mode="radial"] .row.g:not(.lin) { display: flex; }
-    .cpop[data-mode="none"] .row { opacity: .5; }
     .madj { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 1; outline: none; cursor: default; }
     .madj .pic { cursor: move; }
     .madj .edge { fill: none; stroke: #1a73e8; stroke-width: 1.5; vector-effect: non-scaling-stroke; pointer-events: none; }
@@ -2971,7 +3008,56 @@ console.log('[svg2slides] shape-tools.js loaded');
       if (panel && panel.classList.contains('show')) renderList();
     });
   } catch { /* storage unavailable */ }
+  // A name follows its copies. Ids change on every paste (and from deck to
+  // deck), the drawing doesn't, so each name is also kept under a print of
+  // what the object looks like: its outlines measured from their first
+  // point (a copy pasted a little to the side still matches) plus its
+  // words. An unnamed group, text or detailed shape that matches takes the
+  // name. Plain boxes and ovals don't: too many look alike.
+  let nameSigs = {};
+  const sigSeen = new Set();
+  try { chrome.storage.local.get('layerNameSigs', (v) => { nameSigs = (v && v.layerNameSigs) || {}; }); } catch { /* storage unavailable */ }
+  function lookSig(id) {
+    const g = SB.elementFor(id);
+    if (!g) return null;
+    const ds = [...g.querySelectorAll('path')].filter((p) => !SELECTION_BLUE.test(p.getAttribute('stroke') || '')).map((p) => p.getAttribute('d') || '').join('|');
+    const txt = [...g.querySelectorAll('text')].map((t) => t.textContent).join('|');
+    const nums = ds.match(/-?\d+\.?\d*(?:e-?\d+)?/gi) || [];
+    const nested = g.querySelector('g[id^="editor-"]:not([id$="-bg"]):not([id*="-paragraph"])');
+    if (!nested && !txt && nums.length < 24) return null;
+    const x0 = +nums[0] || 0, y0 = +nums[1] || 0;
+    let h = 2166136261;
+    const feed = (str) => { for (let i = 0; i < str.length; i++) h = Math.imul(h ^ str.charCodeAt(i), 16777619) >>> 0; };
+    nums.forEach((n, i) => feed(Math.round(+n - (i % 2 ? y0 : x0)) + ','));
+    feed(ds.replace(/[-\d.e,\s]+/gi, ''));
+    feed(txt);
+    return h.toString(36) + '_' + nums.length + '_' + txt.length;
+  }
+  let sigT = null;
+  function saveSigs() {
+    clearTimeout(sigT);
+    sigT = setTimeout(() => {
+      const keys = Object.keys(nameSigs);
+      if (keys.length > 600) keys.slice(0, keys.length - 600).forEach((k) => delete nameSigs[k]);
+      try { chrome.storage.local.set({ layerNameSigs: nameSigs }); } catch { /* storage unavailable */ }
+    }, 400);
+  }
+  // The name to show for `id`: its own, or one inherited from the object it is a copy of.
+  function nameFor(id) {
+    if (names[id]) {
+      if (!sigSeen.has(id)) { sigSeen.add(id); const sg = lookSig(id); if (sg && nameSigs[sg] !== names[id]) { nameSigs[sg] = names[id]; saveSigs(); } }
+      return names[id];
+    }
+    if (sigSeen.has(id)) return null;
+    sigSeen.add(id);
+    const sg = lookSig(id);
+    if (sg && nameSigs[sg]) { saveName(id, nameSigs[sg]); return names[id]; }
+    return null;
+  }
   function saveName(id, name) {
+    const sg = lookSig(id);
+    if (sg) { if (name) nameSigs[sg] = name; else delete nameSigs[sg]; saveSigs(); }
+    sigSeen.add(id);
     if (name) names[id] = name; else delete names[id];
     try {
       chrome.storage.local.get('layerNames', (v) => {
@@ -3032,7 +3118,8 @@ console.log('[svg2slides] shape-tools.js loaded');
       const d = describe(id);
       const kids = d.kind === 'kGroup' ? childOrder(id).slice().reverse() : [];
       const open = kids.length > 0 && expanded.has(id);
-      model.push({ id, depth, kind: d.kind, label: names[id] || d.label, custom: !!names[id], hid: hidden.has(id), group: kids.length > 0, open });
+      const nm = nameFor(id);
+      model.push({ id, depth, kind: d.kind, label: nm || d.label, custom: !!nm, hid: hidden.has(id), group: kids.length > 0, open });
       if (open) kids.forEach((k) => walk(k, depth + 1));
     };
     order.forEach((id) => walk(id, 0));

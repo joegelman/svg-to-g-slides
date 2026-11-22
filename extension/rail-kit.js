@@ -47,6 +47,7 @@ const RK = (() => {
     snapGrid: [RING('M3.75 3.75h12.5v12.5H3.75Z'), ['M7.4 3h1.2v14H7.4Zm4 0h1.2v14h-1.2ZM3 7.4h14v1.2H3Zm0 4h14v1.2H3Z']],
     pen: [['M10 2l5.5 7.5-3 6h-5l-3-6Zm0 6.2a1.6 1.6 0 1 0 0 3.2 1.6 1.6 0 0 0 0-3.2ZM7.5 16.75h5V18.25h-5Z', { 'fill-rule': 'evenodd' }]],
     edit: [RING('M4.6 15.4C6 10 9.5 6.6 15.4 4.6'), ['M2.5 13.5h4v4h-4Zm11-11h4v4h-4Z']],
+    dropper: [['M14.9 3.3a2 2 0 0 1 1.8 3.2l-2 2 .7.7-1.1 1.1-.7-.7-5.2 5.2-2.9.7-.9.9-1-1 .9-.9.7-2.9 5.2-5.2-.7-.7 1.1-1.1.7.7 2-2a2 2 0 0 1 1.4-.6ZM11.5 8.9 6.6 13.8l-.4 1.4 1.4-.4 4.9-4.9Z']],
     layers: [['M10 16.3 3.9 11.5 2.6 12.5 10 18.3l7.4-5.8-1.3-1ZM10 14l7.4-5.8L10 2.4 2.6 8.2Z']],
     arrange: [['M3 3h9v4H7v5H3Z'], RING('M7.75 7.75h8.5v8.5h-8.5Z')],
     forward: [['M10 3.5 5.5 8h3v5h3V8h3Z'], ['M4 15h12v1.5H4Z']],
@@ -630,6 +631,374 @@ const RK = (() => {
     return { el: pop, close, focusHex: () => { hex.focus(); hex.select(); } };
   }
 
+  // ── Paint panel ────────────────────────────────────────────────────────
+  // The fill / stroke / text colour panel shared by the Shape tools rail and
+  // Edit Shape. Laid out like Figma's: a saturation-and-brightness square,
+  // hue and opacity sliders with an eyedropper beside them, a hex field and
+  // an opacity field, then the colours already on the slide and recent ones.
+  // Fills add Linear and Radial: a stop bar (click adds, drag moves, drag
+  // away or Delete removes), angle, where a radial starts, Reverse.
+  // opts: { which, title, modes [[mode, label]], state { mode, hex, alpha,
+  //   stops, angle, centre }, slide [hex], recent [hex], anchor (rect),
+  //   live (call onChange as things move), replace (nothing selected: pick a
+  //   colour on the slide, then what it becomes; { deck } offers the whole
+  //   presentation), onChange(st), onDone(keep, st), onMenu(), tips(node) }.
+  const normHex = (raw) => {
+    let h = String(raw || '').trim().replace(/^#/, '');
+    if (/^[0-9a-f]{3}$/i.test(h)) h = h.split('').map((c) => c + c).join('');
+    if (/^[0-9a-f]{8}$/i.test(h)) return { hex: '#' + h.slice(0, 6).toUpperCase(), alpha: Math.round(parseInt(h.slice(6), 16) / 255 * 100) / 100 };
+    return /^[0-9a-f]{6}$/i.test(h) ? { hex: '#' + h.toUpperCase() } : null;
+  };
+  const mixHex = (a, b, t) => '#' + [1, 3, 5].map((i) => Math.round(parseInt(a.slice(i, i + 2), 16) * (1 - t) + parseInt(b.slice(i, i + 2), 16) * t).toString(16).padStart(2, '0')).join('').toUpperCase();
+  function stopColourAt(stops, pos) {
+    const st = stops.slice().sort((a, b) => a.pos - b.pos);
+    if (pos <= st[0].pos) return st[0].hex;
+    for (let i = 1; i < st.length; i++) if (pos <= st[i].pos) return st[i].pos - st[i - 1].pos < 1e-6 ? st[i].hex : mixHex(st[i - 1].hex, st[i].hex, (pos - st[i - 1].pos) / (st[i].pos - st[i - 1].pos));
+    return st[st.length - 1].hex;
+  }
+  function hexToHsv(hex) {
+    const r = parseInt(hex.slice(1, 3), 16) / 255, g = parseInt(hex.slice(3, 5), 16) / 255, b = parseInt(hex.slice(5, 7), 16) / 255;
+    const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn;
+    let h = 0;
+    if (d) h = mx === r ? ((g - b) / d + 6) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4;
+    return { h: h * 60, s: mx ? d / mx : 0, v: mx };
+  }
+  function hsvToHex(h, s, v) {
+    const f = (n) => { const k = (n + h / 60) % 6; return v - v * s * Math.max(0, Math.min(k, 4 - k, 1)); };
+    return '#' + [f(5), f(3), f(1)].map((x) => Math.round(x * 255).toString(16).padStart(2, '0')).join('').toUpperCase();
+  }
+  const PAINT_CSS = `
+    .cpop { position: fixed; z-index: 2147483000; width: 272px; box-sizing: border-box; padding: 12px; background: #fff; color: #1f1f1f; border-radius: 12px;
+            box-shadow: 0 2px 6px 2px rgba(60,64,67,.15), 0 1px 2px rgba(60,64,67,.3); font: 400 12px/16px ${FONT}; outline: none; overflow-y: auto; overscroll-behavior: contain; }
+    .cpop * { box-sizing: border-box; font: inherit; }
+    .cpop .hd { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-weight: 500; font-size: 13px; margin-bottom: 10px; }
+    .cpop .tabs { display: flex; background: ${GM.surface}; border-radius: 8px; padding: 2px; }
+    .cpop .tabs button { border: 0; background: none; padding: 3px 8px; border-radius: 6px; cursor: pointer; color: ${GM.icon}; font-size: 12px; font-weight: 500; }
+    .cpop .tabs button[aria-selected="true"] { background: #fff; color: #1f1f1f; box-shadow: 0 1px 2px rgba(60,64,67,.3); }
+    .cpop .rep { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; min-height: 28px; color: ${GM.icon}; }
+    .cpop .rep .chip { width: 24px; height: 24px; border-radius: 6px; border: 1px solid rgba(0,0,0,.18); flex: none; background: repeating-conic-gradient(#e3e3e3 0% 25%, #fff 0% 50%) 0 0 / 8px 8px; overflow: hidden; }
+    .cpop .rep .chip i { display: block; width: 100%; height: 100%; }
+    .cpop .rep label { display: flex; align-items: center; gap: 5px; margin-left: auto; cursor: pointer; color: #1f1f1f; }
+    .cpop .sv { position: relative; height: 150px; border-radius: 8px; margin-bottom: 12px; cursor: crosshair; touch-action: none; }
+    .cpop .sv b, .cpop .sl b { position: absolute; width: 14px; height: 14px; margin: -7px 0 0 -7px; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.35), 0 1px 3px rgba(0,0,0,.4); pointer-events: none; }
+    .cpop .mix { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .cpop .mix .bars { flex: 1; display: grid; gap: 10px; }
+    .cpop .sl { position: relative; height: 12px; border-radius: 6px; cursor: pointer; touch-action: none; margin: 0 7px; }
+    .cpop .sl b { top: 50%; }
+    .cpop .sl.hue { background: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00); }
+    .cpop .sl.al { background: repeating-conic-gradient(#d0d0d0 0% 25%, #fff 0% 50%) 0 0 / 8px 8px; }
+    .cpop .sl.al i { position: absolute; inset: 0; border-radius: 6px; }
+    .cpop .gbar { position: relative; height: 16px; border-radius: 8px; border: 1px solid ${GM.outline}; margin: 0 7px 20px; cursor: copy; touch-action: none; }
+    .cpop .st { position: absolute; top: 10px; width: 14px; height: 14px; margin-left: -7px; padding: 0; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; border: 2px solid #fff;
+                background: var(--c); box-shadow: 0 0 0 1px ${GM.outline}, 0 1px 2px rgba(0,0,0,.3); cursor: ew-resize; }
+    .cpop .st.on { box-shadow: 0 0 0 2px #1a73e8, 0 1px 2px rgba(0,0,0,.3); z-index: 1; }
+    .cpop .prow { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+    .cpop .prow.g .tx { padding: 0 6px; }
+    .cpop .prow.rad { gap: 12px; }
+    .cpop input[type="text"], .cpop input[type="number"] { height: 28px; border: 1px solid transparent; border-radius: 6px; padding: 0 8px; background: ${GM.surface}; color: inherit; min-width: 0; }
+    .cpop input:focus { outline: 2px solid #a8c7fa; outline-offset: -1px; background: #fff; }
+    .cpop input::-webkit-inner-spin-button, .cpop input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    .cpop .hexl { border: 1px solid ${GM.outline}; border-radius: 6px; height: 28px; padding: 0 8px; display: flex; align-items: center; color: ${GM.icon}; }
+    .cpop .hex { flex: 1; text-transform: uppercase; font-family: 'Roboto Mono', Menlo, monospace; }
+    .cpop .f { display: flex; align-items: center; gap: 4px; color: ${GM.icon}; }
+    .cpop .f input { width: 46px; text-align: right; }
+    .cpop .ib { width: 28px; height: 28px; border: 0; border-radius: 6px; background: none; cursor: pointer; display: grid; place-items: center; color: ${GM.icon}; flex: none; padding: 0; }
+    .cpop .ib:hover, .cpop .tx:hover { background: ${GM.hover}; }
+    .cpop .ib svg { width: 18px; height: 18px; fill: currentColor; }
+    .cpop .tx { border: 1px solid ${GM.outline}; background: none; height: 26px; padding: 0 8px; border-radius: 6px; cursor: pointer; color: #1f1f1f; white-space: nowrap; }
+    .cpop .tx[disabled] { opacity: .4; pointer-events: none; }
+    .cpop .dial { width: 26px; height: 26px; border-radius: 50%; border: 1px solid ${GM.outline}; position: relative; cursor: grab; flex: none; touch-action: none; }
+    .cpop .dial i { position: absolute; left: 50%; top: 50%; width: 11px; height: 2px; margin-top: -1px; background: #1a73e8; border-radius: 1px; transform-origin: 0 50%; }
+    .cpop .cgrid { display: grid; grid-template-columns: repeat(3, 14px); grid-template-rows: repeat(3, 14px); gap: 2px; }
+    .cpop .cgrid button { border: 1px solid ${GM.outline}; background: #fff; border-radius: 3px; padding: 0; cursor: pointer; }
+    .cpop .cgrid button[data-c="1"] { grid-area: 1 / 1; } .cpop .cgrid button[data-c="2"] { grid-area: 1 / 3; } .cpop .cgrid button[data-c="0"] { grid-area: 2 / 2; }
+    .cpop .cgrid button[data-c="3"] { grid-area: 3 / 1; } .cpop .cgrid button[data-c="4"] { grid-area: 3 / 3; }
+    .cpop .cgrid button[aria-checked="true"] { background: #1a73e8; border-color: #1a73e8; }
+    .cpop .sep { height: 1px; background: ${GM.outline}; margin: 4px -12px 10px; opacity: .6; }
+    .cpop .cap { color: ${GM.icon}; font-size: 11px; margin: 2px 0 6px; }
+    .cpop .sws { display: grid; grid-template-columns: repeat(9, 20px); gap: 8px; margin-bottom: 10px; }
+    .cpop .sw { width: 20px; height: 20px; border-radius: 5px; border: 1px solid rgba(0,0,0,.18); padding: 0; cursor: pointer; }
+    .cpop .sw:hover { transform: scale(1.15); }
+    .cpop .sw.cur { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #1a73e8; }
+    .cpop .ft { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+    .cpop .ft .sp { flex: 1; }
+    .cpop .pb { width: 28px; height: 28px; border-radius: 50%; border: 0; padding: 0; display: grid; place-items: center; cursor: pointer; background: ${GM.surface}; color: #1f1f1f; }
+    .cpop .pb svg { width: 16px; height: 16px; }
+    .cpop .pb.ok { background: #0b57d0; color: #fff; }
+    .cpop .pb[disabled] { opacity: .4; pointer-events: none; }
+    .cpop .pb:hover { filter: brightness(.94); }
+    .cpop .gbar, .cpop .prow.g { display: none; }
+    .cpop[data-mode="linear"] .gbar, .cpop[data-mode="radial"] .gbar { display: block; }
+    .cpop[data-mode="linear"] .prow.g:not(.rad), .cpop[data-mode="radial"] .prow.g:not(.lin) { display: flex; }
+    .cpop[data-mode="none"] .sv, .cpop[data-mode="none"] .mix, .cpop[data-mode="none"] .prow.c, .cpop[data-wait="1"] .sv, .cpop[data-wait="1"] .mix, .cpop[data-wait="1"] .prow.c { opacity: .35; pointer-events: none; }
+  `;
+  function paintPanel(root, opts) {
+    const st = Object.assign({ mode: 'solid', hex: '#4285F4', alpha: 1, stops: null, angle: 90, centre: 0, sel: 0, from: null, deck: false }, JSON.parse(JSON.stringify(opts.state || {})));
+    if (!st.stops) st.stops = [{ hex: st.hex, pos: 0 }, { hex: mixHex(st.hex, '#000000', 0.45), pos: 1 }];
+    const start = JSON.stringify(st);
+    const startMode = st.mode;
+    const which = opts.which;
+    const isGrad = () => st.mode === 'linear' || st.mode === 'radial';
+    const cur = () => (isGrad() ? st.stops[st.sel] : st);
+    let hsv = hexToHsv(cur().hex);
+    const modes = opts.modes || [['solid', 'Solid']];
+    const tabs = el('div', { class: 'tabs', role: 'tablist' }, ...modes.map(([m, label]) => el('button', { type: 'button', role: 'tab', 'data-mode': m }, label)));
+    if (modes.length < 2) tabs.style.display = 'none';
+    const svKnob = el('b'), hueKnob = el('b'), alKnob = el('b'), alFill = el('i');
+    const sv2 = el('div', { class: 'sv', 'aria-label': 'Saturation and brightness' }, svKnob);
+    const hue = el('div', { class: 'sl hue', 'aria-label': 'Hue' }, hueKnob);
+    const al = el('div', { class: 'sl al', 'aria-label': 'Opacity' }, alFill, alKnob);
+    const drop = el('button', { type: 'button', class: 'ib', 'aria-label': 'Pick a colour from the screen', 'data-tip': opts.replace ? 'Pick the colour to change from the slide' : 'Pick a colour from the screen' },
+      icon('dropper'));
+    if (!('EyeDropper' in window)) drop.style.visibility = 'hidden';
+    const bar = el('div', { class: 'gbar', 'data-tip': 'Click to add a stop · drag to move · drag away or Delete to remove' });
+    const hexIn = el('input', { type: 'text', class: 'hex', spellcheck: 'false', maxlength: '9', 'aria-label': 'Hex colour', 'data-tip': 'Hex: 3, 6 or 8 digits (8 sets opacity too)' });
+    const alphaIn = el('input', { type: 'number', min: '0', max: '100', step: '1', 'aria-label': 'Opacity, percent' });
+    const posIn = el('input', { type: 'number', min: '0', max: '100', step: '1', 'aria-label': 'Stop position, percent' });
+    const angIn = el('input', { type: 'number', step: '1', 'aria-label': 'Angle in degrees' });
+    const dial = el('div', { class: 'dial', 'data-tip': 'Drag to turn · ⇧ snaps to 15°' }, el('i'));
+    const rev = el('button', { type: 'button', class: 'tx', 'data-tip': 'Reverse the stops' }, 'Reverse');
+    const delStop = el('button', { type: 'button', class: 'tx', 'data-tip': 'Remove the selected stop', 'data-key': 'Delete' }, 'Remove stop');
+    const centre = el('div', { class: 'cgrid', role: 'radiogroup', 'aria-label': 'Where the gradient starts' },
+      ...[[1, 'Top left'], [2, 'Top right'], [0, 'Middle'], [3, 'Bottom left'], [4, 'Bottom right']].map(([v, label]) => el('button', { type: 'button', 'data-c': v, 'aria-label': label, 'data-tip': 'Starts: ' + label.toLowerCase() })));
+    const swSlide = el('div', { class: 'sws' }), swRecent = el('div', { class: 'sws' });
+    const capSlide = el('div', { class: 'cap' }, opts.replace ? 'On this slide: pick the colour to change' : 'On this slide'), capRecent = el('div', { class: 'cap' }, 'Recent');
+    const mkPb = (cls, tipText, key, d) => {
+      const b = el('button', { type: 'button', class: 'pb ' + cls, 'aria-label': tipText, 'data-tip': tipText, 'data-key': key });
+      const g = sv('svg', { viewBox: '0 0 20 20', 'aria-hidden': 'true' });
+      g.append(sv('path', { d, fill: 'none', stroke: 'currentColor', 'stroke-width': '2.2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
+      b.append(g);
+      return b;
+    };
+    const bNo = mkPb('no', 'Cancel', 'Esc', 'M5.5 5.5l9 9M14.5 5.5l-9 9'), bOk = mkPb('ok', opts.replace ? 'Replace' : 'Apply', '↵', 'M4.5 10.5l3.6 3.6 7.4-8');
+    const more = el('button', { type: 'button', class: 'tx', 'data-tip': 'Open Slides’ own colour menu (theme colours live there)' }, 'Slides menu');
+    if (!opts.onMenu) more.style.display = 'none';
+    const fromChip = el('i'), toChip = el('i'), repText = el('span', {}, '');
+    const deckBox = el('input', { type: 'checkbox' });
+    const deckLab = el('label', { 'data-tip': 'Change it on every slide, one slide after another' }, deckBox, 'All slides');
+    if (!(opts.replace && opts.replace.deck)) deckLab.style.display = 'none';
+    const rep = el('div', { class: 'rep' }, el('span', { class: 'chip' }, fromChip), el('span', {}, '→'), el('span', { class: 'chip' }, toChip), repText, deckLab);
+    if (!opts.replace) rep.style.display = 'none';
+    if (opts.noAlpha) { al.style.display = 'none'; st.alpha = 1; }
+    const alphaLab = el('label', { class: 'f', 'data-tip': 'Opacity · ⌥-drag to scrub' }, alphaIn, el('span', {}, '%'));
+    if (opts.noAlpha) alphaLab.style.display = 'none';
+    const rowColour = el('div', { class: 'prow c' }, el('span', { class: 'hexl' }, 'Hex'), hexIn, alphaLab);
+    const rowStop = el('div', { class: 'prow g' }, el('label', { class: 'f', 'data-tip': 'Position of the selected stop · ⌥-drag to scrub' }, el('span', {}, 'Stop'), posIn, el('span', {}, '%')), delStop, rev);
+    const rowLin = el('div', { class: 'prow g lin' }, dial, el('label', { class: 'f', 'data-tip': 'Angle: 0° runs left to right, 90° top to bottom · ⌥-drag to scrub' }, angIn, el('span', {}, '°')),
+      ...[0, 45, 90, 180].map((a) => el('button', { type: 'button', class: 'tx', 'data-ang': a }, a + '°')));
+    const rowRad = el('div', { class: 'prow g rad' }, el('span', { class: 'cap', style: 'margin:0' }, 'Starts from'), centre);
+    const node = el('div', { class: 'cpop', role: 'dialog', 'aria-label': opts.title, tabindex: '-1' },
+      el('div', { class: 'hd' }, el('span', {}, opts.title), tabs),
+      rep, bar, rowStop, rowLin, rowRad, sv2, el('div', { class: 'mix' }, drop, el('div', { class: 'bars' }, hue, al)), rowColour,
+      el('div', { class: 'sep' }), capSlide, swSlide, capRecent, swRecent,
+      el('div', { class: 'ft' }, more, el('span', { class: 'sp' }), bNo, bOk));
+    const cssStops = () => st.stops.slice().sort((a, b) => a.pos - b.pos).map((x) => `${x.hex} ${Math.round(x.pos * 1000) / 10}%`).join(', ');
+    const rgba = (h, a) => `rgba(${parseInt(h.slice(1, 3), 16)}, ${parseInt(h.slice(3, 5), 16)}, ${parseInt(h.slice(5, 7), 16)}, ${a})`;
+    const changed = () => JSON.stringify(Object.assign({}, st, { sel: 0 })) !== JSON.stringify(Object.assign(JSON.parse(start), { sel: 0 }));
+    let closed = false;
+    function place() {
+      if (closed) return;
+      const a = opts.anchor || { right: 60, top: 80 };
+      node.style.maxHeight = Math.max(200, window.innerHeight - 16) + 'px';
+      const r = node.getBoundingClientRect();
+      let left = a.right + 10;
+      if (left + r.width > window.innerWidth - 8) left = Math.max(8, (a.left !== undefined ? a.left : a.right) - r.width - 10);
+      node.style.left = Math.max(8, Math.min(window.innerWidth - r.width - 8, left)) + 'px';
+      node.style.top = Math.max(8, Math.min(window.innerHeight - r.height - 8, a.top - 12)) + 'px';
+    }
+    const sync = (quiet) => {
+      node.dataset.mode = st.mode;
+      node.dataset.wait = opts.replace && !st.from ? '1' : '0';
+      tabs.querySelectorAll('button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.mode === st.mode)));
+      const c = cur();
+      sv2.style.background = `linear-gradient(to top, #000, rgba(0,0,0,0)), linear-gradient(to right, #fff, rgba(255,255,255,0)), hsl(${hsv.h}, 100%, 50%)`;
+      svKnob.style.left = hsv.s * 100 + '%'; svKnob.style.top = (1 - hsv.v) * 100 + '%'; svKnob.style.background = c.hex;
+      hueKnob.style.left = hsv.h / 360 * 100 + '%'; hueKnob.style.background = `hsl(${hsv.h}, 100%, 50%)`;
+      alKnob.style.left = st.alpha * 100 + '%'; alKnob.style.background = rgba(c.hex, st.alpha);
+      alFill.style.background = `linear-gradient(to right, ${rgba(c.hex, 0)}, ${c.hex})`;
+      if (root.activeElement !== hexIn) hexIn.value = c.hex.replace('#', '');
+      if (root.activeElement !== alphaIn) alphaIn.value = String(Math.round(st.alpha * 100));
+      if (isGrad()) {
+        if (root.activeElement !== posIn) posIn.value = String(Math.round(c.pos * 100));
+        if (root.activeElement !== angIn) angIn.value = String(st.angle);
+        dial.firstChild.style.transform = `rotate(${st.angle}deg)`;
+        delStop.disabled = st.stops.length <= 2;
+        centre.querySelectorAll('button').forEach((b) => b.setAttribute('aria-checked', String(+b.dataset.c === st.centre)));
+        bar.style.background = `linear-gradient(to right, ${cssStops()})`;
+        bar.replaceChildren(...st.stops.map((x, i) => {
+          const h = el('button', { type: 'button', class: 'st' + (i === st.sel ? ' on' : ''), 'data-i': i, 'aria-label': `Stop at ${Math.round(x.pos * 100)}%` });
+          h.style.left = x.pos * 100 + '%';
+          h.style.setProperty('--c', x.hex);
+          return h;
+        }));
+      }
+      if (opts.replace) {
+        fromChip.style.background = st.from || 'transparent';
+        toChip.style.background = st.from ? rgba(st.hex, st.alpha) : 'transparent';
+        repText.textContent = st.from ? '' : 'Nothing selected';
+        swSlide.querySelectorAll('.sw').forEach((b) => b.classList.toggle('cur', b.dataset.hex === st.from));
+        bOk.disabled = !st.from || (st.from === st.hex && st.alpha >= 0.995);
+      }
+      if (!quiet && opts.live && opts.onChange) opts.onChange(JSON.parse(JSON.stringify(st)));
+    };
+    const swatch = (h) => { const b = el('button', { type: 'button', class: 'sw', 'data-hex': h, 'aria-label': h, 'data-tip': h }); b.style.background = h; return b; };
+    const setColour = (h, a) => {
+      cur().hex = h;
+      hsv = Object.assign(hexToHsv(h), hsv.s === 0 || hexToHsv(h).s === 0 ? { h: hexToHsv(h).s === 0 ? hsv.h : hexToHsv(h).h } : {});
+      if (a !== undefined) st.alpha = a;
+      if (st.mode === 'none') st.mode = 'solid';
+      sync();
+    };
+    const setFrom = (h) => { st.from = h; st.hex = h; st.alpha = 1; hsv = hexToHsv(h); sync(); };
+    const fromHsv = () => { cur().hex = hsvToHex(hsv.h, hsv.s, hsv.v); if (st.mode === 'none') st.mode = 'solid'; sync(); };
+    const dragOn = (target, fn) => target.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      const r = target.getBoundingClientRect();
+      const at = (ev) => fn(Math.min(1, Math.max(0, (ev.clientX - r.left) / r.width)), Math.min(1, Math.max(0, (ev.clientY - r.top) / r.height)));
+      const end = () => { window.removeEventListener('pointermove', at, true); window.removeEventListener('pointerup', end, true); };
+      window.addEventListener('pointermove', at, true);
+      window.addEventListener('pointerup', end, true);
+      at(e);
+    });
+    dragOn(sv2, (x, y) => { hsv.s = x; hsv.v = 1 - y; fromHsv(); });
+    dragOn(hue, (x) => { hsv.h = Math.min(359.9, x * 360); fromHsv(); });
+    dragOn(al, (x) => { st.alpha = Math.round(x * 100) / 100; if (st.mode === 'none') st.mode = 'solid'; sync(); });
+    tabs.addEventListener('click', (e) => {
+      const b = e.target.closest('button');
+      if (!b) return;
+      const was = st.mode;
+      st.mode = b.dataset.mode;
+      // Going solid ↔ gradient carries the colour in hand across.
+      if (isGrad() && was === 'solid' && st.stops.length === 2 && startMode !== 'linear' && startMode !== 'radial') { st.stops[0].hex = st.hex; st.stops[1].hex = mixHex(st.hex, '#000000', 0.45); }
+      if (st.mode === 'solid' && (was === 'linear' || was === 'radial')) st.hex = st.stops[st.sel].hex;
+      if (st.mode !== 'none') hsv = hexToHsv(cur().hex);
+      sync();
+    });
+    hexIn.addEventListener('input', () => { const c = normHex(hexIn.value); if (c) setColour(c.hex, c.alpha); });
+    hexIn.addEventListener('blur', () => sync(true));
+    hexIn.addEventListener('focus', () => setTimeout(() => hexIn.select(), 0));
+    alphaIn.addEventListener('input', () => { const v = parseFloat(alphaIn.value); if (Number.isFinite(v)) { st.alpha = Math.min(1, Math.max(0, v / 100)); sync(); } });
+    posIn.addEventListener('input', () => { const v = parseFloat(posIn.value); if (Number.isFinite(v)) { st.stops[st.sel].pos = Math.min(1, Math.max(0, v / 100)); sync(); } });
+    angIn.addEventListener('input', () => { const v = parseFloat(angIn.value); if (Number.isFinite(v)) { st.angle = v; sync(); } });
+    scrub(alphaIn.parentNode, alphaIn, { step: 1, min: 0, max: 100 });
+    scrub(posIn.parentNode, posIn, { step: 1, min: 0, max: 100 });
+    scrub(angIn.parentNode, angIn, { step: 1 });
+    rowLin.addEventListener('click', (e) => { const b = e.target.closest('[data-ang]'); if (b) { st.angle = +b.dataset.ang; sync(); } });
+    centre.addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { st.centre = +b.dataset.c; sync(); } });
+    rev.addEventListener('click', () => { st.stops.forEach((x) => { x.pos = Math.round((1 - x.pos) * 1e4) / 1e4; }); sync(); });
+    const removeStop = () => { if (st.stops.length <= 2) return; st.stops.splice(st.sel, 1); st.sel = Math.min(st.sel, st.stops.length - 1); hsv = hexToHsv(cur().hex); sync(); };
+    delStop.addEventListener('click', removeStop);
+    dial.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      const r = dial.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      const turn = (ev) => {
+        let a = Math.atan2(ev.clientY - cy, ev.clientX - cx) * 180 / Math.PI;
+        a = ev.shiftKey ? Math.round(a / 15) * 15 : Math.round(a);
+        st.angle = (a + 360) % 360;
+        sync();
+      };
+      const end = () => { window.removeEventListener('pointermove', turn, true); window.removeEventListener('pointerup', end, true); };
+      window.addEventListener('pointermove', turn, true);
+      window.addEventListener('pointerup', end, true);
+      turn(e);
+    });
+    bar.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      const r = bar.getBoundingClientRect();
+      const posOf = (ev) => Math.min(1, Math.max(0, (ev.clientX - r.left) / r.width));
+      const h = e.target.closest('.st');
+      if (h) st.sel = +h.dataset.i;
+      else { const pos = Math.round(posOf(e) * 100) / 100; st.stops.push({ hex: stopColourAt(st.stops, pos), pos }); st.sel = st.stops.length - 1; }
+      hsv = hexToHsv(cur().hex);
+      sync();
+      const held = st.stops[st.sel];
+      let gone = false;
+      const mv = (ev) => {
+        const away = Math.abs(ev.clientY - (r.top + r.height / 2)) > 36 && st.stops.length > (gone ? 1 : 2);
+        if (away && !gone) { gone = true; st.stops.splice(st.stops.indexOf(held), 1); st.sel = 0; }
+        else if (!away && gone) { gone = false; st.stops.push(held); }
+        if (!gone) { held.pos = Math.round(posOf(ev) * 1000) / 1000; st.sel = st.stops.indexOf(held); }
+        hsv = hexToHsv(cur().hex);
+        sync();
+      };
+      const end = () => { window.removeEventListener('pointermove', mv, true); window.removeEventListener('pointerup', end, true); };
+      window.addEventListener('pointermove', mv, true);
+      window.addEventListener('pointerup', end, true);
+    });
+    swSlide.addEventListener('click', (e) => { const b = e.target.closest('.sw'); if (b) { if (opts.replace) setFrom(b.dataset.hex); else setColour(b.dataset.hex); } });
+    swRecent.addEventListener('click', (e) => { const b = e.target.closest('.sw'); if (b && !(opts.replace && !st.from)) setColour(b.dataset.hex); });
+    drop.addEventListener('click', async () => {
+      try {
+        const r = await new window.EyeDropper().open();
+        const c = normHex(r && r.sRGBHex);
+        if (!c) return;
+        if (opts.replace && !st.from) {
+          // The nearest colour that is really on the slide (the screen's pixel can be a shade off).
+          const dist = (a, b) => [1, 3, 5].reduce((t, i) => t + (parseInt(a.slice(i, i + 2), 16) - parseInt(b.slice(i, i + 2), 16)) ** 2, 0);
+          const near = (opts.slide || []).map((h) => [dist(h, c.hex), h]).sort((a, b) => a[0] - b[0])[0];
+          setFrom(near && near[0] < 1200 ? near[1] : c.hex);
+        } else setColour(c.hex);
+      } catch { /* closed without a pick */ }
+    });
+    deckBox.addEventListener('change', () => { st.deck = deckBox.checked; });
+    const ro = typeof ResizeObserver === 'function' ? new ResizeObserver(() => place()) : null;
+    function close() {
+      if (closed) return;
+      closed = true;
+      window.removeEventListener('pointerdown', away, true);
+      window.removeEventListener('resize', place);
+      if (ro) ro.disconnect();
+      node.remove();
+      if (opts.onClose) opts.onClose();
+    }
+    const done = (keep) => {
+      const ch = changed();
+      const out = JSON.parse(JSON.stringify(st));
+      close();
+      if (opts.onDone) opts.onDone(!!keep && ch, out);
+    };
+    bNo.addEventListener('click', () => done(false));
+    bOk.addEventListener('click', () => done(true));
+    more.addEventListener('click', () => { done(false); opts.onMenu(); });
+    node.addEventListener('keydown', (e) => {
+      e.stopPropagation();
+      const typing = e.target.tagName === 'INPUT' && e.target.type !== 'checkbox';
+      if (e.key === 'Escape') { e.preventDefault(); done(false); }
+      else if (e.key === 'Enter') { e.preventDefault(); if (typing) e.target.blur(); if (!bOk.disabled) done(true); }
+      else if (!typing && (e.key === 'Delete' || e.key === 'Backspace') && isGrad()) { e.preventDefault(); removeStop(); }
+      else if (!typing && (e.key === 'ArrowLeft' || e.key === 'ArrowRight') && isGrad()) {
+        e.preventDefault();
+        const x = st.stops[st.sel];
+        x.pos = Math.min(1, Math.max(0, Math.round((x.pos + (e.key === 'ArrowLeft' ? -1 : 1) * (e.shiftKey ? 0.1 : 0.01)) * 100) / 100));
+        sync();
+      }
+    });
+    ['keyup', 'keypress', 'mousedown', 'pointerdown', 'click', 'wheel'].forEach((t) => node.addEventListener(t, (e) => e.stopPropagation()));
+    node.addEventListener('mousedown', (e) => { if (e.target.tagName !== 'INPUT') e.preventDefault(); });
+    const away = (e) => {
+      const path = e.composedPath ? e.composedPath() : [];
+      if (closed || path.includes(node) || path.some((n) => n && n.dataset && (n.dataset.act === which || n.dataset.act === opts.act))) return;
+      done(false);
+    };
+    root.append(node);
+    if (opts.tips) opts.tips(node);
+    const a = (opts.slide || []).map((h) => normHex(h)).filter(Boolean).map((c) => c.hex);
+    const b = (opts.recent || []).map((h) => normHex(h)).filter(Boolean).map((c) => c.hex);
+    swSlide.replaceChildren(...[...new Set(a)].slice(0, 27).map(swatch));
+    swRecent.replaceChildren(...[...new Set(b)].slice(0, 9).map(swatch));
+    capSlide.style.display = swSlide.style.display = a.length ? '' : 'none';
+    capRecent.style.display = swRecent.style.display = b.length ? '' : 'none';
+    sync(true);
+    place();
+    if (ro) ro.observe(node);
+    window.addEventListener('resize', place);
+    setTimeout(() => window.addEventListener('pointerdown', away, true), 0);
+    node.focus({ preventScroll: true });
+    return { node, which, close, done, state: () => JSON.parse(JSON.stringify(st)) };
+  }
+
   // Every command with a label and group, for the palette.
   function commandList(extra = []) {
     const out = [];
@@ -649,5 +1018,5 @@ const RK = (() => {
     return out.map((c, i) => [c, i]).sort((a, b) => rank.get(a[0].group) - rank.get(b[0].group) || a[1] - b[1]).map(([c]) => c);
   }
 
-  return { ACCENT, FONT, GM, CSS, el, sv, icon, mountRail, colorPopover, SECTIONS, PALETTE, label: L, scrub, palette, commandList };
+  return { ACCENT, FONT, GM, CSS: CSS + PAINT_CSS, el, sv, icon, mountRail, colorPopover, paintPanel, normHex, mixHex, stopColourAt, SECTIONS, PALETTE, label: L, scrub, palette, commandList };
 })();

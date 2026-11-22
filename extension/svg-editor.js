@@ -916,8 +916,8 @@ console.log('[svg2slides] svg-editor.js loaded');
         b.append(g);
         return b;
       };
-      const pNo = pillBtn('no', 'Cancel these changes', 'Esc', 'M5.5 5.5l9 9M14.5 5.5l-9 9');
-      const pOk = pillBtn('ok', 'Keep these changes', '↵', 'M4.5 10.5l3.6 3.6 7.4-8');
+      const pNo = pillBtn('no', 'Put back everything changed since this came up', 'Esc', 'M5.5 5.5l9 9M14.5 5.5l-9 9');
+      const pOk = pillBtn('ok', 'Keep the changes and carry on editing', '↵', 'M4.5 10.5l3.6 3.6 7.4-8');
       const segOk = el('span', { class: 'seg act' }, pNo, pOk);
       const rpill = el('div', { class: 'rpill', role: 'group', 'aria-label': 'Size, rotation and corner radius' }, segR, segS, segA, segOk);
       this.pNo = pNo; this.pOk = pOk;
@@ -975,8 +975,7 @@ console.log('[svg2slides] svg-editor.js loaded');
       this.rpill = rpill;
       this.rNum = rNum;
       this.rScope = rScope;
-      rpill.addEventListener('pointerdown', (e) => { e.stopPropagation(); this.hideHint(); if (!e.target.closest('.pb')) this.markPill(); }, true);
-      rpill.addEventListener('focusin', () => this.markPill());
+      rpill.addEventListener('pointerdown', (e) => { e.stopPropagation(); this.hideHint(); });
       rpill.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); this.cancelPill(); }
         else if (e.key === 'Enter' && e.target !== aNum) { e.preventDefault(); e.stopPropagation(); this.commitPill(); }
@@ -1010,7 +1009,7 @@ console.log('[svg2slides] svg-editor.js loaded');
 
       this.scheduleIdle(2500);
 
-      svg.addEventListener('pointerdown', (e) => { this.hideHint(); this.commitPill(true); this.onDown(e); });
+      svg.addEventListener('pointerdown', (e) => { this.hideHint(); this.onDown(e); });
       svg.addEventListener('dblclick', (e) => this.onDbl(e));
       window.addEventListener('pointermove', this._mv = (e) => this.onMove(e), true);
       window.addEventListener('pointerup', this._up = (e) => this.onUp(e), true);
@@ -1327,7 +1326,7 @@ console.log('[svg2slides] svg-editor.js loaded');
     }
 
     draw() {
-      const fills = [], outlines = [], handles = [], anchors = [];
+      const fills = [], outlines = [], handles = [], anchors = [], grads = [];
       const k = this.pageScale();
       this.shapes.forEach((s, si) => {
         const d = SB.svgPathD(s.subs, s.M);
@@ -1336,6 +1335,20 @@ console.log('[svg2slides] svg-editor.js loaded');
         // moved outline (what Done will put on the slide).
         const al = this.alignedSubs(s);
         const f = sv('path', { 'data-si': si, d: al ? SB.svgPathD(al, s.M) : d, fill: p.filled ? p.fill : 'none', 'fill-rule': 'evenodd' });
+        // A gradient fill draws the way Slides will draw it: in the shape's
+        // own box, carried to the screen by the shape's transform.
+        if (p.filled && p.grad) {
+          const bb = SB.subsBBox(al || s.subs);
+          if (bb && bb.w > 0 && bb.h > 0) {
+            const geo = SB.gradientGeometry(p.grad, bb.x, bb.y, bb.w, bb.h);
+            const g = sv(geo.tag, Object.assign({ id: 'egrad-' + si, gradientUnits: 'userSpaceOnUse', gradientTransform: `matrix(${s.M.join(' ')})` }, geo.attrs));
+            p.grad.stops.forEach(([c, o]) => g.append(sv('stop', { offset: o, 'stop-color': c })));
+            grads.push(g);
+            f.setAttribute('fill', `url(#egrad-${si})`);
+          }
+        }
+        if (p.filled && p.fillAlpha !== undefined && p.fillAlpha < 0.995) f.setAttribute('fill-opacity', p.fillAlpha);
+        if (p.strokeOn && p.strokeAlpha !== undefined && p.strokeAlpha < 0.995) f.setAttribute('stroke-opacity', p.strokeAlpha);
         if (p.strokeOn) {
           f.setAttribute('stroke', p.stroke);
           f.setAttribute('stroke-width', Math.max(0.5, p.weight * k));
@@ -1405,6 +1418,8 @@ console.log('[svg2slides] svg-editor.js loaded');
         const gap = last && this.coverGaps && this.coverGaps[rank[si]];
         if (gap) painted.push(gap);
       });
+      if (!this.gGrads) { this.gGrads = sv('defs', { class: 'egrads' }); this.svg.insertBefore(this.gGrads, this.svg.firstChild); }
+      this.gGrads.replaceChildren(...grads);
       this.gFills.replaceChildren(...painted);
       this.gOutlines.replaceChildren(...outlines);
       this.gHandles.replaceChildren(...handles);
@@ -1581,12 +1596,12 @@ console.log('[svg2slides] svg-editor.js loaded');
       this.updatePill();
     }
 
-    // Pill session: where the undo stack stood when the pill was first
-    // touched. ✕ walks back to it; ✓, or doing anything on the canvas, ends it.
-    markPill() {
-      if (this._pillBase === null || this._pillBase === undefined) this._pillBase = this.undo.length;
-      this.syncPillButtons();
-    }
+    // Pill session: it starts when the pill comes up for a selection and
+    // lasts while it stays up. ✓ keeps everything done since then (in the
+    // pill, on the canvas, a colour change) and carries on editing from
+    // there; ✕ puts it all back. Neither leaves Edit Shape. The baseline is
+    // where the undo stack stood when the pill came up (or at the last ✓).
+    markPill() { this.syncPillButtons(); }
     pillChanged() {
       return this._pillBase !== null && this._pillBase !== undefined && this.undo.length > this._pillBase;
     }
@@ -1595,29 +1610,31 @@ console.log('[svg2slides] svg-editor.js loaded');
       const on = this.pillChanged();
       this.pNo.disabled = !on; this.pOk.disabled = !on;
     }
-    commitPill(quiet) {
-      const had = this.pillChanged();
-      this._pillBase = null;
-      this._rTyping = false; this._sizeBase = null;
-      if (!quiet) { const a = this.root && this.root.activeElement; if (a && a.blur && this.rpill.contains(a)) a.blur(); this.host.focus(); }
-      if (had || !quiet) this.updatePill();
-      this.syncPillButtons();
-    }
-    cancelPill() {
-      const base = this._pillBase;
-      this._pillBase = null;
+    leavePillField() {
       this._rTyping = false; this._sizeBase = null;
       const a = this.root && this.root.activeElement;
       if (a && a.blur && this.rpill.contains(a)) a.blur();
-      if (base !== null && base !== undefined) {
-        let moved = false;
-        while (this.undo.length > base) { this.restore(this.undo.pop()); moved = true; }
-        if (moved) { this.redo = []; this.updateUndoButtons(); }
+      this.host.focus();
+    }
+    commitPill() {
+      this.leavePillField();
+      this._pillBase = this.undo.length;
+      this.updatePill();
+    }
+    cancelPill() {
+      this.leavePillField();
+      const base = this._pillBase;
+      if (base !== null && base !== undefined && this.undo.length > base) {
+        const keepSel = new Set(this.sel);
+        while (this.undo.length > base) this.restore(this.undo.pop());
+        this.redo = [];
+        // Same points selected as before, where they still exist.
+        keepSel.forEach((k) => this.sel.add(k));
+        this.updateUndoButtons();
+        this.render();
       }
       this.aNum.value = '';
-      this.host.focus();
       this.updatePill();
-      this.syncPillButtons();
     }
 
     // The value pill under what's in scope.
@@ -1626,7 +1643,16 @@ console.log('[svg2slides] svg-editor.js loaded');
       this.syncPillButtons();
       const ok = this.tool === 'direct' && this.targets().length && (!this.drag || this.drag.kind === 'radius' || this.drag.kind === 'xform');
       const b = ok ? (this.drag && this.drag.kind === 'xform' ? null : this.scopeBBox()) : null;
-      if (!b) { if (!(this.drag && this.drag.kind === 'xform')) pill.classList.remove('show'); return; }
+      if (!b) {
+        if (!(this.drag && this.drag.kind === 'xform')) pill.classList.remove('show');
+        if (!this.drag && !ok) { this._pillBase = null; this._pillScope = null; }
+        return;
+      }
+      // A new selection starts a new session; undoing past the baseline moves it back.
+      const scope = this.targets().join(',');
+      if (this._pillBase === null || this._pillBase === undefined || this._pillScope !== scope) { this._pillBase = this.undo.length; this._pillScope = scope; }
+      else if (this.undo.length < this._pillBase) this._pillBase = this.undo.length;
+      this.syncPillButtons();
       const fmt = (v) => String(Math.round(v * 10) / 10);
       const focused = this.root.activeElement;
       if (focused !== this.wNum) this.wNum.value = fmt((b.maxX - b.minX) / 381);
@@ -2129,7 +2155,7 @@ console.log('[svg2slides] svg-editor.js loaded');
       const handled = () => { e.preventDefault(); };
       if (k === 'Meta' || k === 'Control' || k === 'Alt' || k === 'Shift') { this.hoverCursor(e); return; }
       if (this.pal && k === 'Escape') { handled(); this.pal.close(); return; }
-      if (this.pop && k === 'Escape') { handled(); this.pop.close(); return; }
+      if (this.pop && k === 'Escape') { handled(); this.pop.done(false); return; }
       if (mod && (k === "'" || e.code === 'Quote')) { handled(); this.toggleSnap('grid'); return; }
       const sc = SB.matchShortcut(e);
       if (sc) { handled(); this.command(sc); return; }
@@ -2828,28 +2854,46 @@ console.log('[svg2slides] svg-editor.js loaded');
       ts.forEach((si) => { const s = this.shapes[si]; s.paint = Object.assign({}, s.paint, fn(s.paint)); });
       this.render();
     }
+    // The same panel as the Shape tools rail (RK.paintPanel). Here the
+    // shapes are ours to draw, so every move in the panel shows at once;
+    // ✓ keeps it as one undo step, ✕ puts the shapes back.
     openColor(which, anchor) {
-      if (this.pop) { const was = this.pop.which; this.pop.close(); if (was === which) return; }
+      if (this.pop) { const was = this.pop.which; this.pop.done(false); if (was === which) return; }
       const ts = this.targets();
       if (!ts.length) return;
       const p = this.shapes[ts[0]].paint;
       const stroke = which === 'stroke';
       const r = anchor || this.rail.getBoundingClientRect();
-      const pop = RK.colorPopover(this.root, { right: this.rail.getBoundingClientRect().right, top: r.top }, {
-        title: stroke ? 'Stroke' : 'Fill', key: SB.SHORTCUT_LABEL[stroke ? 'strokeColor' : 'fillColor'],
-        value: stroke ? (p.strokeOn ? p.stroke : null) : (p.filled ? p.fill : null),
-        noneLabel: stroke ? 'No stroke' : 'No fill', doc: this.docColors(),
-        weights: stroke ? SB.WEIGHTS : null, weight: p.weight / 381, strokeOn: p.strokeOn,
+      const rr = this.rail.getBoundingClientRect();
+      const state = stroke
+        ? { mode: p.strokeOn ? 'solid' : 'none', hex: String(p.stroke || '#000000').toUpperCase(), alpha: p.strokeAlpha === undefined ? 1 : p.strokeAlpha }
+        : Object.assign({ mode: !p.filled ? 'none' : p.grad ? (p.grad.kind === 1 ? 'linear' : 'radial') : 'solid', hex: String(p.fill || '#4285F4').toUpperCase(), alpha: p.fillAlpha === undefined ? 1 : p.fillAlpha },
+          p.grad ? { stops: p.grad.stops.map(([hex, pos]) => ({ hex: String(hex).toUpperCase(), pos })), angle: Math.round(p.grad.angle * 180 / Math.PI * 10) / 10, centre: p.grad.centre || 0 } : {});
+      const before = ts.map((si) => this.shapes[si].paint);
+      const paintOf = (st, old) => {
+        if (stroke) return st.mode === 'none' ? { strokeOn: false } : { strokeOn: true, stroke: st.hex, strokeAlpha: st.alpha };
+        if (st.mode === 'none') return { filled: false };
+        if (st.mode === 'solid') return { filled: true, fill: st.hex, fillAlpha: st.alpha, grad: null };
+        const stops = st.stops.slice().sort((a, b) => a.pos - b.pos).map((x) => [x.hex, Math.round(Math.min(1, Math.max(0, x.pos)) * 1e4) / 1e4]);
+        if (stops[0][1] > 0) stops.unshift([stops[0][0], 0]);
+        if (stops[stops.length - 1][1] < 1) stops.push([stops[stops.length - 1][0], 1]);
+        void old;
+        return { filled: true, fill: stops[0][0], fillAlpha: st.alpha, grad: { kind: st.mode === 'linear' ? 1 : 2, stops, angle: (((st.angle % 360) + 360) % 360) * Math.PI / 180, centre: st.centre || 0 } };
+      };
+      const show = (st) => { ts.forEach((si) => { const s = this.shapes[si]; if (s) s.paint = Object.assign({}, s.paint, paintOf(st, s.paint)); }); this.render(); this.updateRailState(); };
+      const pop = RK.paintPanel(this.root, {
+        which, act: which, title: stroke ? 'Stroke' : 'Fill', anchor: { left: rr.left, right: rr.right, top: r.top },
+        modes: stroke ? [['solid', 'Solid'], ['none', 'None']] : [['solid', 'Solid'], ['linear', 'Linear'], ['radial', 'Radial'], ['none', 'None']],
+        state, slide: this.docColors(), recent: [], live: true, tips: (n) => this.rk.attachTips(n, 'right'),
+        onChange: show,
         onClose: () => { if (this.pop === pop) this.pop = null; this.host.focus(); },
-      }, (pick) => {
-        if (stroke) {
-          if (pick.none) this.repaint(() => ({ strokeOn: false }));
-          else if (pick.weight) this.repaint(() => ({ strokeOn: true, weight: pick.weight * 381 }));
-          else this.repaint(() => ({ strokeOn: true, stroke: pick.color }));
-        } else if (pick.none) this.repaint(() => ({ filled: false }));
-        else this.repaint(() => ({ filled: true, fill: pick.color }));
+        onDone: (keep, st) => {
+          // Back to how it was, then (if kept) the change as one undo step.
+          ts.forEach((si, i) => { if (this.shapes[si]) this.shapes[si].paint = before[i]; });
+          if (keep) { this.pushUndo(); show(st); } else { this.render(); this.updateRailState(); }
+          this.updatePill && this.updatePill();
+        },
       });
-      pop.which = which;
       this.pop = pop;
     }
     strokeToggle() {
@@ -3045,6 +3089,7 @@ console.log('[svg2slides] svg-editor.js loaded');
     }
 
     async commit() {
+      if (this.pop) this.pop.done(true); // a colour still open in the panel counts
       if (this.committing) return;
       // Where Slides should end up looking: the editor's current zoom, with
       // the workspace centre showing the same page point.
