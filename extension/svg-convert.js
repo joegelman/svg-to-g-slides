@@ -177,6 +177,13 @@
       const p = (v) => pyRound(pyFloat(v) / 100 * 255);
       return hex2(p(m[1])) + hex2(p(m[2])) + hex2(p(m[3]));
     }
+    m = precise && /^hsla?\(\s*(-?\d+(?:\.\d+)?)(?:deg)?\s*[, ]\s*(\d+(?:\.\d+)?)%\s*[, ]\s*(\d+(?:\.\d+)?)%/.exec(sl);
+    if (m) {
+      const h = ((parseFloat(m[1]) % 360) + 360) % 360, sat = Math.min(parseFloat(m[2]), 100) / 100, l = Math.min(parseFloat(m[3]), 100) / 100;
+      const a = sat * Math.min(l, 1 - l);
+      const f = (n) => { const k = (n + h / 30) % 12; return Math.round(255 * (l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)))); };
+      return hex2(f(0)) + hex2(f(8)) + hex2(f(4));
+    }
     return '000000';
   }
 
@@ -236,17 +243,65 @@
     }
     return props;
   }
+  // Rules from <style> blocks: simple selectors only (.class, #id, tag,
+  // tag.class, comma lists). Later rules win, as in CSS; specificity is
+  // id > class > tag. Not read in the parity path.
+  let sheet = [];
+  function readSheet(root) {
+    sheet = [];
+    if (!precise) return;
+    let order = 0;
+    for (const el of iter(root)) {
+      if (tagOf(el) !== 'style') continue;
+      const css = (el.textContent || '').replace(/\/\*[\s\S]*?\*\//g, '');
+      const re = /([^{}]+)\{([^{}]*)\}/g;
+      let m;
+      while ((m = re.exec(css))) {
+        const props = new Map();
+        for (const part of m[2].split(';')) {
+          const i = part.indexOf(':');
+          if (i > 0) props.set(part.slice(0, i).trim().toLowerCase(), part.slice(i + 1).replace(/!important/i, '').trim());
+        }
+        for (const raw of m[1].split(',')) {
+          const sel = /^\s*([a-zA-Z][\w-]*)?(?:#([\w-]+))?((?:\.[\w-]+)*)\s*$/.exec(raw);
+          if (!sel || !(sel[1] || sel[2] || sel[3])) continue;
+          const classes = sel[3] ? sel[3].split('.').filter(Boolean) : [];
+          sheet.push({ tag: sel[1] || null, id: sel[2] || null, classes, props, spec: (sel[2] ? 100 : 0) + classes.length * 10 + (sel[1] ? 1 : 0), order: order++ });
+        }
+      }
+    }
+    sheet.sort((a, b) => a.spec - b.spec || a.order - b.order);
+  }
+  function sheetProp(el, k) {
+    if (!sheet.length) return null;
+    const cls = (attr(el, 'class', '') || '').split(/\s+/);
+    let v = null;
+    for (const r of sheet) {
+      if (!r.props.has(k)) continue;
+      if (r.tag && r.tag !== tagOf(el)) continue;
+      if (r.id && r.id !== attr(el, 'id')) continue;
+      if (!r.classes.every((c) => cls.includes(c))) continue;
+      v = r.props.get(k);
+    }
+    return v;
+  }
   function getProp(style, el, ...keys) {
     for (const k of keys) {
       if (style.has(k)) return style.get(k);
+      const c = sheetProp(el, k);
+      if (c !== null) return c;
       const v = attr(el, k);
       if (v !== null) return v;
     }
     return null;
   }
 
-  function resolveFillStroke(el, gradients, inhFill) {
+  // inh (precise mode): { stroke, sw, color } from the ancestors. stroke is
+  // undefined when no ancestor set one, null when one set stroke="none".
+  function resolveFillStroke(el, gradients, inhFill, inh) {
     const style = parseStyle(el);
+    const colorRaw = inh ? getProp(style, el, 'color') : null;
+    const color = inh ? (colorRaw && colorRaw.toLowerCase().trim() !== 'currentcolor' ? parseColor(colorRaw) : inh.color) : null;
     const fillRaw = getProp(style, el, 'fill');
     const strokeRaw = getProp(style, el, 'stroke');
     const swRaw = getProp(style, el, 'stroke-width');
@@ -256,7 +311,7 @@
       fill = m && gradients.has(m[1]) ? gradients.get(m[1]) : null;
       if (fill === null) fill = inhFill;
     } else if (fillRaw && fillRaw.toLowerCase().trim() === 'currentcolor') {
-      fill = inhFill;
+      fill = inh && color ? color : inhFill;
     } else if (fillRaw) {
       fill = parseColor(fillRaw);
     } else {
@@ -266,13 +321,28 @@
     if (strokeRaw && strokeRaw.toLowerCase().startsWith('url(#')) {
       const m = /^url\(#([^)]+)\)/.exec(strokeRaw);
       stroke = m && gradients.has(m[1]) ? gradients.get(m[1]) : null;
+    } else if (inh && strokeRaw && strokeRaw.toLowerCase().trim() === 'currentcolor') {
+      stroke = color || '000000';
+    } else if (inh && !strokeRaw) {
+      stroke = inh.stroke === undefined ? null : inh.stroke;
     } else {
       stroke = strokeRaw ? parseColor(strokeRaw) : null;
     }
     let sw;
     try { sw = swRaw ? pyFloat(swRaw.replace(/[^\d.]/g, '')) : 0; } catch { sw = 0; }
-    if (stroke && swRaw === null) sw = 1;
-    return [fill, stroke, sw];
+    if (inh && swRaw === null && inh.sw !== null) sw = inh.sw;
+    else if (stroke && swRaw === null) sw = 1;
+    let next = null;
+    if (inh) {
+      const pick = (k, ok, dflt) => { const v = (getProp(style, el, k) || '').toLowerCase().trim(); return ok.includes(v) ? v : dflt; };
+      const lim = parseFloat(getProp(style, el, 'stroke-miterlimit'));
+      next = {
+        stroke: strokeRaw || inh.stroke !== undefined ? stroke : undefined, sw: swRaw !== null ? sw : inh.sw, color,
+        cap: pick('stroke-linecap', ['butt', 'round', 'square'], inh.cap), join: pick('stroke-linejoin', ['miter', 'round', 'bevel'], inh.join),
+        limit: lim >= 1 ? lim : inh.limit, clip: inh.clip,
+      };
+    }
+    return [fill, stroke, sw, next];
   }
 
   // ── Basic shapes → path data ──────────────────────────────────────────
@@ -481,16 +551,42 @@
 
   const ARGC = { M: 2, L: 2, H: 1, V: 1, C: 6, S: 4, Q: 4, T: 2, A: 7, Z: 0 };
   const TOKEN_RE = /[MLHVCSQTAZmlhvcsqtaz]|[-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?/g;
-  function expandPath(d) {
+  // Arc flags are single digits and may run into the next number with no
+  // separator ("a2 2 0 012 2" is rx 2, ry 2, rotation 0, flags 0 and 1, then
+  // 2 2). Minified icon sets write them that way. Not in the parity path.
+  function arcAwareSegs(d) {
     const segs = [];
-    let cmd = null, buf = [];
-    for (const [t] of d.matchAll(TOKEN_RE)) {
-      if (/^[A-Za-z]$/.test(t)) {
-        if (cmd !== null) segs.push([cmd, buf]);
-        cmd = t; buf = [];
-      } else buf.push(Number(t));
+    const num = /[\s,]*([-+]?(?:\d+\.?\d*|\.\d+)(?:[eE][-+]?\d+)?)/y;
+    const flag = /[\s,]*([01])/y;
+    const letter = /[\s,]*([A-Za-z])/y;
+    let i = 0, cmd = null, buf = [];
+    while (i < d.length) {
+      letter.lastIndex = i;
+      let m = letter.exec(d);
+      if (m) { if (cmd !== null) segs.push([cmd, buf]); cmd = m[1]; buf = []; i = letter.lastIndex; continue; }
+      const isFlag = cmd && (cmd === 'A' || cmd === 'a') && (buf.length % 7 === 3 || buf.length % 7 === 4);
+      const re = isFlag ? flag : num;
+      re.lastIndex = i;
+      m = re.exec(d);
+      if (!m) { i++; continue; }
+      buf.push(Number(m[1])); i = re.lastIndex;
     }
     if (cmd !== null) segs.push([cmd, buf]);
+    return segs;
+  }
+  function expandPath(d) {
+    let segs = [];
+    let cmd = null, buf = [];
+    if (precise) segs = arcAwareSegs(d);
+    else {
+      for (const [t] of d.matchAll(TOKEN_RE)) {
+        if (/^[A-Za-z]$/.test(t)) {
+          if (cmd !== null) segs.push([cmd, buf]);
+          cmd = t; buf = [];
+        } else buf.push(Number(t));
+      }
+      if (cmd !== null) segs.push([cmd, buf]);
+    }
     const out = [];
     for (const [c, args] of segs) {
       const n = ARGC[c.toUpperCase()] || 0;
@@ -631,6 +727,268 @@
     return parts.length ? parts.join(' ') : d;
   }
 
+  // Stroke outline through the Shape tools geometry (geo-ops.js, loaded after
+  // this file): real curves, round or square caps, round or bevel joins, and
+  // one clean outline with no overlaps. Falls back to strokeToOutline when the
+  // geometry is not there or gives nothing back. Not used in the parity path.
+  function pathToSubs(d) {
+    const subs = [];
+    let cur = null, cx = 0, cy = 0, mx = 0, my = 0, last = null;
+    const start = (x, y) => { cur = { closed: false, nodes: [{ x, y, in: null, out: null }] }; subs.push(cur); };
+    const line = (x, y) => { if (!cur) start(cx, cy); cur.nodes.push({ x, y, in: null, out: null }); };
+    const curve = (x1, y1, x2, y2, x, y) => {
+      if (!cur) start(cx, cy);
+      cur.nodes[cur.nodes.length - 1].out = { x: x1, y: y1 };
+      cur.nodes.push({ x, y, in: { x: x2, y: y2 }, out: null });
+    };
+    const quad = (qx, qy, x, y) => curve(cx + 2 / 3 * (qx - cx), cy + 2 / 3 * (qy - cy), x + 2 / 3 * (qx - x), y + 2 / 3 * (qy - y), x, y);
+    for (const [cmd, a] of expandPath(d)) {
+      const rel = cmd !== cmd.toUpperCase();
+      const ox = rel ? cx : 0, oy = rel ? cy : 0;
+      const C = cmd.toUpperCase();
+      switch (C) {
+        case 'M': cx = mx = ox + a[0]; cy = my = oy + a[1]; start(cx, cy); last = null; break;
+        case 'L': line(ox + a[0], oy + a[1]); cx = ox + a[0]; cy = oy + a[1]; last = null; break;
+        case 'H': line(ox + a[0], cy); cx = ox + a[0]; last = null; break;
+        case 'V': line(cx, oy + a[0]); cy = oy + a[0]; last = null; break;
+        case 'C': curve(ox + a[0], oy + a[1], ox + a[2], oy + a[3], ox + a[4], oy + a[5]); last = ['c', ox + a[2], oy + a[3]]; cx = ox + a[4]; cy = oy + a[5]; break;
+        case 'S': {
+          const [rx, ry] = last && last[0] === 'c' ? [2 * cx - last[1], 2 * cy - last[2]] : [cx, cy];
+          curve(rx, ry, ox + a[0], oy + a[1], ox + a[2], oy + a[3]); last = ['c', ox + a[0], oy + a[1]]; cx = ox + a[2]; cy = oy + a[3]; break;
+        }
+        case 'Q': { const qx = ox + a[0], qy = oy + a[1], x = ox + a[2], y = oy + a[3]; quad(qx, qy, x, y); last = ['q', qx, qy]; cx = x; cy = y; break; }
+        case 'T': {
+          const [qx, qy] = last && last[0] === 'q' ? [2 * cx - last[1], 2 * cy - last[2]] : [cx, cy];
+          const x = ox + a[0], y = oy + a[1]; quad(qx, qy, x, y); last = ['q', qx, qy]; cx = x; cy = y; break;
+        }
+        case 'Z': if (cur) cur.closed = true; cx = mx; cy = my; cur = null; last = null; break;
+        case 'A': line(ox + a[5], oy + a[6]); cx = ox + a[5]; cy = oy + a[6]; last = null; break;
+      }
+    }
+    for (const sp of subs) {       // a closing point on top of the first one
+      const n = sp.nodes;
+      if (sp.closed && n.length > 2 && Math.abs(n[0].x - n[n.length - 1].x) < 1e-9 && Math.abs(n[0].y - n[n.length - 1].y) < 1e-9) { n[0].in = n[n.length - 1].in; n.pop(); }
+    }
+    return subs.filter((sp) => sp.nodes.length > 1 || sp.nodes.length === 1);
+  }
+  function subsToPath(subs) {
+    const f = (v) => String(Math.round(v * 1e4) / 1e4);
+    let d = '';
+    for (const sp of subs) {
+      const n = sp.nodes;
+      if (n.length < 2) continue;
+      d += (d ? ' ' : '') + `M ${f(n[0].x)},${f(n[0].y)}`;
+      const m = sp.closed ? n.length : n.length - 1;
+      for (let i = 0; i < m; i++) {
+        const p = n[i], q = n[(i + 1) % n.length];
+        if (p.out || q.in) { const c1 = p.out || p, c2 = q.in || q; d += ` C ${f(c1.x)},${f(c1.y)} ${f(c2.x)},${f(c2.y)} ${f(q.x)},${f(q.y)}`; }
+        else if (i < n.length - 1) d += ` L ${f(q.x)},${f(q.y)}`;
+      }
+      if (sp.closed) d += ' Z';
+    }
+    return d;
+  }
+  // The geometry library drops slivers by area, tuned for slide-sized numbers,
+  // so paths are scaled up to about 1000 units across before it sees them.
+  let workScale = 1;
+  const scaleSubs = (subs, k) => subs.map((sp) => ({ closed: sp.closed, nodes: sp.nodes.map((n) => ({
+    x: n.x * k, y: n.y * k, in: n.in ? { x: n.in.x * k, y: n.in.y * k } : null, out: n.out ? { x: n.out.x * k, y: n.out.y * k } : null })) }));
+  const mapSubs = (subs, f) => subs.map((sp) => ({ closed: sp.closed, nodes: sp.nodes.map((n) => {
+    const [x, y] = f(n.x, n.y); const i = n.in ? f(n.in.x, n.in.y) : null, o = n.out ? f(n.out.x, n.out.y) : null;
+    return { x, y, in: i ? { x: i[0], y: i[1] } : null, out: o ? { x: o[0], y: o[1] } : null };
+  }) }));
+  // Stroke outline as ribbons: each sampled subpath offset to both sides, with
+  // the join drawn at every corner and the cap at each open end. Ribbons
+  // overlap themselves at inside corners, which is correct under the nonzero
+  // rule (the way font and canvas strokers work); one union then turns them
+  // into a single outline with no overlaps.
+  function ribbons(d, hw0, look, jitter = 0) {
+    const polys = [];
+    let hw = hw0, index = 0;
+    const STEP = Math.PI / 10;
+    const arc = (out, cx, cy, a0, a1) => {       // points strictly between a0 and a1, short way
+      let da = a1 - a0;
+      while (da > Math.PI) da -= 2 * Math.PI;
+      while (da < -Math.PI) da += 2 * Math.PI;
+      sweep(out, cx, cy, a0, da);
+    };
+    const sweep = (out, cx, cy, a0, da) => {
+      const n = Math.ceil(Math.abs(da) / STEP);
+      for (let k = 1; k < n; k++) { const a = a0 + da * k / n; out.push([cx + Math.cos(a) * hw, cy + Math.sin(a) * hw]); }
+    };
+    for (const [raw, closed] of sampleSegments(d, 12)) {
+      // Subpaths that retrace each other would give edges lying exactly on
+      // top of one another, which the union cannot sort out. A different
+      // hair's width for each keeps the edges apart (at most 0.3% of the width).
+      hw = hw0 * (1 + jitter * ((index * 7) % 13 + 1)); index++;
+      const pts = raw.filter((p, i) => i === 0 || Math.hypot(p[0] - raw[i - 1][0], p[1] - raw[i - 1][1]) > 1e-9);
+      if (closed && pts.length > 2 && Math.hypot(pts[0][0] - pts[pts.length - 1][0], pts[0][1] - pts[pts.length - 1][1]) < 1e-9) pts.pop();
+      const n = pts.length;
+      if (n < 2) { if (n === 1 && look.cap !== 'butt') { const c = [[pts[0][0] + hw, pts[0][1]]]; sweep(c, pts[0][0], pts[0][1], 0, 2 * Math.PI); polys.push(c); } continue; }
+      const m = closed ? n : n - 1;                 // segments
+      const u = [];
+      for (let i = 0; i < m; i++) u.push(norm(pts[(i + 1) % n][0] - pts[i][0], pts[(i + 1) % n][1] - pts[i][1]));
+      // one side: sgn +1 is the left of the direction of travel
+      const side = (sgn) => {
+        const out = [];
+        for (let i = 0; i < m; i++) {
+          const [ux, uy] = u[i], nx = -uy * hw * sgn, ny = ux * hw * sgn;
+          const a = pts[i], b = pts[(i + 1) % n];
+          out.push([a[0] + nx, a[1] + ny], [b[0] + nx, b[1] + ny]);
+          const hasNext = closed || i < m - 1;
+          if (!hasNext) break;
+          const [vx, vy] = u[(i + 1) % m];
+          const cross = ux * vy - uy * vx, dot = ux * vx + uy * vy;
+          const outer = cross * sgn < 0;           // this side is the outside of the turn
+          if (!outer || Math.abs(cross) < 1e-9) continue;
+          const a0 = Math.atan2(ny, nx), a1 = Math.atan2(vx * hw * sgn, -vy * hw * sgn);
+          if (look.join === 'round') arc(out, b[0], b[1], a0, a1);
+          else if (look.join === 'miter') {
+            const half = Math.sqrt(Math.max((1 + dot) / 2, 0));     // cos of half the turn
+            if (half > 1e-6 && 1 / half <= look.limit) {
+              const bx = (nx / hw + (-vy * sgn)) , by = (ny / hw + (vx * sgn));
+              const L = Math.hypot(bx, by);
+              if (L > 1e-9) out.push([b[0] + bx / L * hw / half, b[1] + by / L * hw / half]);
+            }
+          }
+        }
+        return out;
+      };
+      const left = side(1), right = side(-1);
+      if (closed) { polys.push(left, right.slice().reverse()); continue; }
+      const poly = left.slice();
+      const end = pts[n - 1], [ex, ey] = u[m - 1], start = pts[0], [sx, sy] = u[0];
+      // from the left edge, round the front, to the right edge: half a turn clockwise in these axes
+      if (look.cap === 'round') sweep(poly, end[0], end[1], Math.atan2(ex, -ey), -Math.PI);
+      if (look.cap === 'square') poly.push([end[0] - ey * hw + ex * hw, end[1] + ex * hw + ey * hw], [end[0] + ey * hw + ex * hw, end[1] - ex * hw + ey * hw]);
+      for (let k = right.length - 1; k >= 0; k--) poly.push(right[k]);
+      if (look.cap === 'round') sweep(poly, start[0], start[1], Math.atan2(-sx, sy), -Math.PI);
+      if (look.cap === 'square') poly.push([start[0] + sy * hw - sx * hw, start[1] - sx * hw - sy * hw], [start[0] - sy * hw - sx * hw, start[1] + sx * hw - sy * hw]);
+      polys.push(poly);
+    }
+    return polys.filter((q) => q.length > 2).map((q) => ({ closed: true, nodes: q.map(([x, y]) => ({ x, y, in: null, out: null })) }));
+  }
+  // Does this outline cover the points within hw of the path and nothing else?
+  function strokeAgrees(subs, d, hw, cap) {
+    const lines = sampleSegments(d, 12);
+    const polys = [];
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    for (const sp of subs) {
+      const n = sp.nodes, pts = [];
+      for (let i = 0; i < n.length; i++) {
+        const p = n[i], q = n[(i + 1) % n.length];
+        if (p.out || q.in) { const c1 = p.out || p, c2 = q.in || q; for (let k = 0; k < 10; k++) pts.push(bezier3([p.x, p.y], [c1.x, c1.y], [c2.x, c2.y], [q.x, q.y], k / 10)); }
+        else pts.push([p.x, p.y]);
+      }
+      polys.push(pts);
+    }
+    for (const [pts] of lines) for (const [x, y] of pts) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }
+    if (!(x1 >= x0)) return false;
+    x0 -= hw * 1.6; y0 -= hw * 1.6; x1 += hw * 1.6; y1 += hw * 1.6;
+    const inside = (x, y) => {
+      let c = false;
+      for (const pts of polys) for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+        const [xi, yi] = pts[i], [xj, yj] = pts[j];
+        if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c;
+      }
+      return c;
+    };
+    // distance to the path; flat says the nearest point is an open end
+    const dist = (x, y) => {
+      let best = Infinity, flat = false;
+      for (const [pts, closed] of lines) {
+        const m = closed ? pts.length : pts.length - 1;
+        for (let i = 0; i < m; i++) {
+          const [ax, ay] = pts[i], [bx, by] = pts[(i + 1) % pts.length];
+          const dx = bx - ax, dy = by - ay, L = dx * dx + dy * dy;
+          let t = L ? ((x - ax) * dx + (y - ay) * dy) / L : 0;
+          const end = !closed && ((i === 0 && t < 0) || (i === m - 1 && t > 1));
+          t = Math.max(0, Math.min(1, t));
+          const ex = x - (ax + dx * t), ey = y - (ay + dy * t), dd = ex * ex + ey * ey;
+          if (dd < best) { best = dd; flat = end; }
+        }
+      }
+      return [Math.sqrt(best), flat];
+    };
+    const N = 26, slack = hw * 0.14 + Math.max(x1 - x0, y1 - y0) * 0.004;
+    let bad = 0, used = 0;
+    for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) {
+      const x = x0 + (x1 - x0) * (i + 0.5 + 0.21 * ((i * 7 + j * 3) % 5 - 2) / 5) / N, y = y0 + (y1 - y0) * (j + 0.5 + 0.19 * ((i * 3 + j * 5) % 7 - 3) / 7) / N;
+      const [dd, flat] = dist(x, y);
+      if (Math.abs(dd - hw) < slack) continue;            // too close to the edge to call
+      if (flat && cap !== 'round') continue;              // butt and square ends differ from the disc
+      used++;
+      if ((dd < hw) !== inside(x, y)) bad++;
+    }
+    return used > 0 && bad / used <= 0.012;
+  }
+  function strokeOutline(d, width, look) {
+    const G = precise && typeof self !== 'undefined' && self.GEO;
+    if (G && G.unionAll) {
+      try {
+        const K = workScale, hw = width * K / 2;
+        const kd = scaledPath(d, K);
+        for (const jitter of [1e-4, 2.3e-4, 0]) {
+          const rb = ribbons(kd, hw, look, jitter);
+          if (!rb.length) break;
+          let merged = null;
+          try { merged = G.unionAll(rb); } catch (e) { merged = null; }
+          // A round stroke is exactly the points within half a width of the
+          // path, so that case can be checked. Keep the outline only if it passes.
+          if (merged && merged.length && (look.join !== 'round' || strokeAgrees(merged, kd, hw, look.cap))) {
+            const out = subsToPath(scaleSubs(merged, 1 / K));
+            if (out) return out;
+          }
+        }
+      } catch (e) { /* fall through */ }
+    }
+    return strokeToOutline(d, width);
+  }
+  // The same path with every coordinate multiplied by k (arcs are already gone).
+  function scaledPath(d, k) {
+    return subsToPath(scaleSubs(pathToSubs(d), k)) || d;
+  }
+
+  // clip-path="url(#id)": the clip's shapes, already in root coordinates.
+  // Returns the clipped piece as [d, identity] or null to leave it alone.
+  function clipPiece(d, xfm, clip) {
+    const geo = typeof self !== 'undefined' && self.GEO && self.GEO.boolean;
+    if (!geo || !clip || !clip.length) return undefined;
+    try {
+      const K = workScale;
+      const shape = scaleSubs(mapSubs(pathToSubs(d).filter((sp) => sp.nodes.length > 1), xfm || ident), K);
+      if (!shape.length) return undefined;
+      let acc = { subs: shape };
+      for (const c of clip) {       // nested clips intersect one after another
+        const r = geo('intersect', [acc, { subs: scaleSubs(c, K) }]);
+        if (!r || r.empty) return null;
+        acc = { subs: r.subs };
+      }
+      const out = subsToPath(scaleSubs(acc.subs, 1 / K));
+      return out || null;
+    } catch (e) { return undefined; }
+  }
+  function readClip(el, xfm, vb) {
+    const raw = (getProp(parseStyle(el), el, 'clip-path') || '').trim();
+    const m = /^url\(\s*['"]?#([^)'"]+)['"]?\s*\)/.exec(raw);
+    if (!m) return null;
+    const cp = el.ownerDocument.getElementById(m[1]);
+    if (!cp || tagOf(cp) !== 'clipPath' || (attr(cp, 'clipPathUnits') || '') === 'objectBoundingBox') return null;
+    const kidsOf = kids(cp).filter((c) => SHAPE_TAGS.has(tagOf(c)));
+    // A frame-sized rectangle (Figma's export wrapper) clips nothing.
+    if (vb && kidsOf.length === 1 && isBackgroundRect(kidsOf[0], ...vb) && !attr(kidsOf[0], 'transform')) return null;
+    const base = chain(xfm, parseTransform(attr(cp, 'transform', '')));
+    const subs = [];
+    for (const c of kidsOf) {
+      let d = elementToD(c);
+      if (d) d = normalizeArcs(d);
+      if (!d) continue;
+      const cx = chain(base, parseTransform(attr(c, 'transform', '')));
+      subs.push(...mapSubs(pathToSubs(d).filter((sp) => sp.nodes.length > 1), cx || ident).map((sp) => Object.assign(sp, { closed: true })));
+    }
+    return subs.length ? subs : null;
+  }
+
   // ── Tree walk ─────────────────────────────────────────────────────────
 
   const SHAPE_TAGS = new Set(['path', 'rect', 'circle', 'ellipse', 'polygon', 'polyline', 'line']);
@@ -646,20 +1004,53 @@
   }
 
   const ident = (x, y) => [x, y];
-  function collect(el, accXfm, inhFill, gradients, vb, out) {
+  function collect(el, accXfm, inhFill, gradients, vb, out, inh = null, depth = 0) {
     if (SKIP_TAGS.has(tagOf(el))) return out;
-    const xfm = chain(accXfm, parseTransform(attr(el, 'transform', '')));
-    const [fill, stroke, sw] = resolveFillStroke(el, gradients, inhFill);
+    let xfm = chain(accXfm, parseTransform(attr(el, 'transform', '')));
+    const [fill, stroke, sw, next] = resolveFillStroke(el, gradients, inhFill, inh);
+    // <use href="#id">: draw the referenced element (or a symbol's children)
+    // at the use's x and y. A symbol's own viewBox scaling is not applied.
+    if (inh && tagOf(el) === 'use' && depth < 8) {
+      const ref = (attr(el, 'href') || el.getAttribute('xlink:href') || el.getAttributeNS('http://www.w3.org/1999/xlink', 'href') || '').trim();
+      const target = ref.startsWith('#') ? el.ownerDocument.getElementById(ref.slice(1)) : null;
+      if (target && target !== el) {
+        let ux = 0, uy = 0;
+        try { ux = pyFloat(attr(el, 'x', 0)); uy = pyFloat(attr(el, 'y', 0)); } catch (e) { if (!(e instanceof ConvertError)) throw e; }
+        if (ux || uy) xfm = chain(xfm, parseTransform('translate(' + ux + ',' + uy + ')'));
+        if (tagOf(target) === 'symbol') {
+          // Fit the symbol's viewBox into the use's width and height (xMidYMid meet).
+          const svb = (attr(target, 'viewBox') || '').trim().split(/[\s,]+/).map(Number);
+          const uw = parseFloat(attr(el, 'width') || attr(target, 'width')), uh = parseFloat(attr(el, 'height') || attr(target, 'height'));
+          if (svb.length === 4 && svb.every(Number.isFinite) && svb[2] > 0 && svb[3] > 0 && uw > 0 && uh > 0) {
+            const k = Math.min(uw / svb[2], uh / svb[3]);
+            const tx = (uw - svb[2] * k) / 2 - svb[0] * k, ty = (uh - svb[3] * k) / 2 - svb[1] * k;
+            xfm = chain(xfm, parseTransform('translate(' + tx + ',' + ty + ') scale(' + k + ')'));
+          }
+          for (const c of kids(target)) collect(c, xfm, fill, gradients, null, out, next, depth + 1);
+        } else collect(target, xfm, fill, gradients, null, out, next, depth + 1);
+      }
+      return out;
+    }
+    if (next) {
+      const own = readClip(el, xfm, vb);
+      next.clip = own ? (inh.clip || []).concat([own]) : inh.clip;
+    }
     if (SHAPE_TAGS.has(tagOf(el)) && !(vb && isBackgroundRect(el, ...vb))) {
       let d = elementToD(el);
       if (d) d = normalizeArcs(d);
       if (d) {
-        if (fill !== null) out.push([d, xfm || ident, fill]);
-        if (stroke && sw > 0) out.push([strokeToOutline(d, sw), xfm || ident, stroke]);
-        else if (stroke && fill === null) out.push([d, xfm || ident, stroke]);
+        const put = (pd, col) => {
+          const cut = next && next.clip ? clipPiece(pd, xfm, next.clip) : undefined;
+          if (cut === null) return;                       // clipped away entirely
+          if (cut === undefined) out.push([pd, xfm || ident, col]);
+          else out.push([cut, ident, col]);
+        };
+        if (fill !== null) put(d, fill);
+        if (stroke && sw > 0) put(next ? strokeOutline(d, sw, next) : strokeToOutline(d, sw), stroke);
+        else if (stroke && fill === null) put(d, stroke);
       }
     }
-    for (const c of kids(el)) collect(c, xfm, fill, gradients, vb, out);
+    for (const c of kids(el)) collect(c, xfm, fill, gradients, vb, out, next, depth);
     return out;
   }
 
@@ -946,7 +1337,9 @@
     if (parts.length !== 4) fail('viewBox needs four numbers');
     const vb = parts.map(pyFloat);
     const gradients = extractGradients(root);
-    return [vb, collect(root, null, '000000', gradients, vb, [])];
+    readSheet(root);
+    workScale = precise ? 1000 / Math.max(vb[2], vb[3], 1e-9) : 1;
+    return [vb, collect(root, null, '000000', gradients, vb, [], precise ? { stroke: undefined, sw: null, color: null, cap: 'butt', join: 'miter', limit: 4, clip: null } : null)];
   }
 
   // JSON the way Python's json.dumps(..., separators=(',', ':')) writes it

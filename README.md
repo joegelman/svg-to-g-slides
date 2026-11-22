@@ -7,7 +7,7 @@ Convert SVG files to editable vector shapes in Google Slides.
 
 ---
 
-## CHROME EXTENSION (v1.3.0)
+## CHROME EXTENSION (v1.3.1)
 
 The main product. [Chrome Web Store](https://chromewebstore.google.com/detail/svg-to-slides/bdhhnakellmdnbgbdokiojipaebdeioi) · release notes at [svgslid.es/whats-new](https://svgslid.es/whats-new) · documentation at [svgslid.es/docs](https://svgslid.es/docs)
 
