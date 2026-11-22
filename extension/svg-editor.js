@@ -818,6 +818,14 @@ console.log('[svg2slides] svg-editor.js loaded');
           .rpill .seg { display: flex; align-items: center; gap: 6px; }
           .rpill .seg + .seg { border-left: 1px solid rgba(255,255,255,.25); padding-left: 10px; }
           .rpill .lb { opacity: .7; }
+          .rpill .pb { width: 22px; height: 22px; border-radius: 50%; border: 0; padding: 0; display: grid; place-items: center; cursor: pointer;
+            background: rgba(255,255,255,.14); color: #f2f2f2; }
+          .rpill .pb svg { width: 14px; height: 14px; display: block; }
+          .rpill .pb:hover { background: rgba(255,255,255,.26); }
+          .rpill .pb.ok { background: #a8c7fa; color: #062e6f; }
+          .rpill .pb.ok:hover { background: #c2d9fc; }
+          .rpill .pb[disabled] { opacity: .35; cursor: default; pointer-events: none; }
+          .rpill .seg.act { gap: 6px; }
           .anchors, .handles, .cornerh { filter: drop-shadow(0 0 1px rgba(0,0,0,.35)) drop-shadow(0 1px 2px rgba(0,0,0,.18)); }`));
 
       const svg = sv('svg', { class: 'stage' });
@@ -887,7 +895,23 @@ console.log('[svg2slides] svg-editor.js loaded');
       const aIcon = sv('svg', { class: 'ic', viewBox: '0 0 20 20', 'aria-hidden': 'true' });
       aIcon.append(sv('path', { d: 'M10 3.5a6.5 6.5 0 1 0 6.5 6.5H15a5 5 0 1 1-5-5v2.3l3.2-3-3.2-3Z', fill: 'currentColor' }));
       const segA = el('span', { class: 'seg', 'data-tip': 'Rotate by (type and press ↵) · ⌥-drag to scrub', 'data-key': SB.SHORTCUT_LABEL.rotL15 + ' ' + SB.SHORTCUT_LABEL.rotR15 }, aIcon, aNum, el('span', { class: 'u' }, '°'));
-      const rpill = el('div', { class: 'rpill', role: 'group', 'aria-label': 'Size, rotation and corner radius' }, segR, segS, segA);
+      // Keep or drop what the pill changed. Everything typed or scrubbed in
+      // the pill applies live; ✓ (or ↵) keeps it, ✕ (or Esc) puts the shape
+      // back as it was when the pill was first touched.
+      const pillBtn = (cls, tip, key, d) => {
+        const b = el('button', { class: 'pb ' + cls, type: 'button', 'aria-label': tip, 'data-tip': tip, 'data-key': key });
+        const g = sv('svg', { viewBox: '0 0 20 20', 'aria-hidden': 'true' });
+        g.append(sv('path', { d, fill: 'none', stroke: 'currentColor', 'stroke-width': '2.2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
+        b.append(g);
+        return b;
+      };
+      const pNo = pillBtn('no', 'Cancel these changes', 'Esc', 'M5.5 5.5l9 9M14.5 5.5l-9 9');
+      const pOk = pillBtn('ok', 'Keep these changes', '↵', 'M4.5 10.5l3.6 3.6 7.4-8');
+      const segOk = el('span', { class: 'seg act' }, pNo, pOk);
+      const rpill = el('div', { class: 'rpill', role: 'group', 'aria-label': 'Size, rotation and corner radius' }, segR, segS, segA, segOk);
+      this.pNo = pNo; this.pOk = pOk;
+      pNo.addEventListener('click', (e) => { e.stopPropagation(); this.cancelPill(); });
+      pOk.addEventListener('click', (e) => { e.stopPropagation(); this.commitPill(); });
       this.segR = segR; this.wNum = wNum; this.hNum = hNum; this.aNum = aNum;
       const sizeInput = (inp, axis) => {
         inp.addEventListener('focus', () => { this._sizeBase = null; });
@@ -940,7 +964,12 @@ console.log('[svg2slides] svg-editor.js loaded');
       this.rpill = rpill;
       this.rNum = rNum;
       this.rScope = rScope;
-      rpill.addEventListener('pointerdown', (e) => { e.stopPropagation(); this.hideHint(); });
+      rpill.addEventListener('pointerdown', (e) => { e.stopPropagation(); this.hideHint(); if (!e.target.closest('.pb')) this.markPill(); }, true);
+      rpill.addEventListener('focusin', () => this.markPill());
+      rpill.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); this.cancelPill(); }
+        else if (e.key === 'Enter' && e.target !== aNum) { e.preventDefault(); e.stopPropagation(); this.commitPill(); }
+      });
       rNum.addEventListener('focus', () => { this._rTyping = false; });
       rNum.addEventListener('input', () => {
         const v = parseFloat(rNum.value);
@@ -970,7 +999,7 @@ console.log('[svg2slides] svg-editor.js loaded');
 
       this.scheduleIdle(2500);
 
-      svg.addEventListener('pointerdown', (e) => { this.hideHint(); this.onDown(e); });
+      svg.addEventListener('pointerdown', (e) => { this.hideHint(); this.commitPill(true); this.onDown(e); });
       svg.addEventListener('dblclick', (e) => this.onDbl(e));
       window.addEventListener('pointermove', this._mv = (e) => this.onMove(e), true);
       window.addEventListener('pointerup', this._up = (e) => this.onUp(e), true);
@@ -1211,6 +1240,7 @@ console.log('[svg2slides] svg-editor.js loaded');
     updateUndoButtons() {
       this.root.querySelector('[data-act="undo"]').classList.toggle('dim', !this.undo.length);
       this.root.querySelector('[data-act="redo"]').classList.toggle('dim', !this.redo.length);
+      this.syncPillButtons();
     }
 
     // ── Model iteration ──
@@ -1540,9 +1570,49 @@ console.log('[svg2slides] svg-editor.js loaded');
       this.updatePill();
     }
 
+    // Pill session: where the undo stack stood when the pill was first
+    // touched. ✕ walks back to it; ✓, or doing anything on the canvas, ends it.
+    markPill() {
+      if (this._pillBase === null || this._pillBase === undefined) this._pillBase = this.undo.length;
+      this.syncPillButtons();
+    }
+    pillChanged() {
+      return this._pillBase !== null && this._pillBase !== undefined && this.undo.length > this._pillBase;
+    }
+    syncPillButtons() {
+      if (!this.pNo) return;
+      const on = this.pillChanged();
+      this.pNo.disabled = !on; this.pOk.disabled = !on;
+    }
+    commitPill(quiet) {
+      const had = this.pillChanged();
+      this._pillBase = null;
+      this._rTyping = false; this._sizeBase = null;
+      if (!quiet) { const a = this.root && this.root.activeElement; if (a && a.blur && this.rpill.contains(a)) a.blur(); this.host.focus(); }
+      if (had || !quiet) this.updatePill();
+      this.syncPillButtons();
+    }
+    cancelPill() {
+      const base = this._pillBase;
+      this._pillBase = null;
+      this._rTyping = false; this._sizeBase = null;
+      const a = this.root && this.root.activeElement;
+      if (a && a.blur && this.rpill.contains(a)) a.blur();
+      if (base !== null && base !== undefined) {
+        let moved = false;
+        while (this.undo.length > base) { this.restore(this.undo.pop()); moved = true; }
+        if (moved) { this.redo = []; this.updateUndoButtons(); }
+      }
+      this.aNum.value = '';
+      this.host.focus();
+      this.updatePill();
+      this.syncPillButtons();
+    }
+
     // The value pill under what's in scope.
     updatePill() {
       const pill = this.rpill;
+      this.syncPillButtons();
       const ok = this.tool === 'direct' && this.targets().length && (!this.drag || this.drag.kind === 'radius' || this.drag.kind === 'xform');
       const b = ok ? (this.drag && this.drag.kind === 'xform' ? null : this.scopeBBox()) : null;
       if (!b) { if (!(this.drag && this.drag.kind === 'xform')) pill.classList.remove('show'); return; }

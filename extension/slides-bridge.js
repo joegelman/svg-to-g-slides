@@ -79,6 +79,24 @@ const SB = (() => {
     return unwrap(dt.getData(MIME));
   }
 
+  // Both lists of a copy. Slides keeps what an object inherits from its
+  // layout out of `unresolved`, and that is the only place a placeholder
+  // says it is one (props 54/55: placeholder kind and index).
+  function readSelectionRaw() {
+    const tb = textbox();
+    if (!tb) return null;
+    const dt = new DataTransfer();
+    tb.dispatchEvent(new ClipboardEvent('copy', { clipboardData: dt, bubbles: true, cancelable: true }));
+    try {
+      const data = JSON.parse(JSON.parse(dt.getData(MIME)).data);
+      return data && data.resolved ? { resolved: data.resolved, unresolved: data.unresolved || [] } : null;
+    } catch { return null; }
+  }
+  function placeholderIds(raw) {
+    if (!raw) return [];
+    return raw.unresolved.filter((e) => e[0] === 3 && Array.isArray(e[4]) && getProp(e[4], 54) !== undefined).map((e) => e[1]);
+  }
+
   // Every format a copy of the selection carries (an image brings an
   // image clip with it: what lets a paste fetch the picture).
   const IMAGE_CLIP = 'application/x-vnd.google-docs-image-clip+wrapped';
@@ -1182,7 +1200,7 @@ const SB = (() => {
 
   return {
     MIME, iframe, textbox, focusTextbox, wrap, unwrap,
-    readSelection, readClip, withClip, hasClip: () => !!pasteClip, paste, pressKey, sleep, waitForSelection,
+    readSelection, readSelectionRaw, placeholderIds, readClip, withClip, hasClip: () => !!pasteClip, paste, pressKey, sleep, waitForSelection,
     getProp, setProp, newId, pathRecord, isEditableShape,
     matMul, matInv, apply, localToPage, pageCTM, elementFor, currentPageGroup, visibleWorkspaceRect,
     topLevelOrder, topLevelIdOf, pressArrange, moveToIndex,

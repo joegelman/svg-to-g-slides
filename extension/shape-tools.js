@@ -137,6 +137,16 @@ console.log('[svg2slides] shape-tools.js loaded');
     p.t.dispatchEvent(new MouseEvent('click', o));
   }
   const sameSet = (a, b) => a.length === b.length && a.every((x) => b.includes(x));
+  // A click on a text box's text selects it and puts the cursor in it in
+  // one go; a copy then carries no objects, so the selection reads as
+  // empty and a shift-click row in Layers would start from nothing. One
+  // Escape leaves the text and keeps the box selected (checked live).
+  async function outOfText() {
+    if (SB.readSelection()) return true;
+    SB.pressKey('Escape');
+    await sleep(70);
+    return !!SB.readSelection();
+  }
 
   // An object inside a group (or groups): Slides selects the outermost
   // group on the first click and one level further in on each click after,
@@ -150,6 +160,7 @@ console.log('[svg2slides] shape-tools.js loaded');
     if (add) {
       clickAt(p, true);
       await sleep(60);
+      await outOfText();
       return now().includes(id);
     }
     // Start from nothing selected, so the clicks count from the outside.
@@ -161,6 +172,7 @@ console.log('[svg2slides] shape-tools.js loaded');
       await sleep(70);
       if (sameSet(now(), [id])) break;
     }
+    if (!sameSet(now(), [id])) await outOfText();
     if (!renaming) SB.focusTextbox();
     return sameSet(now(), [id]);
   }
@@ -168,6 +180,7 @@ console.log('[svg2slides] shape-tools.js loaded');
     if (!ids.length) return false;
     const want = ids.slice();
     const now = () => topIdsOf(SB.readSelection());
+    await outOfText();
     const cur = now();
     if (sameSet(cur, want)) return true;
     const inner = want.filter((id) => ancestorsOf(id).length);
@@ -197,7 +210,7 @@ console.log('[svg2slides] shape-tools.js loaded');
         first = want[0];
       }
       const p = visiblePoint(first);
-      if (p) { clickAt(p, false); await sleep(60); }
+      if (p) { clickAt(p, false); await sleep(60); await outOfText(); }
       if (!sameSet(now(), [first])) {
         // Nothing of it to click: Tab through the slide's objects, out of
         // sight under the frozen copy.
@@ -223,6 +236,7 @@ console.log('[svg2slides] shape-tools.js loaded');
       if (!q) continue;
       clickAt(q, true);
       await sleep(60);
+      await outOfText();
     }
     if (!renaming) SB.focusTextbox();
     return sameSet(now(), want);
@@ -354,7 +368,12 @@ console.log('[svg2slides] shape-tools.js loaded');
           else { const v = parseInt(s, 16); ranges.push([v, v]); }
         });
       }
-      faces.push({ url, ranges: ranges.length ? ranges : [[0, 0x10ffff]], font: null });
+      // What the face really is, so a bold or italic the family lacks can be drawn the way Chrome draws it.
+      const fw = (body.match(/font-weight:\s*([^;]+)/) || [])[1];
+      const wts = fw ? fw.trim().split(/\s+/).map((v) => (v === 'bold' ? 700 : v === 'normal' ? 400 : parseInt(v, 10))).filter((v) => v > 0) : [400];
+      const fs = ((body.match(/font-style:\s*([^;]+)/) || [])[1] || 'normal').trim();
+      faces.push({ url, ranges: ranges.length ? ranges : [[0, 0x10ffff]], font: null,
+        wMin: Math.min(...(wts.length ? wts : [400])), wMax: Math.max(...(wts.length ? wts : [400])), italic: /italic|oblique/.test(fs) });
     }
     return faces;
   }
@@ -405,7 +424,8 @@ console.log('[svg2slides] shape-tools.js loaded');
       const bytes = new Uint8Array(await (await pick.blob()).arrayBuffer());
       let font = FONTKIT.create(bytes);
       if (font && font.fonts) font = font.fonts.find((f) => f.postscriptName === pick.postscriptName) || font.fonts[0];
-      return [{ url: 'local:' + pick.postscriptName, ranges: [[0, 0x10ffff]], font }];
+      const pw = styleWeight(pick.style);
+      return [{ url: 'local:' + pick.postscriptName, ranges: [[0, 0x10ffff]], font, wMin: pw, wMax: pw, italic: /italic|oblique/i.test(pick.style || '') }];
     } catch (err) {
       console.warn('[svg2slides] local font access unavailable', err);
       return null;
@@ -435,6 +455,43 @@ console.log('[svg2slides] shape-tools.js loaded');
     return fontCache.get(key);
   }
 
+  // The B button asks for weight 700 whether or not the family has a bold.
+  // When it hasn't, Chrome fattens the regular letters itself; the same for
+  // italic, which it slants. Outlines have to match what is on the slide, so
+  // do what Chrome does (Skia): bold grows the outline by 1/32 of the font
+  // size at 36 px and up, 1/24 at 9 px and down, and in between by size;
+  // italic leans the letters by a quarter.
+  function synthFor(face, weight, italic) {
+    const has = face.wMax === undefined ? weight : face.wMax;
+    return { bold: weight >= 600 && has < 600, italic: !!italic && face.italic === false };
+  }
+  function fakeBoldEm(sizePx) {
+    const k = sizePx <= 9 ? 1 / 24 : sizePx >= 36 ? 1 / 32 : 1 / 24 + (1 / 32 - 1 / 24) * (sizePx - 9) / 27;
+    return k / 2;                       // outward growth, as a share of the em
+  }
+  const boldCache = new WeakMap();      // font → Map(glyph id | growth → subs in font units)
+  function glyphSubs(font, glyph, growEm) {
+    const base = () => GEO.glyphToSubs(glyph.path.commands, [1, 0, 0, 1, 0, 0]);
+    if (!growEm) return base();
+    let m = boldCache.get(font);
+    if (!m) boldCache.set(font, (m = new Map()));
+    const key = glyph.id + '|' + Math.round(growEm * 1e5);
+    if (!m.has(key)) {
+      let subs = base();
+      try {
+        const r = GEO.offsetSubs(GEO.unionAll(subs), growEm * font.unitsPerEm, { join: 'round' });
+        if (r && !r.empty && r.subs.length) subs = r.subs;
+      } catch (err) { /* keep the regular outline */ }
+      m.set(key, subs);
+    }
+    return m.get(key);
+  }
+  const mapSubs = (subs, m) => subs.map((sp) => ({ closed: sp.closed, nodes: sp.nodes.map((n) => {
+    const ap = (q) => (q ? { x: m[0] * q.x + m[2] * q.y + m[4], y: m[1] * q.x + m[3] * q.y + m[5] } : null);
+    const p = ap(n);
+    return { x: p.x, y: p.y, in: ap(n.in), out: ap(n.out) };
+  }) }));
+
   async function glyphFor(faces, cp) {
     for (const f of faces) {
       if (!f.ranges.some(([a, b]) => cp >= a && cp <= b)) continue;
@@ -444,7 +501,7 @@ console.log('[svg2slides] shape-tools.js loaded');
         f.font = FONTKIT.create(new Uint8Array(await r.arrayBuffer()));
       }
       if (f.font.hasGlyphForCodePoint && !f.font.hasGlyphForCodePoint(cp)) continue;
-      return { font: f.font, glyph: f.font.glyphForCodePoint(cp) };
+      return { font: f.font, glyph: f.font.glyphForCodePoint(cp), face: f };
     }
     return null;
   }
@@ -491,8 +548,10 @@ console.log('[svg2slides] shape-tools.js loaded');
         const g = await glyphFor(faces, cp);
         if (!g || !g.glyph || !g.glyph.path) continue;
         const s = size / g.font.unitsPerEm;
-        const m = SB.matMul(Mt, [s, 0, 0, -s, pos.x, pos.y]);
-        const subs = GEO.glyphToSubs(g.glyph.path.commands, m);
+        const syn = synthFor(g.face, weight, italic);
+        if (syn.bold) notes.add(`${family} has no bold of its own, so the bold is drawn the way Chrome draws it`);
+        const m = SB.matMul(Mt, [s, 0, syn.italic ? 0.25 * s : 0, -s, pos.x, pos.y]);
+        const subs = mapSubs(glyphSubs(g.font, g.glyph, syn.bold ? fakeBoldEm(size) : 0), m);
         if (!subs.length) continue;
         if (!byFill.has(fill)) byFill.set(fill, []);
         byFill.get(fill).push(...subs);
@@ -1814,6 +1873,27 @@ console.log('[svg2slides] shape-tools.js loaded');
       const single = ids.length === 1 ? entryById(sel, ids[0]) : null;
       if (want === 'ungroup' && !(single && single[0] === 2)) throw userError('Select a group to ungroup');
       if (want === 'group' && ids.length < 2) throw userError('Select two or more objects to group');
+      if (want === 'group') {
+        // Slides won't group a layout placeholder (title, subtitle, body):
+        // Arrange › Group stays grey. A copy pasted from the resolved data
+        // is the same box with the same text and no tie to the layout, so
+        // swap each placeholder for that first (checked live).
+        const ph = SB.placeholderIds(SB.readSelectionRaw()).filter((id) => ids.includes(id));
+        if (ph.length) {
+          const others = ids.filter((id) => !ph.includes(id));
+          const before = new Set(SB.topLevelOrder());
+          if (!(await selectIds(ph))) throw userError('Couldn’t select the placeholder text to group it');
+          const phSel = SB.readSelection();
+          if (!phSel || !(await replaceSelection(phSel, phSel))) throw userError('Couldn’t turn the placeholder into a text box to group it');
+          const made = SB.topLevelOrder().filter((id) => !before.has(id));
+          if (made.length !== ph.length || !(await selectIds([...others, ...made]))) throw userError(`Couldn’t select everything again. Select the objects and press Group once more.`);
+          notes.add(ph.length === 1 ? 'The placeholder became a plain text box, since Slides can’t group placeholders' : 'The placeholders became plain text boxes, since Slides can’t group placeholders');
+          keyCombo('g', 'KeyG', 71, Object.assign({ altKey: true }, PRIMARY));
+          await sleep(250);
+          if (topIdsOf(SB.readSelection()).length !== 1) throw userError('Slides wouldn’t group that selection');
+          return;
+        }
+      }
       if (single && single[0] === 2) {
         keyCombo('G', 'KeyG', 71, Object.assign({ altKey: true, shiftKey: true }, PRIMARY));
       } else if (ids.length >= 2) {
@@ -2526,7 +2606,9 @@ console.log('[svg2slides] shape-tools.js loaded');
     busy = true;
     let ok = false;
     try {
-      const ids = add ? [...new Set([...lastSel, id])] : [id];
+      let base = lastSel;
+      if (add) { await outOfText(); const cur = topIdsOf(SB.readSelection()); if (cur.length) base = cur; }
+      const ids = add ? [...new Set([...base, id])] : [id];
       ok = await selectIds(ids);
     } finally {
       busy = false;
