@@ -177,6 +177,13 @@
       const p = (v) => pyRound(pyFloat(v) / 100 * 255);
       return hex2(p(m[1])) + hex2(p(m[2])) + hex2(p(m[3]));
     }
+    m = precise && /^hsla?\(\s*(-?\d+(?:\.\d+)?)(?:deg)?\s*[, ]\s*(\d+(?:\.\d+)?)%\s*[, ]\s*(\d+(?:\.\d+)?)%/.exec(sl);
+    if (m) {
+      const h = ((parseFloat(m[1]) % 360) + 360) % 360, sat = Math.min(parseFloat(m[2]), 100) / 100, l = Math.min(parseFloat(m[3]), 100) / 100;
+      const a = sat * Math.min(l, 1 - l);
+      const f = (n) => { const k = (n + h / 30) % 12; return Math.round(255 * (l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1)))); };
+      return hex2(f(0)) + hex2(f(8)) + hex2(f(4));
+    }
     return '000000';
   }
 
@@ -236,17 +243,65 @@
     }
     return props;
   }
+  // Rules from <style> blocks: simple selectors only (.class, #id, tag,
+  // tag.class, comma lists). Later rules win, as in CSS; specificity is
+  // id > class > tag. Not read in the parity path.
+  let sheet = [];
+  function readSheet(root) {
+    sheet = [];
+    if (!precise) return;
+    let order = 0;
+    for (const el of iter(root)) {
+      if (tagOf(el) !== 'style') continue;
+      const css = (el.textContent || '').replace(/\/\*[\s\S]*?\*\//g, '');
+      const re = /([^{}]+)\{([^{}]*)\}/g;
+      let m;
+      while ((m = re.exec(css))) {
+        const props = new Map();
+        for (const part of m[2].split(';')) {
+          const i = part.indexOf(':');
+          if (i > 0) props.set(part.slice(0, i).trim().toLowerCase(), part.slice(i + 1).replace(/!important/i, '').trim());
+        }
+        for (const raw of m[1].split(',')) {
+          const sel = /^\s*([a-zA-Z][\w-]*)?(?:#([\w-]+))?((?:\.[\w-]+)*)\s*$/.exec(raw);
+          if (!sel || !(sel[1] || sel[2] || sel[3])) continue;
+          const classes = sel[3] ? sel[3].split('.').filter(Boolean) : [];
+          sheet.push({ tag: sel[1] || null, id: sel[2] || null, classes, props, spec: (sel[2] ? 100 : 0) + classes.length * 10 + (sel[1] ? 1 : 0), order: order++ });
+        }
+      }
+    }
+    sheet.sort((a, b) => a.spec - b.spec || a.order - b.order);
+  }
+  function sheetProp(el, k) {
+    if (!sheet.length) return null;
+    const cls = (attr(el, 'class', '') || '').split(/\s+/);
+    let v = null;
+    for (const r of sheet) {
+      if (!r.props.has(k)) continue;
+      if (r.tag && r.tag !== tagOf(el)) continue;
+      if (r.id && r.id !== attr(el, 'id')) continue;
+      if (!r.classes.every((c) => cls.includes(c))) continue;
+      v = r.props.get(k);
+    }
+    return v;
+  }
   function getProp(style, el, ...keys) {
     for (const k of keys) {
       if (style.has(k)) return style.get(k);
+      const c = sheetProp(el, k);
+      if (c !== null) return c;
       const v = attr(el, k);
       if (v !== null) return v;
     }
     return null;
   }
 
-  function resolveFillStroke(el, gradients, inhFill) {
+  // inh (precise mode): { stroke, sw, color } from the ancestors. stroke is
+  // undefined when no ancestor set one, null when one set stroke="none".
+  function resolveFillStroke(el, gradients, inhFill, inh) {
     const style = parseStyle(el);
+    const colorRaw = inh ? getProp(style, el, 'color') : null;
+    const color = inh ? (colorRaw && colorRaw.toLowerCase().trim() !== 'currentcolor' ? parseColor(colorRaw) : inh.color) : null;
     const fillRaw = getProp(style, el, 'fill');
     const strokeRaw = getProp(style, el, 'stroke');
     const swRaw = getProp(style, el, 'stroke-width');
@@ -256,7 +311,7 @@
       fill = m && gradients.has(m[1]) ? gradients.get(m[1]) : null;
       if (fill === null) fill = inhFill;
     } else if (fillRaw && fillRaw.toLowerCase().trim() === 'currentcolor') {
-      fill = inhFill;
+      fill = inh && color ? color : inhFill;
     } else if (fillRaw) {
       fill = parseColor(fillRaw);
     } else {
@@ -266,13 +321,19 @@
     if (strokeRaw && strokeRaw.toLowerCase().startsWith('url(#')) {
       const m = /^url\(#([^)]+)\)/.exec(strokeRaw);
       stroke = m && gradients.has(m[1]) ? gradients.get(m[1]) : null;
+    } else if (inh && strokeRaw && strokeRaw.toLowerCase().trim() === 'currentcolor') {
+      stroke = color || '000000';
+    } else if (inh && !strokeRaw) {
+      stroke = inh.stroke === undefined ? null : inh.stroke;
     } else {
       stroke = strokeRaw ? parseColor(strokeRaw) : null;
     }
     let sw;
     try { sw = swRaw ? pyFloat(swRaw.replace(/[^\d.]/g, '')) : 0; } catch { sw = 0; }
-    if (stroke && swRaw === null) sw = 1;
-    return [fill, stroke, sw];
+    if (inh && swRaw === null && inh.sw !== null) sw = inh.sw;
+    else if (stroke && swRaw === null) sw = 1;
+    const next = inh ? { stroke: strokeRaw || inh.stroke !== undefined ? stroke : undefined, sw: swRaw !== null ? sw : inh.sw, color } : null;
+    return [fill, stroke, sw, next];
   }
 
   // ── Basic shapes → path data ──────────────────────────────────────────
@@ -646,10 +707,24 @@
   }
 
   const ident = (x, y) => [x, y];
-  function collect(el, accXfm, inhFill, gradients, vb, out) {
+  function collect(el, accXfm, inhFill, gradients, vb, out, inh = null, depth = 0) {
     if (SKIP_TAGS.has(tagOf(el))) return out;
-    const xfm = chain(accXfm, parseTransform(attr(el, 'transform', '')));
-    const [fill, stroke, sw] = resolveFillStroke(el, gradients, inhFill);
+    let xfm = chain(accXfm, parseTransform(attr(el, 'transform', '')));
+    const [fill, stroke, sw, next] = resolveFillStroke(el, gradients, inhFill, inh);
+    // <use href="#id">: draw the referenced element (or a symbol's children)
+    // at the use's x and y. A symbol's own viewBox scaling is not applied.
+    if (inh && tagOf(el) === 'use' && depth < 8) {
+      const ref = (attr(el, 'href') || el.getAttribute('xlink:href') || el.getAttributeNS('http://www.w3.org/1999/xlink', 'href') || '').trim();
+      const target = ref.startsWith('#') ? el.ownerDocument.getElementById(ref.slice(1)) : null;
+      if (target && target !== el) {
+        let ux = 0, uy = 0;
+        try { ux = pyFloat(attr(el, 'x', 0)); uy = pyFloat(attr(el, 'y', 0)); } catch (e) { if (!(e instanceof ConvertError)) throw e; }
+        if (ux || uy) xfm = chain(xfm, parseTransform('translate(' + ux + ',' + uy + ')'));
+        if (tagOf(target) === 'symbol') for (const c of kids(target)) collect(c, xfm, fill, gradients, null, out, next, depth + 1);
+        else collect(target, xfm, fill, gradients, null, out, next, depth + 1);
+      }
+      return out;
+    }
     if (SHAPE_TAGS.has(tagOf(el)) && !(vb && isBackgroundRect(el, ...vb))) {
       let d = elementToD(el);
       if (d) d = normalizeArcs(d);
@@ -659,7 +734,7 @@
         else if (stroke && fill === null) out.push([d, xfm || ident, stroke]);
       }
     }
-    for (const c of kids(el)) collect(c, xfm, fill, gradients, vb, out);
+    for (const c of kids(el)) collect(c, xfm, fill, gradients, vb, out, next, depth);
     return out;
   }
 
@@ -946,7 +1021,8 @@
     if (parts.length !== 4) fail('viewBox needs four numbers');
     const vb = parts.map(pyFloat);
     const gradients = extractGradients(root);
-    return [vb, collect(root, null, '000000', gradients, vb, [])];
+    readSheet(root);
+    return [vb, collect(root, null, '000000', gradients, vb, [], precise ? { stroke: undefined, sw: null, color: null } : null)];
   }
 
   // JSON the way Python's json.dumps(..., separators=(',', ':')) writes it
