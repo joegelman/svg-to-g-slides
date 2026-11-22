@@ -140,6 +140,23 @@ console.log('[svg2slides] shape-tools.js loaded');
     p.t.dispatchEvent(new MouseEvent('click', o));
   }
   const sameSet = (a, b) => a.length === b.length && a.every((x) => b.includes(x));
+  // Unpacked (developer) copies only: a short log of what the tools did,
+  // readable from the page (documentElement's data-svg2s-dbg), the version
+  // on data-svg2s-version, and a way to reload the extension from the page
+  // (dispatch "svg2slides-dev-reload" on document). None of it runs in a
+  // store install.
+  const DEV = (() => { try { return !chrome.runtime.getManifest().update_url; } catch { return false; } })();
+  const dbgLog = [];
+  function dbg(...a) {
+    if (!DEV) return;
+    dbgLog.push(Math.round(performance.now()) + ' ' + a.map((x) => (typeof x === 'string' ? x : JSON.stringify(x))).join(' '));
+    if (dbgLog.length > 120) dbgLog.shift();
+    document.documentElement.dataset.svg2sDbg = JSON.stringify(dbgLog);
+  }
+  if (DEV) {
+    try { document.documentElement.dataset.svg2sVersion = chrome.runtime.getManifest().version; } catch { /* context gone */ }
+    document.addEventListener('svg2slides-dev-reload', () => { try { chrome.runtime.sendMessage({ dev: 'reload' }); } catch { /* context gone */ } });
+  }
   // A click on a text box's text selects it and puts the cursor in it in
   // one go; a copy then carries no objects, so the selection reads as
   // empty and a shift-click row in Layers would start from nothing. One
@@ -720,6 +737,14 @@ console.log('[svg2slides] shape-tools.js loaded');
     layer.style.cssText = `position:fixed;inset:0;z-index:2;pointer-events:none;background:${bg};` +
       `clip-path:inset(${v.top}px ${Math.max(0, innerWidth - v.right)}px ${Math.max(0, innerHeight - v.bottom)}px ${v.left}px);`;
     layer.append(...clones);
+    // Slides gives its hit areas pointer-events of their own, and a copy of
+    // one would swallow our clicks on the real slide underneath: every
+    // select then fell back to Tabbing through the slide's objects (slow),
+    // and objects inside groups, which Tab can't reach, could not be
+    // selected at all.
+    const through = document.createElement('style');
+    through.textContent = '#svg2slides-freeze, #svg2slides-freeze * { pointer-events: none !important; }';
+    layer.append(through);
     const pics = [...layer.querySelectorAll('image')];
     if (pics.length) layer.style.visibility = 'hidden';
     document.documentElement.insertBefore(layer, host || null);
@@ -1387,15 +1412,22 @@ console.log('[svg2slides] shape-tools.js loaded');
         await selectIds(ids);
         throw userError('Couldn’t get the picture from Slides to mask it. Try again, or copy and paste the image first.');
       }
-      // Only the picture is replaced; the shape that did the cutting stays
-      // as it was (same object, so its animation and link stay too), right
-      // under the masked picture: the picture takes whichever of the two
-      // places in the stack was higher. Counted after the picture is
-      // gone, a shape that sat above it has moved down one.
+      // Only the picture is replaced. The shape that did the cutting stays
+      // the same object, on top, and the two are grouped: the shape above,
+      // the masked picture right under it. The masked picture goes in at
+      // the shape's place in the stack (counted after the picture is gone,
+      // a shape that sat above it has moved down one), which pushes the
+      // shape up by one.
       const pi = order.indexOf(picId), mi = order.indexOf(maskId);
       const picSel = SB.readSelection();
       if (!picSel || !sameSet(topIdsOf(picSel), [picId])) throw userError('Couldn’t select the picture to mask it');
-      await SB.withClip(clip, () => replaceSelection(picSel, [entry], { srcOf: { [id]: picId }, slotIndex: pi < mi ? mi : pi }));
+      const had = new Set(order);
+      await SB.withClip(clip, () => replaceSelection(picSel, [entry], { srcOf: { [id]: picId }, slotIndex: pi < mi ? mi - 1 : mi }));
+      const made = SB.topLevelOrder().find((x) => !had.has(x));
+      if (made && SB.elementFor(maskId) && await selectIds([made, maskId])) {
+        keyCombo('g', 'KeyG', 71, Object.assign({ altKey: true }, PRIMARY));
+        await sleep(200);
+      }
     });
   }
 
@@ -1413,10 +1445,15 @@ console.log('[svg2slides] shape-tools.js loaded');
     const ids = topIdsOf(sel);
     if (ids.length !== 1) return null;
     const e = entryById(sel, ids[0]);
-    if (!e || e[0] !== 3) return null;
-    const p = e[4];
-    if (typeof SB.getProp(p, 49) !== 'string' || SB.getProp(p, 86) !== 1 || !SB.getProp(p, 12)) return null;
-    return e;
+    if (!e) return null;
+    // A group holding one masked picture (what Mask makes: the shape on
+    // top, the picture under it) counts as that picture.
+    if (e[0] === 2) {
+      const inside = sel.filter((x) => x[0] === 3 && typeof SB.getProp(x[4], 49) === 'string' && SB.getProp(x[4], 86) === 1 && !!SB.getProp(x[4], 12));
+      return inside.length === 1 ? inside[0] : null;
+    }
+    const isMasked = (x) => x[0] === 3 && typeof SB.getProp(x[4], 49) === 'string' && SB.getProp(x[4], 86) === 1 && !!SB.getProp(x[4], 12);
+    return isMasked(e) ? e : null;
   }
   const subsD = (subs) => subs.map((sp) => {
     let d = '';
@@ -1439,14 +1476,13 @@ console.log('[svg2slides] shape-tools.js loaded');
     const e = maskedPicture(sel);
     if (!e) { toast('Select one masked image to adjust the picture under its mask'); return; }
     const id = e[1];
-    if (ancestorsOf(id).length) { toast('Ungroup first: a masked image inside a group can’t be adjusted yet'); return; }
     const g = SB.elementFor(id);
     const im = g && g.querySelector('image');
     const href = im && (im.getAttribute('href') || im.getAttributeNS('http://www.w3.org/1999/xlink', 'href'));
     const path = SB.getProp(e[4], 12);
     let subs = null;
     try { subs = SB.decodePath(path[0][2], path[0][3]); } catch { subs = null; }
-    if (!href || !subs || !subs.length || !SB.pageCTM()) { toast('Couldn’t read that picture to adjust it'); return; }
+    if (!href || !subs || !subs.length || !im.getScreenCTM()) { toast('Couldn’t read that picture to adjust it'); return; }
     const lb = SB.subsBBox(subs);
     const start = SB.pictureRect(e[4], lb);
     const rect = Object.assign({}, start);
@@ -1489,7 +1525,13 @@ console.log('[svg2slides] shape-tools.js loaded');
     // The size at which the picture just covers the mask's box.
     const aspect = start.w / Math.max(start.h, 1e-9);
     const coverW = Math.max(lb.w, lb.h * aspect);
-    const T = () => SB.matMul(SB.pageCTM(), e[3]);
+    // Path units → screen, from where Slides has drawn the picture itself
+    // (so it holds inside a group, whatever the group's transform): the
+    // picture's box in path units against the <image>'s own box.
+    const num = (a) => parseFloat(im.getAttribute(a)) || 0;
+    const R0 = { x: num('x'), y: num('y'), w: num('width') || 1, h: num('height') || 1 };
+    const A = [R0.w / start.w, 0, 0, R0.h / start.h, R0.x - start.x * R0.w / start.w, R0.y - start.y * R0.h / start.h];
+    const T = () => { const c = im.getScreenCTM(); return SB.matMul([c.a, c.b, c.c, c.d, c.e, c.f], A); };
     const paint = () => {
       const t = T();
       world.setAttribute('transform', `matrix(${t.join(' ')})`);
@@ -1568,15 +1610,17 @@ console.log('[svg2slides] shape-tools.js loaded');
       if (!keep || !moved) { g.style.visibility = was; SB.focusTextbox(); return; }
       await run('maskAdjust', async () => {
         try {
-          if (!sameSet(topIdsOf(SB.readSelection()), [id]) && !(await selectIds([id]))) throw userError('Couldn’t select the masked image again to save the change');
+          // The whole top-level object goes back in one piece (the picture
+          // alone, or the group it sits in with its shape), so a grouped
+          // picture stays grouped.
+          const top = SB.topLevelIdOf(id) || id;
+          if (!sameSet(topIdsOf(SB.readSelection()), [top]) && !(await selectIds([top]))) throw userError('Couldn’t select the masked image again to save the change');
           const now = SB.readSelection();
-          const cur = maskedPicture(now);
-          if (!cur) throw userError('The masked image changed while it was being adjusted. Nothing was saved.');
-          const props = clone(cur[4]);
+          const cur = now && entryById(now, id);
+          if (!cur || !maskedPicture(now)) throw userError('The masked image changed while it was being adjusted. Nothing was saved.');
           const fit = SB.imageFillProps(rect, lb);
-          [84, 85, 79, 80].forEach((k) => SB.setProp(props, k, fit[k]));
-          const nid = SB.newId();
-          await replaceSelection(now, [[3, nid, cur[2], cur[3].slice(), props]], { srcOf: { [nid]: id } });
+          const out = now.map((x) => { if (x !== cur) return x; const c = clone(x); [84, 85, 79, 80].forEach((k) => SB.setProp(c[4], k, fit[k])); return c; });
+          await replaceSelection(now, out);
         } finally {
           const still = SB.elementFor(id);
           if (still) still.style.visibility = was;
@@ -2384,7 +2428,13 @@ console.log('[svg2slides] shape-tools.js loaded');
   function drawnPath(id) {
     const g = SB.elementFor(id);
     if (!g) return null;
-    return [...g.querySelectorAll('path')].find((p) => p.parentNode.closest('g[id^="editor-"]') === g && !(p.getAttribute('fill-opacity') === '0' && p.getAttribute('stroke-opacity') === '0') && p.getAttribute('opacity') !== '0') || null;
+    // An object's own paths, in order: (a highlight while it is selected,)
+    // the drawn shape, then its hit area (fill and stroke opacity 0). The
+    // drawn one is the path just before the hit area.
+    const own = [...g.querySelectorAll('path')].filter((p) => p.parentNode.closest('g[id^="editor-"]') === g);
+    const hit = own.findIndex((p) => p.getAttribute('fill-opacity') === '0' && p.getAttribute('stroke-opacity') === '0');
+    if (hit > 0) return own[hit - 1];
+    return own.filter((p) => p.getAttribute('opacity') !== '0' && p.hasAttribute('fill')).pop() || null;
   }
   function previewAttr(node, name, value) {
     if (!preview) { preview = { saved: new Map(), defs: [] }; SB.holdSig(true); }
@@ -2482,7 +2532,7 @@ console.log('[svg2slides] shape-tools.js loaded');
   const COLOUR_BUTTON = { fill: 'fillColorMenuButton', stroke: 'lineColorMenuButton', text: 'textColorButton' };
   async function nativeColour(which, st) {
     const b = toolbarButton(COLOUR_BUTTON[which]);
-    if (!b) return false;
+    if (!b) { dbg('colour dialog:', which, 'toolbar button not showing'); return false; }
     const hide = document.createElement('style');
     hide.textContent = '.goog-menu, .goog-menu *, .docs-material-gm-dialog, .docs-material-gm-dialog *, .modal-dialog-bg, .docs-material-gm-dialog-bg { opacity: 0 !important; transition: none !important; }';
     document.documentElement.appendChild(hide);
@@ -2631,7 +2681,8 @@ console.log('[svg2slides] shape-tools.js loaded');
     const blank = emptyCanvasPoint();
     if (blank) { clickAt(blank, false); await sleep(120); }
     keyCombo('a', 'KeyA', 65, PRIMARY, true);
-    const all = await SB.waitForSelection((x) => x.some((e) => e[0] === 3), [60, 120, 250, 500]);
+    const all = await SB.waitForSelection((x) => x.some((e) => e[0] === 3), [30, 60, 120, 250, 500]);
+    dbg('replace: select all', all ? all.filter((e) => e[0] === 3).length + ' shapes' : 'nothing', 'blank', !!blank);
     if (!all) return 0;
     const shapes = all.filter(paintable);
     const fills = shapes.filter((e) => SB.getProp(e[4], 14) !== 0 && !SB.getProp(e[4], 60) && sameHex(SB.getProp(e[4], 15), from)).map((e) => e[1]);
@@ -2653,9 +2704,13 @@ console.log('[svg2slides] shape-tools.js loaded');
       for (const group of [tops, ...inner.map((id) => [id])]) {
         if (!group.length) continue;
         await clear();
-        if (await selectIds(group) && await nativeColour(which, st)) n += group.length;
+        const picked = await selectIds(group);
+        const done = picked && await nativeColour(which, st);
+        dbg('replace:', which, group.length, 'object(s)', 'selected', picked, 'changed', !!done);
+        if (done) n += group.length;
       }
     };
+    dbg('replace: fills', fills.length, 'strokes', strokes.length, 'text', wholeText.length, 'part text', partText.length, 'gradients', grads.length);
     await each(fills, 'fill');
     await each(strokes, 'stroke');
     await each(wholeText, 'text');
@@ -2665,7 +2720,7 @@ console.log('[svg2slides] shape-tools.js loaded');
     // replaced anyway: then they go with it (one kind of undo per run).
     const viaFormat = !partText.length && grads.every((e) => oneTextStyle(all, e[1]));
     for (const e of grads) {
-      if (viaFormat) { if (await paintFormat(e[1], modelOf(all, e, swapStops))) n++; }
+      if (viaFormat) { const ok = await paintFormat(e[1], modelOf(all, e, swapStops)); dbg('replace: gradient by paint format', ok); if (ok) n++; }
       else partText.includes(e[1]) || partText.push(e[1]);
     }
     if (partText.length && (await clear(), await selectIds([...new Set(partText.map((id) => SB.topLevelIdOf(id) || id))]))) {
@@ -3157,7 +3212,7 @@ console.log('[svg2slides] shape-tools.js loaded');
     const masked = maskedPicture(sel);
     set('mask', !!masked || (ids.length === 2 && ids.some((id) => pictureOf(sel, id))));
     rk.setIcon('mask', masked ? 'maskAdjust' : 'mask');
-    rk.setTip('mask', masked ? 'Adjust the picture under its mask (or double-click it)' : 'Mask image with shape (the shape on top cuts out the picture under it)', SB.SHORTCUT_LABEL.mask);
+    rk.setTip('mask', masked ? 'Adjust the picture under its mask (or double-click it)' : 'Mask image with shape (the shape stays on top, grouped with the masked picture)', SB.SHORTCUT_LABEL.mask);
     Object.keys(OP_LABEL).forEach((op) => set(op, multi));
     set('combine', multi || ids.length >= 2 || isGroup);
     set('outlineStroke', paths.some((p) => p.hasStroke));

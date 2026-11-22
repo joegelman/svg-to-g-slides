@@ -20,3 +20,10 @@ chrome.runtime.onInstalled.addListener(({ reason, previousVersion }) => {
     chrome.storage.local.set({ whatsNew: ANNOUNCE });
   }
 });
+
+// Unpacked (developer) copies only: let the page ask for a reload of the
+// extension, so a new build on disk can be picked up without opening
+// chrome://extensions. A store install has an update_url and ignores this.
+chrome.runtime.onMessage.addListener((msg) => {
+  if (msg && msg.dev === 'reload' && !chrome.runtime.getManifest().update_url) chrome.runtime.reload();
+});
