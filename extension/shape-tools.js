@@ -1424,10 +1424,28 @@ console.log('[svg2slides] shape-tools.js loaded');
       const had = new Set(order);
       await SB.withClip(clip, () => replaceSelection(picSel, [entry], { srcOf: { [id]: picId }, slotIndex: pi < mi ? mi - 1 : mi }));
       const made = SB.topLevelOrder().find((x) => !had.has(x));
-      if (made && SB.elementFor(maskId) && await selectIds([made, maskId])) {
+      if (!made || !SB.elementFor(maskId)) return;
+      // Group while the shape still has its fill (something to click), then
+      // empty the fill of the shape inside the group, so the picture shows
+      // through its outline.
+      const t1 = performance.now();
+      const both = await selectIds([made, maskId]);
+      if (both) {
         keyCombo('g', 'KeyG', 71, Object.assign({ altKey: true }, PRIMARY));
-        await sleep(200);
+        for (let i = 0; i < 25 && topIdsOf(SB.readSelection()).length !== 1; i++) await sleep(16);
       }
+      const gid = both && topIdsOf(SB.readSelection()).length === 1 ? topIdsOf(SB.readSelection())[0] : null;
+      // A mask made of several shapes (a group, outlined text): each one.
+      const mg = SB.elementFor(maskId);
+      const kids = mg ? [...mg.querySelectorAll('g[id^="editor-"]')].filter((x) => !/-paragraph-/.test(x.id) && !x.querySelector('g[id^="editor-"]:not([id*="-paragraph-"])')).map((x) => x.id.slice(7)) : [];
+      const leaves = kids.length ? kids : [maskId];
+      let alone = 0;
+      const clear = (n) => /^\s*Transparent\s*$/.test(n.textContent || '');
+      if (gid) {
+        for (const id of leaves) if (await deepSelect(id, false) && await pickFromMenu('fill', clear)) alone++;
+      } else if (await selectIds([maskId]) && await pickFromMenu('fill', clear)) alone = leaves.length;
+      if (gid) { await clearSel(); await selectIds([gid]); }
+      dbg('mask: both', both, 'group', gid, 'shapes emptied', alone, 'of', leaves.length, Math.round(performance.now() - t1) + 'ms');
     });
   }
 
@@ -2302,15 +2320,20 @@ console.log('[svg2slides] shape-tools.js loaded');
   async function pickFromMenu(which, test) {
     const b = toolbarButton(MENU_IDS[which]);
     if (!b) return false;
-    pressEl(b);
-    await sleep(220);
-    const m = openSlidesMenu();
-    const item = m && [...m.querySelectorAll('[aria-label], .goog-menuitem')].find(test);
-    if (!item) { if (m) pressEl(b); return false; }
-    pressEl(item.closest('.goog-menuitem') || item);
-    SB.tick();
-    await sleep(200);
-    return true;
+    const hide = document.createElement('style');
+    hide.textContent = '.goog-menu, .goog-menu * { opacity: 0 !important; transition: none !important; }';
+    document.documentElement.appendChild(hide);
+    try {
+      pressEl(b);
+      let m = null;
+      for (let i = 0; i < 40 && !(m = openSlidesMenu()); i++) await sleep(16);
+      const item = m && [...m.querySelectorAll('[aria-label], .goog-menuitem')].find(test);
+      if (!item) { if (m) pressEl(b); return false; }
+      pressEl(item.closest('.goog-menuitem') || item);
+      SB.tick();
+      await sleep(60);
+      return true;
+    } finally { hide.remove(); }
   }
   // ── Fill, stroke and text colour ────────────────────────────────────────
   // The panel itself is RK.paintPanel (shared with Edit Shape). This is
@@ -2397,25 +2420,30 @@ console.log('[svg2slides] shape-tools.js loaded');
     props.push(60, st.mode === 'linear' ? 1 : 2, 61, stops, 62, st.mode === 'linear' ? Math.round((((st.angle % 360) + 360) % 360) * Math.PI / 180 * 1e4) / 1e4 : 1.5708);
     if (st.mode === 'radial') props.push(73, st.centre || 0);
   }
-  function coloursIn(nodes, cap) {
+  // The colours a slide draws with, most used first, read object by
+  // object (so a picture's hidden base colour and selection marks stay out).
+  function coloursUnder(roots, cap) {
     const seen = new Map();
-    nodes.forEach((n) => ['fill', 'stroke', 'stop-color'].forEach((a) => {
-      const raw = n.getAttribute(a) || (a === 'fill' && n.tagName === 'text' ? getComputedStyle(n).fill : '');
-      if (!raw || /^url\(/.test(raw) || SELECTION_BLUE.test(raw)) return;
-      const c = normHex(hex(raw) || '');
-      if (c) seen.set(c.hex, (seen.get(c.hex) || 0) + 1);
-    }));
+    const add = (h) => { if (h) seen.set(h, (seen.get(h) || 0) + 1); };
+    roots.forEach(([root, kind]) => {
+      const objSel = kind === 'film' ? '[id^="filmstrip-slide-"]' : 'g[id^="editor-"]';
+      root.querySelectorAll(objSel).forEach((g) => {
+        if (/-bg$|-paragraph-\d+$/.test(g.id)) return;
+        if ([...g.querySelectorAll(objSel)].some((c) => !/-bg$|-paragraph-\d+$/.test(c.id))) return;
+        const c = coloursOfObject(g, objSel);
+        add(c.fill); add(c.stroke); c.texts.forEach(add); c.stops.forEach(add);
+      });
+    });
     return [...seen.entries()].sort((a, b) => b[1] - a[1]).map((x) => x[0]).slice(0, cap);
   }
   function slideColours() {
     const page = SB.currentPageGroup();
-    return page ? coloursIn([...page.querySelectorAll('path, text, stop')], 27) : [];
+    return page ? coloursUnder([[page, 'page']], 27) : [];
   }
-  // Every slide's colours without opening each one: the filmstrip draws
-  // them all as small SVGs (plus any slide already opened this session).
+  // Every slide's colours without opening any: the filmstrip draws them all.
   function deckColours() {
-    const nodes = [...document.querySelectorAll('.punch-filmstrip-thumbnail path, .punch-filmstrip-thumbnail text, .punch-filmstrip-thumbnail stop, g[id^="editor-"] path, g[id^="editor-"] text')];
-    return coloursIn(nodes, 45);
+    const page = SB.currentPageGroup();
+    return coloursUnder([...(page ? [[page, 'page']] : []), ...[...document.querySelectorAll('.punch-filmstrip-thumbnail')].map((t) => [t, 'film'])], 45);
   }
   // ── Live preview ────────────────────────────────────────────────────────
   // While the panel is open the slide shows the colour in hand: the drawn
@@ -2498,6 +2526,42 @@ console.log('[svg2slides] shape-tools.js loaded');
       if (k && k.hex === st.from && !SELECTION_BLUE.test(n.getAttribute('stroke') || '')) previewAttr(n, 'stroke', st.hex);
     });
   }
+  // Highlighted text: Slides draws the highlight as rects inside the
+  // paragraph's group, beside the words (each run of words is a <text>).
+  // The words under a highlight wear the colour. A word only partly
+  // highlighted is shown whole or not at all (more than half decides).
+  function previewText(st) {
+    clearPreview();
+    const page = SB.currentPageGroup();
+    if (!page) return;
+    page.querySelectorAll('g[id*="-paragraph-"]').forEach((para) => {
+      const marks = [...para.querySelectorAll('rect')].filter((r) => !r.closest('.sketchy-text-content')).map((r) => r.getBoundingClientRect()).filter((b) => b.width > 3 && b.height > 3);
+      if (!marks.length) return;
+      para.querySelectorAll('text').forEach((t) => {
+        const b = t.getBoundingClientRect();
+        if (!b.width) return;
+        const cy = b.top + b.height / 2;
+        const covered = marks.reduce((sum, m) => (cy < m.top || cy > m.bottom ? sum : sum + Math.max(0, Math.min(b.right, m.right) - Math.max(b.left, m.left))), 0);
+        if (covered > b.width / 2) previewAttr(t, 'style.fill', st.hex);
+      });
+    });
+  }
+  // Stroke weight as it is typed or scrubbed in the toolbar's field.
+  let weightIds = null;
+  function previewWeight(v) {
+    const px = parseFloat(v);
+    if (!Number.isFinite(px) || px < 0) return;
+    if (!weightIds) weightIds = (SB.readSelection() || []).filter(paintable).map((e) => e[1]);
+    weightIds.forEach((id) => {
+      const p = drawnPath(id);
+      if (!p) return;
+      if (px === 0) { previewAttr(p, 'stroke-opacity', '0'); return; }
+      if (!p.getAttribute('stroke') || p.getAttribute('stroke') === 'none') previewAttr(p, 'stroke', lastStroke || '#000000');
+      if (p.getAttribute('stroke-opacity') !== '1') previewAttr(p, 'stroke-opacity', '1');
+      previewAttr(p, 'stroke-width', String(Math.max(1, Math.round(px * 381))));
+    });
+  }
+
   // ✓: the still copy is taken while the slide still wears the preview (so
   // nothing jumps back), then the preview comes off and the real change
   // is made underneath.
@@ -2539,10 +2603,23 @@ console.log('[svg2slides] shape-tools.js loaded');
     const shown = (n) => n && n.getBoundingClientRect().width > 0 && getComputedStyle(n).display !== 'none' && getComputedStyle(n).visibility !== 'hidden';
     const until = async (f, ms) => { const t = performance.now(); let v; while (!(v = f()) && performance.now() - t < ms) await sleep(16); return v; };
     const field = () => [...document.querySelectorAll('input.docs-material-hex-input')].filter(shown).pop(); // earlier dialogs stay in the page, hidden
+    // A colour menu still up from the step before would be taken for this
+    // button's (seen live: a text colour went on as a fill). A press on
+    // the page closes any that are open; this button's own menu is the one
+    // showing once the button reports itself expanded.
+    const shownMenus = () => [...document.querySelectorAll('.goog-menu')].filter(shown);
+    const closeMenus = async () => {
+      if (!shownMenus().length) return;
+      const o = { bubbles: true, cancelable: true, view: window, clientX: 4, clientY: Math.round(window.innerHeight / 2), button: 0 };
+      document.body.dispatchEvent(new MouseEvent('mousedown', o));
+      document.body.dispatchEvent(new MouseEvent('mouseup', o));
+      await until(() => !shownMenus().length, 300);
+    };
     try {
+      await closeMenus();
       pressEl(b);
-      const menu = await until(() => [...document.querySelectorAll('.goog-menu')].find((m) => shown(m) && m.querySelector('.docs-customcolorpalette-add-custom-color-button')), 700);
-      if (!menu) return false;
+      const menu = await until(() => b.getAttribute('aria-expanded') === 'true' && shownMenus().find((m) => m.querySelector('.docs-customcolorpalette-add-custom-color-button')), 700);
+      if (!menu) { dbg('colour dialog:', which, 'menu did not open'); return false; }
       // The fill menu opens on whichever of Solid / Gradient was used last.
       const solid = [...menu.querySelectorAll('[role="tab"]')].find((t) => /^\s*Solid\s*$/.test(t.textContent || ''));
       if (solid && solid.getAttribute('aria-selected') !== 'true') { pressEl(solid); await sleep(60); }
@@ -2565,7 +2642,8 @@ console.log('[svg2slides] shape-tools.js loaded');
       pressEl(ok);
       SB.tick();
       await until(() => !field(), 900);
-      await sleep(80);
+      await sleep(30);
+      await closeMenus();
       return !field();
     } finally {
       // Never leave a dialog or menu open and invisible.
@@ -2631,14 +2709,25 @@ console.log('[svg2slides] shape-tools.js loaded');
       const ids = topIdsOf(sel);
       const shapes = sel.filter(paintable);
       if (!shapes.length) throw userError('Nothing selected can take a ' + (which === 'fill' ? 'fill' : 'stroke'));
+      // A picture in the selection (a masked image grouped with its shape):
+      // Slides' fill would land on the picture too and wipe it out, so the
+      // shapes are done one at a time and the picture is left alone.
+      const withPicture = sel.some((e) => e[0] === 3 && !paintable(e));
+      if (withPicture && which === 'fill' && st.mode !== 'none') throw userError('A fill here would cover the masked image. Click the shape inside the group to fill it on its own.');
+      const onEach = async (fn) => {
+        if (!withPicture) return fn();
+        for (const e of shapes) { if (!(await quickSelect([e[1]]))) return false; if (!(await fn())) return false; }
+        await quickSelect(ids);
+        return true;
+      };
       // Slides' border dialog has no opacity, so a see-through stroke goes the paint-format way below.
       if (st.mode === 'solid' && (which === 'fill' || st.alpha >= 0.995)) {
-        if (!(await nativeColour(which, st))) throw userError('Couldn’t reach Slides’ colour dialog here (is its toolbar button hidden under ⋮?). Use the Slides menu.');
+        if (!(await onEach(() => nativeColour(which, st)))) throw userError('Couldn’t reach Slides’ colour dialog here (is its toolbar button hidden under ⋮?). Use the Slides menu.');
         noteRecent([st.hex]);
         return;
       }
       if (st.mode === 'none') {
-        if (!(await pickFromMenu(which, (n) => /^\s*Transparent\s*$/.test(n.textContent || '')))) throw userError('Couldn’t turn the ' + (which === 'fill' ? 'fill' : 'stroke') + ' off here. Use the Slides menu.');
+        if (!(await onEach(() => pickFromMenu(which, (n) => /^\s*Transparent\s*$/.test(n.textContent || ''))))) throw userError('Couldn’t turn the ' + (which === 'fill' ? 'fill' : 'stroke') + ' off here. Use the Slides menu.');
         return;
       }
       // Gradient: paint format where the text allows it.
@@ -2668,74 +2757,147 @@ console.log('[svg2slides] shape-tools.js loaded');
   }
 
   // ── Replace a colour everywhere on the slide (or the deck) ─────────────
-  // With nothing selected the panel asks which colour on the slide to
-  // change and what to. Every use of it changes: fills, strokes, gradient
-  // stops and text.
+  // With nothing selected the panel asks which colour to change and what
+  // to. Every use of it changes: fills, strokes, gradient stops and text.
+  //
+  // What uses a colour is read from the drawing, not by selecting
+  // everything and copying it: Slides draws each object as a group with
+  // the object's id, on the open slide (g#editor-<id>) and, for every
+  // slide in the deck, in the filmstrip (#filmstrip-slide-<n>-<id> inside
+  // a thumbnail that carries data-slide-page-id). So which slides use a
+  // colour, and which objects on them, is known before anything is
+  // touched; slides that don't use it are never opened, and on a slide
+  // only the objects that do are selected. (Checked live, Nov 22 2026.)
   const sameHex = (a, b) => typeof a === 'string' && typeof b === 'string' && a.toUpperCase() === b.toUpperCase();
+  const hexOf = (raw) => { const c = raw && !/^url\(/.test(raw) ? normHex(hex(raw) || '') : null; return c ? c.hex : null; };
+  // One object's colours. `objSel` matches object groups under `root`.
+  function coloursOfObject(g, objSel) {
+    const mine = (n) => { let p = n.parentNode.closest(objSel); while (p && /-paragraph-\d+$/.test(p.id)) p = p.parentNode.closest(objSel); return p === g; };
+    const out = { fill: null, stroke: null, texts: [], stops: [] };
+    // A picture (plain or masked) has a base colour under it that never shows: not a use.
+    if ([...g.querySelectorAll('image')].some(mine)) return out;
+    const paths = [...g.querySelectorAll('path')].filter(mine).filter((p) => !(p.getAttribute('fill-opacity') === '0' && p.getAttribute('stroke-opacity') === '0') && p.getAttribute('opacity') !== '0' && !SELECTION_BLUE.test(p.getAttribute('stroke') || ''));
+    const p = paths.filter((x) => x.hasAttribute('fill') || x.hasAttribute('stroke')).pop();
+    if (p) {
+      const f = p.getAttribute('fill') || '';
+      const m = /^url\(["']?#([^"')]+)/.exec(f);
+      if (m) { const gr = (g.ownerSVGElement || document).querySelector('[id="' + m[1] + '"]') || document.getElementById(m[1]); if (gr) out.stops = [...gr.querySelectorAll('stop')].map((st) => hexOf(st.getAttribute('stop-color'))).filter(Boolean); }
+      else if (p.getAttribute('fill-opacity') !== '0') out.fill = hexOf(f);
+      if (p.getAttribute('stroke-opacity') !== '0' && parseFloat(p.getAttribute('stroke-width')) > 0) out.stroke = hexOf(p.getAttribute('stroke') || '');
+    }
+    out.texts = [...g.querySelectorAll('text')].filter(mine).map((t) => hexOf(t.style.fill || t.getAttribute('fill') || '')).filter(Boolean);
+    return out;
+  }
+  // Every object under `root` that draws with `from`, by what it uses it for.
+  function usesOf(root, from, kind) {
+    const objSel = kind === 'film' ? '[id^="filmstrip-slide-"]' : 'g[id^="editor-"]';
+    const strip = kind === 'film' ? /^filmstrip-slide-\d+-/ : /^editor-/;
+    const res = { fills: [], strokes: [], wholeText: [], partText: [], grads: [], known: false };
+    root.querySelectorAll(objSel).forEach((g) => {
+      if (g === root || /-bg$|-paragraph-\d+$/.test(g.id)) return;
+      res.known = true;
+      if ([...g.querySelectorAll(objSel)].some((c) => !/-bg$|-paragraph-\d+$/.test(c.id))) return; // a group: its children carry the paint
+      const id = g.id.replace(strip, '');
+      const c = coloursOfObject(g, objSel);
+      if (sameHex(c.fill, from)) res.fills.push(id);
+      if (sameHex(c.stroke, from)) res.strokes.push(id);
+      if (c.stops.some((x) => sameHex(x, from))) res.grads.push(id);
+      if (c.texts.some((x) => sameHex(x, from))) (c.texts.every((x) => sameHex(x, from)) ? res.wholeText : res.partText).push(id);
+    });
+    res.count = res.fills.length + res.strokes.length + res.wholeText.length + res.partText.length + res.grads.length;
+    return res;
+  }
+  // The deck, slide by slide: { pageId, uses } in filmstrip order. A
+  // thumbnail Slides hasn't drawn yet (far down a long deck) is "unknown"
+  // and gets opened to be sure.
+  function deckUses(from) {
+    return [...document.querySelectorAll('.punch-filmstrip-thumbnail')].map((t) => ({ pageId: t.getAttribute('data-slide-page-id'), uses: usesOf(t, from, 'film') }));
+  }
+  const currentPageId = () => { const g = SB.currentPageGroup(); return g ? g.id.replace(/^editor-/, '') : null; };
+  // Open a slide by its id (the address bar's #slide=id.…), which is quick
+  // and leaves the keyboard with the canvas, unlike a filmstrip click.
+  async function openSlide(pageId) {
+    if (currentPageId() === pageId) return true;
+    location.hash = '#slide=id.' + pageId;
+    for (let k = 0; k < 150 && currentPageId() !== pageId; k++) await sleep(20);
+    if (currentPageId() !== pageId) return false;
+    // Its objects are drawn a moment after the page appears.
+    const page = SB.currentPageGroup();
+    let last = -1;
+    for (let k = 0; k < 20; k++) { const n = page.querySelectorAll('g[id^="editor-"]').length; if (n === last) break; last = n; await sleep(30); }
+    return true;
+  }
+  const clearSel = async () => { if (!SB.readSelection() && !textRangeSelected()) return; SB.focusTextbox(); SB.pressKey('Escape'); await sleep(25); if (SB.readSelection()) { SB.pressKey('Escape'); await sleep(25); } };
+  // Several top-level objects at once: click the first, shift-click the
+  // rest without stopping to read the selection in between, check once.
+  async function quickSelect(ids) {
+    const inner = ids.some((id) => ancestorsOf(id).length);
+    if (ids.length > 1 && !inner) {
+      const pts = ids.map((id) => visiblePoint(id));
+      if (pts.every(Boolean)) {
+        await clearSel();
+        clickAt(pts[0], false);
+        for (let i = 1; i < pts.length; i++) clickAt(pts[i], true);
+        await sleep(40);
+        await outOfText();
+        if (sameSet(topIdsOf(SB.readSelection()), ids)) return true;
+      }
+    }
+    await clearSel();
+    return selectIds(ids);
+  }
   async function replaceOnSlide(from, st) {
-    SB.focusTextbox();
-    SB.pressKey('Escape'); await sleep(40);
-    SB.pressKey('Escape'); await sleep(40);
-    // Select all means the slide's objects only once the canvas has had a
-    // click; straight after a filmstrip click it means the slides (checked live).
-    const blank = emptyCanvasPoint();
-    if (blank) { clickAt(blank, false); await sleep(120); }
-    keyCombo('a', 'KeyA', 65, PRIMARY, true);
-    const all = await SB.waitForSelection((x) => x.some((e) => e[0] === 3), [30, 60, 120, 250, 500]);
-    dbg('replace: select all', all ? all.filter((e) => e[0] === 3).length + ' shapes' : 'nothing', 'blank', !!blank);
-    if (!all) return 0;
-    const shapes = all.filter(paintable);
-    const fills = shapes.filter((e) => SB.getProp(e[4], 14) !== 0 && !SB.getProp(e[4], 60) && sameHex(SB.getProp(e[4], 15), from)).map((e) => e[1]);
-    const strokes = shapes.filter((e) => SB.getProp(e[4], 18) !== 0 && sameHex(SB.getProp(e[4], 19), from)).map((e) => e[1]);
-    const grads = shapes.filter((e) => SB.getProp(e[4], 60) && (SB.getProp(e[4], 61) || []).some((x) => sameHex(x[0], from)));
-    const texty = all.filter((e) => e[0] === 3).map((e) => ({ e, runs: charRuns(all, e[1]) })).filter((x) => x.runs.some((r) => sameHex(SB.getProp(r[6], 4), from)));
-    // All of an object's text in the colour: Slides' text colour does it.
-    // Only some of it: that object is replaced with the runs recoloured.
-    const wholeText = texty.filter((x) => x.runs.every((r) => sameHex(SB.getProp(r[6], 4), from))).map((x) => x.e[1]);
-    const partText = texty.filter((x) => !wholeText.includes(x.e[1])).map((x) => x.e[1]);
+    const page = SB.currentPageGroup();
+    if (!page) return 0;
+    const t0 = performance.now();
+    const u = usesOf(page, from, 'page');
+    dbg('replace on', page.id, 'fills', u.fills.length, 'strokes', u.strokes.length, 'text', u.wholeText.length, 'part text', u.partText.length, 'gradients', u.grads.length);
+    if (!u.count) return 0;
     let n = 0;
-    // Start from nothing selected each time (everything is selected right
-    // now, and a shift-click would take objects out). Objects at the top
-    // level go together; an object inside a group can't be selected along
-    // with anything outside it, so those go one at a time.
-    const clear = async () => { SB.focusTextbox(); SB.pressKey('Escape'); await sleep(40); SB.pressKey('Escape'); await sleep(40); };
+    // Objects at the top level go together; an object inside a group can't
+    // be selected along with anything outside it, so those go one by one.
     const each = async (list, which) => {
       const tops = list.filter((id) => !ancestorsOf(id).length), inner = list.filter((id) => ancestorsOf(id).length);
       for (const group of [tops, ...inner.map((id) => [id])]) {
         if (!group.length) continue;
-        await clear();
-        const picked = await selectIds(group);
+        const picked = await quickSelect(group);
         const done = picked && await nativeColour(which, st);
-        dbg('replace:', which, group.length, 'object(s)', 'selected', picked, 'changed', !!done);
+        dbg('  ', which, group.length, 'selected', picked, 'changed', !!done, Math.round(performance.now() - t0) + 'ms');
         if (done) n += group.length;
       }
     };
-    dbg('replace: fills', fills.length, 'strokes', strokes.length, 'text', wholeText.length, 'part text', partText.length, 'gradients', grads.length);
-    await each(fills, 'fill');
-    await each(strokes, 'stroke');
-    await each(wholeText, 'text');
-    await clear();
+    await each(u.fills, 'fill');
+    await each(u.strokes, 'stroke');
+    await each(u.wholeText, 'text');
     const swapStops = (props) => SB.setProp(props, 61, SB.getProp(props, 61).map((x) => (sameHex(x[0], from) ? [st.hex, x[1]] : x)));
-    // Gradients by paint format, unless something on this slide has to be
-    // replaced anyway: then they go with it (one kind of undo per run).
-    const viaFormat = !partText.length && grads.every((e) => oneTextStyle(all, e[1]));
-    for (const e of grads) {
-      if (viaFormat) { const ok = await paintFormat(e[1], modelOf(all, e, swapStops)); dbg('replace: gradient by paint format', ok); if (ok) n++; }
-      else partText.includes(e[1]) || partText.push(e[1]);
+    // Gradients by paint format, unless something here has to be replaced
+    // anyway (text in several colours): then they go with it, so one run
+    // has one kind of undo.
+    const viaReplace = [...u.partText];
+    for (const id of u.grads) {
+      if (u.partText.length) { viaReplace.includes(id) || viaReplace.push(id); continue; }
+      if (!(await quickSelect([id]))) continue;
+      const sel = SB.readSelection();
+      const e = sel && entryById(sel, id);
+      if (!e || !SB.getProp(e[4], 61)) continue;
+      if (!oneTextStyle(sel, id)) { viaReplace.push(id); continue; }
+      const ok = await paintFormat(id, modelOf(sel, e, swapStops));
+      dbg('   gradient by paint format', ok, Math.round(performance.now() - t0) + 'ms');
+      if (ok) n++;
     }
-    if (partText.length && (await clear(), await selectIds([...new Set(partText.map((id) => SB.topLevelIdOf(id) || id))]))) {
+    if (viaReplace.length && await quickSelect([...new Set(viaReplace.map((id) => SB.topLevelIdOf(id) || id))])) {
       const part = SB.readSelection();
       if (part) {
         const out = part.map((e) => {
-          if (e[0] === 17 && partText.includes(e[1]) && Array.isArray(e[6]) && sameHex(SB.getProp(e[6], 4), from)) { const c = clone(e); SB.setProp(c[6], 4, st.hex); return c; }
-          if (e[0] === 3 && partText.includes(e[1]) && SB.getProp(e[4], 60)) { const c = clone(e); swapStops(c[4]); return c; }
+          if (e[0] === 17 && viaReplace.includes(e[1]) && Array.isArray(e[6]) && sameHex(SB.getProp(e[6], 4), from)) { const c = clone(e); SB.setProp(c[6], 4, st.hex); return c; }
+          if (e[0] === 3 && viaReplace.includes(e[1]) && SB.getProp(e[4], 60) && Array.isArray(SB.getProp(e[4], 61))) { const c = clone(e); swapStops(c[4]); return c; }
           return e;
         });
-        if (await replaceSelectionNow(part, out, { reselect: false })) { n += partText.length; notes.add('Objects with text in several colours were replaced to change part of it (animations on them are lost)'); }
+        if (await replaceSelectionNow(part, out, { reselect: false })) { n += viaReplace.length; notes.add('Objects with text in several colours were replaced to change part of it (animations on them are lost)'); }
       }
     }
-    SB.focusTextbox();
-    SB.pressKey('Escape'); await sleep(40);
+    await clearSel();
+    dbg('replace on', page.id, 'done', n, Math.round(performance.now() - t0) + 'ms');
     return n;
   }
   // A still copy over the filmstrip while slides are walked through.
@@ -2764,51 +2926,29 @@ console.log('[svg2slides] shape-tools.js loaded');
       if (!st.deck) {
         n = await replaceOnSlide(st.from, st);
       } else {
-        // This slide first, then the rest by their thumbnails. This slide
-        // first so its steps are the last to be undone: ⌘Z walks back
-        // until this slide looks as it did, and by then the others are done.
+        // This slide first so its steps are the last to be undone, then
+        // every other slide the filmstrip shows using the colour.
         SB.forceMacro();
         SB.exactMacro();
-        const thumbs = () => [...document.querySelectorAll('.punch-filmstrip-thumbnail')];
-        const pageId = () => { const g = SB.currentPageGroup(); return g ? g.id : null; };
-        const total = thumbs().length;
-        const home = pageId();
+        const home = currentPageId();
+        const plan = deckUses(st.from).filter((x) => x.pageId && x.pageId !== home && (x.uses.count || !x.uses.known));
+        const total = plan.length + 1;
+        dbg('replace deck: home', home, 'other slides to open', plan.map((x) => x.pageId + ':' + (x.uses.known ? x.uses.count : '?')).join(' '));
         const cover = freezeFilmstrip();
-        const film = document.querySelector('.punch-filmstrip-scroll');
-        const scroll0 = film ? film.scrollTop : 0;
-        const go = async (i) => {
-          const t = thumbs()[i];
-          if (!t) return false;
-          const before = pageId();
-          t.scrollIntoView({ block: 'nearest' });
-          const r = t.getBoundingClientRect();
-          clickAt({ x: r.left + r.width / 2, y: r.top + r.height / 2, t: document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2) || t }, false);
-          for (let k = 0; k < 40 && pageId() === before; k++) await sleep(50);
-          await sleep(150);
-          return true;
-        };
         try {
           progress(`Replacing the colour: slide 1 of ${total}`, 0);
           n += await replaceOnSlide(st.from, st);
-          const seen = new Set([home]);
-          let homeIndex = -1, done = 1;
-          for (let i = 0; i < total; i++) {
-            if (!(await go(i))) break;
-            const id = pageId();
-            if (id === home) { homeIndex = i; continue; }
-            if (seen.has(id)) continue; // that slide didn't open
-            seen.add(id);
+          let done = 1;
+          for (const x of plan) {
+            progress(`Replacing the colour: slide ${done + 1} of ${total}`, done / total);
+            if (await openSlide(x.pageId)) n += await replaceOnSlide(st.from, st);
+            else dbg('replace deck: could not open', x.pageId);
             done++;
-            progress(`Replacing the colour: slide ${done} of ${total}`, (done - 1) / total);
-            n += await replaceOnSlide(st.from, st);
           }
-          slides = done;
+          slides = total;
           progress('Replacing the colour: finishing', 1);
-          if (homeIndex >= 0) await go(homeIndex);
-          const blank = emptyCanvasPoint();
-          if (blank) { clickAt(blank, false); await sleep(80); }
+          await openSlide(home);
         } finally {
-          if (film) film.scrollTop = scroll0;
           if (cover) cover.remove();
         }
       }
@@ -2830,8 +2970,9 @@ console.log('[svg2slides] shape-tools.js loaded');
     if (textRangeSelected()) {
       if (which === 'stroke') { showSlidesMenu('stroke'); return; }
       open({ which: 'text', title: 'Text colour', modes: [['solid', 'Solid']], noAlpha: true, state: { mode: 'solid', hex: '#000000', alpha: 1 },
+        live: true, onChange: (st) => previewText(st),
         onMenu: () => { const b = toolbarButton(COLOUR_BUTTON.text); if (b) pressEl(b); },
-        onDone: (keep, st) => { if (keep) applyPaintState('text', st); } });
+        onDone: (keep, st) => { if (keep) commitWithPreview(() => applyPaintState('text', st)); else clearPreview(); } });
       return;
     }
     await outOfText();
@@ -3128,8 +3269,13 @@ console.log('[svg2slides] shape-tools.js loaded');
         { act: 'edit', tip: 'Edit Shape (double-click a shape)' }, { act: 'pen', tip: 'Pen: draw a shape anywhere', key: SB.SHORTCUT_LABEL.pen }, { act: 'palette', tip: 'Commands', key: SB.SHORTCUT_LABEL.palette }],
     ], [], (act) => command(act), {
       label: 'Shape tools', onEnter: () => refreshSelection(),
-      onField: (act, v, how) => { if (act === 'weight' && how.commit) setStrokeWeight(v); },
-      onFieldBlur: () => SB.focusTextbox(),
+      onField: (act, v, how) => {
+        if (act !== 'weight') return;
+        if (how.live) previewWeight(v);
+        else if (how.commit) { weightIds = null; commitWithPreview(() => setStrokeWeight(v)); }
+        else { weightIds = null; clearPreview(); }
+      },
+      onFieldBlur: () => { weightIds = null; if (!busy) clearPreview(); SB.focusTextbox(); },
     });
     rail = rk.rail;
     tip = rk.tip;
@@ -3212,7 +3358,7 @@ console.log('[svg2slides] shape-tools.js loaded');
     const masked = maskedPicture(sel);
     set('mask', !!masked || (ids.length === 2 && ids.some((id) => pictureOf(sel, id))));
     rk.setIcon('mask', masked ? 'maskAdjust' : 'mask');
-    rk.setTip('mask', masked ? 'Adjust the picture under its mask (or double-click it)' : 'Mask image with shape (the shape stays on top, grouped with the masked picture)', SB.SHORTCUT_LABEL.mask);
+    rk.setTip('mask', masked ? 'Adjust the picture under its mask (or double-click it)' : 'Mask image with shape (the shape stays on top, unfilled, grouped with the masked picture)', SB.SHORTCUT_LABEL.mask);
     Object.keys(OP_LABEL).forEach((op) => set(op, multi));
     set('combine', multi || ids.length >= 2 || isGroup);
     set('outlineStroke', paths.some((p) => p.hasStroke));

@@ -10,8 +10,8 @@ html,body{margin:0;height:100%;background:#f8fafd;font-family:Arial}
  <div id="textColorButton" style="width:28px;height:28px;background:#bbb" title="text"></div>
 </div>
 <div class="filmstrip" style="position:absolute;left:0;top:60px;width:200px;bottom:0"><div class="punch-filmstrip-scroll"><svg class="punch-filmstrip-thumbnails" width="180" height="240" xmlns="http://www.w3.org/2000/svg">
- <g class="punch-filmstrip-thumbnail"><rect class="punch-filmstrip-thumbnail-background" x="10" y="10" width="160" height="90" fill="#ffffff"/><path d="M20 20H80V60H20Z" fill="#4285F4"/></g>
- <g class="punch-filmstrip-thumbnail"><rect class="punch-filmstrip-thumbnail-background" x="10" y="120" width="160" height="90" fill="#ffffff"/><path d="M20 130H80V170H20Z" fill="#9C27B0"/></g>
+ <g class="punch-filmstrip-thumbnail" data-slide-page-id="p"><rect class="punch-filmstrip-thumbnail-background" x="10" y="10" width="160" height="90" fill="#ffffff"/><g id="filmstrip-slide-0-x1"><path d="M20 20H80V60H20Z" fill="#4285F4" fill-opacity="1"/></g></g>
+ <g class="punch-filmstrip-thumbnail" data-slide-page-id="p2"><rect class="punch-filmstrip-thumbnail-background" x="10" y="120" width="160" height="90" fill="#ffffff"/><g id="filmstrip-slide-1-x2"><path d="M20 130H80V170H20Z" fill="#9C27B0" fill-opacity="1"/></g></g>
 </svg></div></div>
 <div id="workspace-container"><div id="workspace">
 <svg id="stage" width="960" height="540" style="position:absolute;left:40px;top:30px;background:#fff" xmlns="http://www.w3.org/2000/svg">
@@ -66,7 +66,9 @@ addEventListener('load',()=>{const d=document.querySelector('iframe').contentDoc
 FAKE.tab='Gradient'; FAKE.native=[]; FAKE.textRange=false; FAKE.textColour=null;
 const setP=(props,k,v)=>{for(let i=0;i+1<props.length;i+=2)if(props[i]===k){props[i+1]=v;return;}props.push(k,v);};
 const delP=(props,k)=>{for(let i=0;i+1<props.length;i+=2)if(props[i]===k){props.splice(i,2);return;}};
-const closeMenus=()=>document.querySelectorAll('.goog-menu,.docs-material-gm-dialog').forEach(n=>n.remove());
+const closeMenus=()=>{document.querySelectorAll('.goog-menu,.docs-material-gm-dialog').forEach(n=>n.remove()); ['fillColorMenuButton','lineColorMenuButton','textColorButton'].forEach(id=>document.getElementById(id).setAttribute('aria-expanded','false'));};
+// like Slides: a press anywhere else on the page closes an open menu
+document.body.addEventListener('mousedown',e=>{ if(e.target===document.body&&!document.querySelector('.docs-material-gm-dialog')) closeMenus(); });
 const targets=()=>FAKE.objs.filter(o=>FAKE.sel.includes(o[1]));
 // Slides' own undo history: one entry per change, ⌘Z steps back one.
 FAKE.hist=[]; FAKE.snap=()=>FAKE.hist.push(JSON.stringify(FAKE.objs));
@@ -90,6 +92,6 @@ FAKE.hist=[]; FAKE.snap=()=>FAKE.hist.push(JSON.stringify(FAKE.objs));
       ca.addEventListener('mousedown',closeMenus); d.append(inp,ca,ok); m.style.display='none'; document.body.append(d); });
     solid.append(add,tr); const grad=document.createElement('div'); grad.className='grad sketchy-gradientmenuitems-custom-palette'; grad.style.display=which==='fill'&&FAKE.tab==='Gradient'?'block':'none';
     const add2=document.createElement('div'); add2.className='docs-customcolorpalette-add-custom-color-button'; add2.textContent='+g'; grad.append(add2);
-    m.append(solid,grad); document.body.append(m); });});
+    m.append(solid,grad); document.body.append(m); document.getElementById(id).setAttribute('aria-expanded','true'); });});
 window.chrome={storage:{local:{get:(k,cb)=>cb&&cb({}),set:()=>{}}},runtime:{getURL:x=>x,sendMessage:()=>{},onMessage:{addListener:()=>{}}}};
 </script></body></html>
