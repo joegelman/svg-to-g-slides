@@ -94,6 +94,17 @@ console.log('[svg2slides] svg-editor.js loaded');
     if (!sel) return;
     const shapes = sel.filter((x) => x[0] === 3);
     if (!shapes.length || !sel.some((x) => x[1] === targetId)) return;
+    // A masked image: double-click adjusts the picture under the mask, the
+    // way a double-click crops an image in Slides.
+    const ST = self.SVG2S_SHAPES;
+    if (ST && ST.maskedPicture && ST.maskedPicture(sel)) {
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      swallowUntil = Date.now() + 400;
+      setTimeout(() => ST.adjustMask(), 0);
+      return;
+    }
     if (!shapes.every(SB.isEditableShape)) {
       // Presets, lines, WordArt, text boxes: offer to convert, but let
       // Slides have its double-click (text editing, group drill-in).

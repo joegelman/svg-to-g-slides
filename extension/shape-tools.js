@@ -1341,6 +1341,223 @@ console.log('[svg2slides] shape-tools.js loaded');
     });
   }
 
+  // ── Adjust the picture under its mask ───────────────────────────────────
+  // The same gesture as cropping an image in Slides: double-click (or the
+  // Mask button) and the whole picture shows, faded where the mask hides
+  // it. Drag the picture to slide it under the mask, drag a corner to
+  // resize it (proportions kept), arrow keys nudge. ↵, ✓ or a click away
+  // keeps the change; Esc or ✕ puts it back. The mask itself stays put.
+  // A masked picture is a shape whose fill is the picture: 79/80 are the
+  // picture's width and height and 84/85 its left and top, as fractions of
+  // the path's own box, so only those four numbers change.
+  let adjust = null;
+  function maskedPicture(sel) {
+    const ids = topIdsOf(sel);
+    if (ids.length !== 1) return null;
+    const e = entryById(sel, ids[0]);
+    if (!e || e[0] !== 3) return null;
+    const p = e[4];
+    if (typeof SB.getProp(p, 49) !== 'string' || SB.getProp(p, 86) !== 1 || !SB.getProp(p, 12)) return null;
+    return e;
+  }
+  const subsD = (subs) => subs.map((sp) => {
+    let d = '';
+    sp.nodes.forEach((n, i) => {
+      if (!i) { d += `M${n.x} ${n.y}`; return; }
+      const a = sp.nodes[i - 1];
+      d += a.out || n.in ? `C${(a.out || a).x} ${(a.out || a).y} ${(n.in || n).x} ${(n.in || n).y} ${n.x} ${n.y}` : `L${n.x} ${n.y}`;
+    });
+    if (sp.closed && sp.nodes.length > 1) {
+      const a = sp.nodes[sp.nodes.length - 1], n = sp.nodes[0];
+      if (a.out || n.in) d += `C${(a.out || a).x} ${(a.out || a).y} ${(n.in || n).x} ${(n.in || n).y} ${n.x} ${n.y}`;
+      d += 'Z';
+    }
+    return d;
+  }).join('');
+  async function adjustMask() {
+    if (adjust || busy || (self.SVG2S_EDIT && self.SVG2S_EDIT.isOpen())) return;
+    await outOfText();
+    const sel = SB.readSelection();
+    const e = maskedPicture(sel);
+    if (!e) { toast('Select one masked image to adjust the picture under its mask'); return; }
+    const id = e[1];
+    if (ancestorsOf(id).length) { toast('Ungroup first: a masked image inside a group can’t be adjusted yet'); return; }
+    const g = SB.elementFor(id);
+    const im = g && g.querySelector('image');
+    const href = im && (im.getAttribute('href') || im.getAttributeNS('http://www.w3.org/1999/xlink', 'href'));
+    const path = SB.getProp(e[4], 12);
+    let subs = null;
+    try { subs = SB.decodePath(path[0][2], path[0][3]); } catch { subs = null; }
+    if (!href || !subs || !subs.length || !SB.pageCTM()) { toast('Couldn’t read that picture to adjust it'); return; }
+    const lb = SB.subsBBox(subs);
+    const start = SB.pictureRect(e[4], lb);
+    const rect = Object.assign({}, start);
+    const NS = 'http://www.w3.org/2000/svg';
+    const mk = (tag, attrs) => { const n = document.createElementNS(NS, tag); Object.entries(attrs || {}).forEach(([k, v]) => n.setAttribute(k, v)); return n; };
+    const svg = mk('svg', { class: 'madj', tabindex: '-1' });
+    const back = mk('rect', { x: 0, y: 0, width: '100%', height: '100%', fill: 'transparent' });
+    const world = mk('g');
+    const clipId = 'madj-clip-' + Date.now();
+    const clip = mk('clipPath', { id: clipId });
+    const d = subsD(subs);
+    clip.append(mk('path', { d, 'clip-rule': 'evenodd' }));
+    const ghost = mk('image', { href, preserveAspectRatio: 'none', opacity: '0.35', class: 'pic' });
+    const inner = mk('g', { 'clip-path': `url(#${clipId})` });
+    const full = mk('image', { href, preserveAspectRatio: 'none', class: 'pic' });
+    inner.append(mk('path', { d, fill: '#fff', 'fill-rule': 'evenodd' }), full);
+    const edge = mk('path', { d, class: 'edge' });
+    const frame = mk('rect', { class: 'frame' });
+    world.append(clip, ghost, inner, edge, frame);
+    const handles = [0, 1, 2, 3].map((i) => mk('circle', { r: 5.5, class: 'h', 'data-h': i }));
+    svg.append(back, world, ...handles);
+    const pct = el('input', { type: 'number', min: '1', step: '1', 'aria-label': 'Picture size, percent of the size that just covers the mask' });
+    const pbtn = (cls, tipText, key, dd) => {
+      const b = el('button', { class: 'pb ' + cls, type: 'button', 'aria-label': tipText, 'data-tip': tipText, 'data-key': key });
+      const ic = sv('svg', { viewBox: '0 0 20 20', 'aria-hidden': 'true' });
+      ic.append(sv('path', { d: dd, fill: 'none', stroke: 'currentColor', 'stroke-width': '2.2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
+      b.append(ic);
+      return b;
+    };
+    const bFit = el('button', { class: 'tx', type: 'button', 'data-tip': 'Size the picture so it just covers the mask, centred' }, 'Fit');
+    const bNo = pbtn('no', 'Cancel', 'Esc', 'M5.5 5.5l9 9M14.5 5.5l-9 9');
+    const bOk = pbtn('ok', 'Keep', '↵', 'M4.5 10.5l3.6 3.6 7.4-8');
+    const pill = el('div', { class: 'apill', role: 'group', 'aria-label': 'Picture under the mask' },
+      el('span', { class: 'seg', 'data-tip': 'Picture size · 100% just covers the mask · ⌥-drag to scrub' }, el('span', { class: 'lb' }, 'Picture'), pct, el('span', { class: 'u' }, '%')),
+      el('span', { class: 'seg' }, bFit), el('span', { class: 'seg' }, bNo, bOk));
+    root.append(svg, pill);
+    rk.attachTips(pill, 'above');
+    const was = g.style.visibility;
+    g.style.visibility = 'hidden';
+    // The size at which the picture just covers the mask's box.
+    const aspect = start.w / Math.max(start.h, 1e-9);
+    const coverW = Math.max(lb.w, lb.h * aspect);
+    const T = () => SB.matMul(SB.pageCTM(), e[3]);
+    const paint = () => {
+      const t = T();
+      world.setAttribute('transform', `matrix(${t.join(' ')})`);
+      [ghost, full].forEach((n) => { n.setAttribute('x', rect.x); n.setAttribute('y', rect.y); n.setAttribute('width', rect.w); n.setAttribute('height', rect.h); });
+      frame.setAttribute('x', rect.x); frame.setAttribute('y', rect.y); frame.setAttribute('width', rect.w); frame.setAttribute('height', rect.h);
+      const cs = [[rect.x, rect.y], [rect.x + rect.w, rect.y], [rect.x + rect.w, rect.y + rect.h], [rect.x, rect.y + rect.h]].map(([x, y]) => SB.apply(t, x, y));
+      cs.forEach((c, i) => { handles[i].setAttribute('cx', c.x); handles[i].setAttribute('cy', c.y); });
+      if (root.activeElement !== pct) pct.value = String(Math.round(rect.w / coverW * 100));
+      const mb = [[lb.x, lb.y], [lb.x + lb.w, lb.y], [lb.x + lb.w, lb.y + lb.h], [lb.x, lb.y + lb.h]].map(([x, y]) => SB.apply(t, x, y));
+      const all = cs.concat(mb), vis = SB.visibleWorkspaceRect();
+      const midX = (Math.min(...mb.map((c) => c.x)) + Math.max(...mb.map((c) => c.x))) / 2;
+      const half = (pill.offsetWidth || 240) / 2;
+      pill.style.left = Math.max(vis.left + half + 8, Math.min(vis.right - half - 8, midX)) + 'px';
+      pill.style.top = Math.min(vis.bottom - 44, Math.max(...all.map((c) => c.y)) + 18) + 'px';
+    };
+    const toLocal = (ev) => SB.apply(SB.matInv(T()), ev.clientX, ev.clientY);
+    const scaleAbout = (w, cx, cy) => {
+      const k = Math.max(w, 1) / rect.w;
+      rect.x = cx - (cx - rect.x) * k; rect.y = cy - (cy - rect.y) * k; rect.w *= k; rect.h *= k;
+    };
+    let drag = null;
+    const down = (ev) => {
+      if (ev.button !== 0) return;
+      ev.preventDefault(); ev.stopPropagation();
+      svg.focus({ preventScroll: true });
+      if (ev.target === back) { close(true); return; }
+      const p = toLocal(ev);
+      const h = ev.target.getAttribute && ev.target.getAttribute('data-h');
+      drag = h !== null && h !== undefined && ev.target.classList.contains('h')
+        ? { kind: 'size', i: +h, r0: Object.assign({}, rect) }
+        : { kind: 'move', p, r0: Object.assign({}, rect) };
+      svg.setPointerCapture(ev.pointerId);
+    };
+    const move = (ev) => {
+      if (!drag) return;
+      const p = toLocal(ev), r0 = drag.r0;
+      if (drag.kind === 'move') {
+        let dx = p.x - drag.p.x, dy = p.y - drag.p.y;
+        if (ev.shiftKey) { if (Math.abs(dx) > Math.abs(dy)) dy = 0; else dx = 0; }
+        rect.x = r0.x + dx; rect.y = r0.y + dy;
+      } else {
+        // The corner across from the one held stays where it is.
+        const right = drag.i === 1 || drag.i === 2, bottom = drag.i >= 2;
+        const ax = right ? r0.x : r0.x + r0.w, ay = bottom ? r0.y : r0.y + r0.h;
+        const k = Math.max(Math.abs(p.x - ax) / r0.w, Math.abs(p.y - ay) / r0.h, 0.02);
+        rect.w = r0.w * k; rect.h = r0.h * k;
+        rect.x = right ? ax : ax - rect.w; rect.y = bottom ? ay : ay - rect.h;
+      }
+      paint();
+    };
+    const up = (ev) => { if (drag) { drag = null; try { svg.releasePointerCapture(ev.pointerId); } catch { /* not captured */ } } };
+    const key = (ev) => {
+      if (!adjust) return;
+      const inPill = root.activeElement === pct;
+      if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); close(false); return; }
+      if (ev.key === 'Enter') { ev.preventDefault(); ev.stopPropagation(); if (inPill) pct.blur(); close(true); return; }
+      if (inPill) { ev.stopPropagation(); return; }
+      const step = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[ev.key];
+      ev.preventDefault(); ev.stopPropagation();
+      if (!step) return;
+      const t = T(), px = Math.hypot(t[0], t[1]) || 1, n = (ev.shiftKey ? 10 : 1) / px;
+      rect.x += step[0] * n; rect.y += step[1] * n;
+      paint();
+    };
+    const swallow = (ev) => { if (adjust) ev.stopPropagation(); };
+    const repaint = () => { if (adjust) paint(); };
+    async function close(keep) {
+      if (!adjust) return;
+      adjust = null;
+      window.removeEventListener('keydown', key, true);
+      window.removeEventListener('keyup', swallow, true);
+      window.removeEventListener('resize', repaint);
+      window.removeEventListener('wheel', repaint, true);
+      svg.remove(); pill.remove();
+      const moved = ['x', 'y', 'w', 'h'].some((k) => Math.abs(rect[k] - start[k]) > 1e-6 * Math.max(1, Math.abs(start[k])) + 1e-9);
+      if (!keep || !moved) { g.style.visibility = was; SB.focusTextbox(); return; }
+      await run('maskAdjust', async () => {
+        try {
+          if (!sameSet(topIdsOf(SB.readSelection()), [id]) && !(await selectIds([id]))) throw userError('Couldn’t select the masked image again to save the change');
+          const now = SB.readSelection();
+          const cur = maskedPicture(now);
+          if (!cur) throw userError('The masked image changed while it was being adjusted. Nothing was saved.');
+          const props = clone(cur[4]);
+          const fit = SB.imageFillProps(rect, lb);
+          [84, 85, 79, 80].forEach((k) => SB.setProp(props, k, fit[k]));
+          const nid = SB.newId();
+          await replaceSelection(now, [[3, nid, cur[2], cur[3].slice(), props]], { srcOf: { [nid]: id } });
+        } finally {
+          const still = SB.elementFor(id);
+          if (still) still.style.visibility = was;
+        }
+      });
+    }
+    svg.addEventListener('pointerdown', down);
+    svg.addEventListener('pointermove', move);
+    svg.addEventListener('pointerup', up);
+    svg.addEventListener('pointercancel', up);
+    ['mousedown', 'mouseup', 'click', 'dblclick', 'contextmenu'].forEach((t) => svg.addEventListener(t, (ev) => { ev.preventDefault(); ev.stopPropagation(); }));
+    pill.addEventListener('pointerdown', (ev) => ev.stopPropagation());
+    pill.addEventListener('mousedown', (ev) => { if (ev.target !== pct) ev.preventDefault(); ev.stopPropagation(); });
+    pct.addEventListener('focus', () => setTimeout(() => pct.select(), 0));
+    const setPct = () => {
+      const v = parseFloat(pct.value);
+      if (!Number.isFinite(v) || v <= 0) return;
+      scaleAbout(coverW * v / 100, lb.x + lb.w / 2, lb.y + lb.h / 2);
+      paint();
+    };
+    pct.addEventListener('input', setPct);
+    RK.scrub(pill.querySelector('.seg'), pct, { step: 1, min: 1, onValue: () => setPct() });
+    bFit.addEventListener('click', () => {
+      rect.w = coverW; rect.h = coverW / aspect;
+      rect.x = lb.x + (lb.w - rect.w) / 2; rect.y = lb.y + (lb.h - rect.h) / 2;
+      paint();
+    });
+    bNo.addEventListener('click', () => close(false));
+    bOk.addEventListener('click', () => close(true));
+    window.addEventListener('keydown', key, true);
+    window.addEventListener('keyup', swallow, true);
+    window.addEventListener('resize', repaint);
+    window.addEventListener('wheel', repaint, true);
+    adjust = { id, close };
+    paint();
+    svg.focus({ preventScroll: true });
+    toast('Drag the picture under its mask · corners resize · ↵ keeps, Esc cancels', 5000);
+  }
+
   // Images can't go through a copy and paste of their data (Slides drops
   // the picture), so anything that moves them uses Slides' own commands.
   const hasImage = (ids) => ids.some((id) => { const g = SB.elementFor(id); return !!(g && g.querySelector('image')); });
@@ -2093,7 +2310,7 @@ console.log('[svg2slides] shape-tools.js loaded');
         return nativeCommand(act);
       case 'union': case 'subtract': case 'intersect': case 'exclude': return booleanOp(act);
       case 'group': case 'ungroup': return groupOp(act);
-      case 'mask': return maskOp();
+      case 'mask': return maskedPicture(SB.readSelection()) ? adjustMask() : maskOp();
       case 'outlineStroke': return outlineStrokeOp();
       case 'outlineText': return outlinedTextIn(SB.readSelection()) ? restoreTextOp() : outlineTextOp();
       case 'restoreText': return restoreTextOp();
@@ -2170,6 +2387,26 @@ console.log('[svg2slides] shape-tools.js loaded');
     .hint { position: fixed; z-index: 2147482999; pointer-events: none; background: ${GM.tooltip}; color: ${GM.onTooltip};
             font: 400 12px/16px ${FONT}; padding: 6px 10px; border-radius: 4px; max-width: 320px; opacity: 0; transition: opacity .2s; }
     .hint.show { opacity: .95; }
+    .madj { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 1; outline: none; cursor: default; }
+    .madj .pic { cursor: move; }
+    .madj .edge { fill: none; stroke: #1a73e8; stroke-width: 1.5; vector-effect: non-scaling-stroke; pointer-events: none; }
+    .madj .frame { fill: none; stroke: #1a73e8; stroke-width: 1; stroke-dasharray: 4 3; vector-effect: non-scaling-stroke; pointer-events: none; }
+    .madj .h { fill: #fff; stroke: #1a73e8; stroke-width: 1.5; cursor: nwse-resize; }
+    .madj .h[data-h="1"], .madj .h[data-h="3"] { cursor: nesw-resize; }
+    .apill { position: fixed; z-index: 2; display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 8px 0 12px; transform: translateX(-50%);
+             background: #303134; color: #f2f2f2; border-radius: 15px; font: 500 12px/16px ${FONT}; box-shadow: 0 1px 3px rgba(0,0,0,.3); white-space: nowrap; }
+    .apill .seg { display: flex; align-items: center; gap: 6px; }
+    .apill .seg + .seg { border-left: 1px solid rgba(255,255,255,.25); padding-left: 10px; }
+    .apill .lb, .apill .u { opacity: .7; }
+    .apill input { width: 44px; height: 20px; box-sizing: border-box; border: 0; border-radius: 4px; padding: 0 4px; background: rgba(255,255,255,.12); color: inherit; font: inherit; text-align: right; }
+    .apill input::-webkit-inner-spin-button, .apill input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    .apill input:focus { outline: 1px solid #a8c7fa; background: rgba(255,255,255,.18); }
+    .apill .tx { border: 0; background: rgba(255,255,255,.14); color: inherit; font: inherit; height: 22px; padding: 0 10px; border-radius: 11px; cursor: pointer; }
+    .apill .tx:hover { background: rgba(255,255,255,.26); }
+    .apill .pb { width: 22px; height: 22px; border-radius: 50%; border: 0; padding: 0; display: grid; place-items: center; cursor: pointer; background: rgba(255,255,255,.14); color: #f2f2f2; }
+    .apill .pb svg { width: 14px; height: 14px; display: block; }
+    .apill .pb:hover { background: rgba(255,255,255,.26); }
+    .apill .pb.ok { background: #a8c7fa; color: #062e6f; }
     .panel { position: fixed; z-index: 2; display: none; flex-direction: column; width: 248px; box-sizing: border-box;
              background: #fff; border-radius: 12px; box-shadow: ${GM.elev2}; font: 400 13px/1 ${FONT}; color: #1f1f1f;
              user-select: none; overflow: hidden; }
@@ -2322,7 +2559,10 @@ console.log('[svg2slides] shape-tools.js loaded');
     set('edit', shp.length > 0 && shp.every((x) => SB.isEditableShape(x) || SB.convertibleKind(sel, x)));
     set('group', ids.length >= 2);
     set('ungroup', isGroup);
-    set('mask', ids.length === 2 && ids.some((id) => pictureOf(sel, id)));
+    const masked = maskedPicture(sel);
+    set('mask', !!masked || (ids.length === 2 && ids.some((id) => pictureOf(sel, id))));
+    rk.setIcon('mask', masked ? 'maskAdjust' : 'mask');
+    rk.setTip('mask', masked ? 'Adjust the picture under its mask (or double-click it)' : 'Mask image with shape (the shape on top cuts out the picture under it)', SB.SHORTCUT_LABEL.mask);
     Object.keys(OP_LABEL).forEach((op) => set(op, multi));
     set('combine', multi || ids.length >= 2 || isGroup);
     set('outlineStroke', paths.some((p) => p.hasStroke));
@@ -2799,7 +3039,7 @@ console.log('[svg2slides] shape-tools.js loaded');
   }
   self.SVG2S_SHAPES = {
     remember, recall, noteOutlinedText, describeText,
-    booleanOp, outlineStrokeOp, outlineTextOp, groupOp, selectIds, regionOf, textOutlines, objectPaths, facesFor, command,
+    booleanOp, outlineStrokeOp, outlineTextOp, groupOp, adjustMask, maskedPicture, selectIds, regionOf, textOutlines, objectPaths, facesFor, command,
     hasText: (id, includeHidden) => hasRenderedText(id, includeHidden),
     takeNotes: () => { const t = [...notes].join(' · '); notes.clear(); return t; },
   };
