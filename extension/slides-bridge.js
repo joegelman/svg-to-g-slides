@@ -210,6 +210,10 @@ const SB = (() => {
   }
   function tick() { if (macro && !replaying) macro.steps++; }
   function untick() { if (macro && !replaying && macro.steps > 0) macro.steps--; }
+  // The slide is wearing a colour preview (not a real change): no picture
+  // of it may be kept as a place in the undo stack meanwhile.
+  let sigHold = false;
+  function holdSig(v) { sigHold = !!v; }
   function forceMacro() { if (macro) macro.force = true; }
   // exact: undo presses every one of our steps instead of stopping when the
   // slide first looks right. Needed when steps cancel out on the way (a
@@ -267,12 +271,12 @@ const SB = (() => {
     let last = m[side];
     for (let i = 0; i < 20; i++) {
       await sleep(100);
-      if (replaying || macro || !quiet() || !here || here.m !== m || here.side !== side) return;
+      if (sigHold || replaying || macro || !quiet() || !here || here.m !== m || here.side !== side) return;
       const now = slideSig();
       if (now === last) break;
       last = now;
     }
-    if (here && here.m === m && here.side === side && quiet()) share(m, side, last);
+    if (!sigHold && here && here.m === m && here.side === side && quiet()) share(m, side, last);
   }
   // Record a picture for a place in the stack, and for its twin (the end of
   // the macro before, or the start of the one after).
@@ -1252,7 +1256,7 @@ const SB = (() => {
 
   return {
     MIME, iframe, textbox, focusTextbox, wrap, unwrap,
-    forceMacro, exactMacro, untick, readSelection, readSelectionRaw, placeholderIds, readClip, withClip, hasClip: () => !!pasteClip, paste, pressKey, sleep, waitForSelection,
+    forceMacro, exactMacro, untick, holdSig, readSelection, readSelectionRaw, placeholderIds, readClip, withClip, hasClip: () => !!pasteClip, paste, pressKey, sleep, waitForSelection,
     getProp, setProp, newId, pathRecord, isEditableShape,
     matMul, matInv, apply, localToPage, pageCTM, elementFor, currentPageGroup, visibleWorkspaceRect,
     topLevelOrder, topLevelIdOf, pressArrange, moveToIndex,

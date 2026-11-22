@@ -1387,9 +1387,15 @@ console.log('[svg2slides] shape-tools.js loaded');
         await selectIds(ids);
         throw userError('Couldn’t get the picture from Slides to mask it. Try again, or copy and paste the image first.');
       }
-      if (!(await selectIds(ids))) throw userError('Couldn’t select the image and the shape again');
-      // In the image's place in the stack; both originals go.
-      await SB.withClip(clip, () => replaceSelection(sel, [entry], { srcOf: { [id]: picId } }));
+      // Only the picture is replaced; the shape that did the cutting stays
+      // as it was (same object, so its animation and link stay too), right
+      // under the masked picture: the picture takes whichever of the two
+      // places in the stack was higher. Counted after the picture is
+      // gone, a shape that sat above it has moved down one.
+      const pi = order.indexOf(picId), mi = order.indexOf(maskId);
+      const picSel = SB.readSelection();
+      if (!picSel || !sameSet(topIdsOf(picSel), [picId])) throw userError('Couldn’t select the picture to mask it');
+      await SB.withClip(clip, () => replaceSelection(picSel, [entry], { srcOf: { [id]: picId }, slotIndex: pi < mi ? mi : pi }));
     });
   }
 
@@ -2367,11 +2373,96 @@ console.log('[svg2slides] shape-tools.js loaded');
     const nodes = [...document.querySelectorAll('.punch-filmstrip-thumbnail path, .punch-filmstrip-thumbnail text, .punch-filmstrip-thumbnail stop, g[id^="editor-"] path, g[id^="editor-"] text')];
     return coloursIn(nodes, 45);
   }
+  // ── Live preview ────────────────────────────────────────────────────────
+  // While the panel is open the slide shows the colour in hand: the drawn
+  // paths are repainted in place (Slides draws each shape as a path with
+  // fill, fill-opacity, stroke and stroke-opacity attributes). Nothing in
+  // the deck changes until ✓; ✕ puts the attributes back. The one-step
+  // undo compares pictures of the slide, so it is told to hold off
+  // (SB.holdSig) while the slide is wearing a preview.
+  let preview = null;
+  function drawnPath(id) {
+    const g = SB.elementFor(id);
+    if (!g) return null;
+    return [...g.querySelectorAll('path')].find((p) => p.parentNode.closest('g[id^="editor-"]') === g && !(p.getAttribute('fill-opacity') === '0' && p.getAttribute('stroke-opacity') === '0') && p.getAttribute('opacity') !== '0') || null;
+  }
+  function previewAttr(node, name, value) {
+    if (!preview) { preview = { saved: new Map(), defs: [] }; SB.holdSig(true); }
+    if (!preview.saved.has(node)) preview.saved.set(node, {});
+    const rec = preview.saved.get(node);
+    if (!(name in rec)) rec[name] = name === 'style.fill' ? node.style.fill : node.getAttribute(name);
+    if (name === 'style.fill') node.style.fill = value;
+    else if (value === null) node.removeAttribute(name);
+    else node.setAttribute(name, value);
+  }
+  function clearPreview() {
+    if (!preview) return;
+    preview.saved.forEach((rec, node) => Object.entries(rec).forEach(([name, v]) => {
+      if (name === 'style.fill') node.style.fill = v;
+      else if (v === null) node.removeAttribute(name);
+      else node.setAttribute(name, v);
+    }));
+    preview.defs.forEach((d) => d.remove());
+    preview = null;
+    SB.holdSig(false);
+  }
+  function previewPaint(which, st, ids) {
+    ids.forEach((id, i) => {
+      const p = drawnPath(id);
+      if (!p) return;
+      if (which === 'stroke') {
+        if (st.mode === 'none') { previewAttr(p, 'stroke-opacity', '0'); return; }
+        previewAttr(p, 'stroke', st.hex);
+        previewAttr(p, 'stroke-opacity', String(st.alpha));
+        if (!(parseFloat(p.getAttribute('stroke-width')) > 0)) previewAttr(p, 'stroke-width', '381');
+        return;
+      }
+      if (st.mode === 'none') { previewAttr(p, 'fill-opacity', '0'); return; }
+      previewAttr(p, 'fill-opacity', String(st.alpha));
+      if (st.mode === 'solid') { previewAttr(p, 'fill', st.hex); return; }
+      let bb = null;
+      try { bb = p.getBBox(); } catch { bb = null; }
+      if (!bb || !(bb.width > 0) || !(bb.height > 0)) return;
+      const stops = slidesStops(st.stops);
+      const geo = SB.gradientGeometry({ kind: st.mode === 'linear' ? 1 : 2, angle: (((st.angle % 360) + 360) % 360) * Math.PI / 180, centre: st.centre || 0 }, bb.x, bb.y, bb.width, bb.height);
+      const gid = 'svg2s-preview-' + i;
+      const old = preview && preview.defs.find((d) => d.id === gid);
+      if (old) { old.remove(); preview.defs.splice(preview.defs.indexOf(old), 1); }
+      const gr = sv(geo.tag, Object.assign({ id: gid, gradientUnits: 'userSpaceOnUse' }, geo.attrs));
+      stops.forEach(([c, o]) => gr.append(sv('stop', { offset: o, 'stop-color': c })));
+      previewAttr(p, 'fill', `url(#${gid})`);
+      p.parentNode.insertBefore(gr, p);
+      preview.defs.push(gr);
+    });
+  }
+  // Replace a colour: every drawn use of `from` on this slide wears the new one.
+  function previewReplace(st) {
+    clearPreview();
+    const page = SB.currentPageGroup();
+    if (!page || !st.from) return;
+    page.querySelectorAll('path, text').forEach((n) => {
+      if (n.tagName === 'text') { const c = normHex(hex(getComputedStyle(n).fill) || ''); if (c && c.hex === st.from) previewAttr(n, 'style.fill', st.hex); return; }
+      if (n.getAttribute('fill-opacity') === '0' && n.getAttribute('stroke-opacity') === '0') return;
+      const f = normHex(hex(n.getAttribute('fill') || '') || ''), k = normHex(hex(n.getAttribute('stroke') || '') || '');
+      if (f && f.hex === st.from) { previewAttr(n, 'fill', st.hex); if (st.alpha < 0.995) previewAttr(n, 'fill-opacity', String(st.alpha)); }
+      if (k && k.hex === st.from && !SELECTION_BLUE.test(n.getAttribute('stroke') || '')) previewAttr(n, 'stroke', st.hex);
+    });
+  }
+  // ✓: the still copy is taken while the slide still wears the preview (so
+  // nothing jumps back), then the preview comes off and the real change
+  // is made underneath.
+  async function commitWithPreview(fn) {
+    if (!preview) return fn();
+    await freeze(null);
+    clearPreview();
+    try { return await fn(); } finally { await thaw(); }
+  }
+
   function closePaint() {
     if (!cpop) return;
     const c = cpop;
     cpop = null;
-    c.close();
+    c.done(false); // also takes any preview off the slide
   }
   // Is a stretch of text highlighted (the cursor is in a text box with a
   // range selected)? A copy then carries the words and no object data.
@@ -2405,8 +2496,8 @@ console.log('[svg2slides] shape-tools.js loaded');
       // The fill menu opens on whichever of Solid / Gradient was used last.
       const solid = [...menu.querySelectorAll('[role="tab"]')].find((t) => /^\s*Solid\s*$/.test(t.textContent || ''));
       if (solid && solid.getAttribute('aria-selected') !== 'true') { pressEl(solid); await sleep(60); }
-      const add = [...menu.querySelectorAll('.docs-customcolorpalette-add-custom-color-button')].find((n) => shown(n) && !n.closest('[class*="gradientmenuitems"]'))
-        || [...menu.querySelectorAll('.docs-customcolorpalette-add-custom-color-button')].find(shown);
+      // The menu holds one "+" per tab; only the Solid tab's is showing now.
+      const add = [...menu.querySelectorAll('.docs-customcolorpalette-add-custom-color-button')].find(shown);
       if (!add) { pressEl(b); return false; }
       pressEl(add);
       const inp = await until(field, 900);
@@ -2552,18 +2643,32 @@ console.log('[svg2slides] shape-tools.js loaded');
     const wholeText = texty.filter((x) => x.runs.every((r) => sameHex(SB.getProp(r[6], 4), from))).map((x) => x.e[1]);
     const partText = texty.filter((x) => !wholeText.includes(x.e[1])).map((x) => x.e[1]);
     let n = 0;
-    if (fills.length && await selectIds(fills) && await nativeColour('fill', st)) n += fills.length;
-    if (strokes.length && await selectIds(strokes) && await nativeColour('stroke', st)) n += strokes.length;
-    if (wholeText.length && await selectIds(wholeText) && await nativeColour('text', st)) n += wholeText.length;
+    // Start from nothing selected each time (everything is selected right
+    // now, and a shift-click would take objects out). Objects at the top
+    // level go together; an object inside a group can't be selected along
+    // with anything outside it, so those go one at a time.
+    const clear = async () => { SB.focusTextbox(); SB.pressKey('Escape'); await sleep(40); SB.pressKey('Escape'); await sleep(40); };
+    const each = async (list, which) => {
+      const tops = list.filter((id) => !ancestorsOf(id).length), inner = list.filter((id) => ancestorsOf(id).length);
+      for (const group of [tops, ...inner.map((id) => [id])]) {
+        if (!group.length) continue;
+        await clear();
+        if (await selectIds(group) && await nativeColour(which, st)) n += group.length;
+      }
+    };
+    await each(fills, 'fill');
+    await each(strokes, 'stroke');
+    await each(wholeText, 'text');
+    await clear();
     const swapStops = (props) => SB.setProp(props, 61, SB.getProp(props, 61).map((x) => (sameHex(x[0], from) ? [st.hex, x[1]] : x)));
     // Gradients by paint format, unless something on this slide has to be
     // replaced anyway: then they go with it (one kind of undo per run).
-    const viaFormat = !partText.length && grads.every((e) => oneTextStyle(all, e[1]) && !ancestorsOf(e[1]).length);
+    const viaFormat = !partText.length && grads.every((e) => oneTextStyle(all, e[1]));
     for (const e of grads) {
       if (viaFormat) { if (await paintFormat(e[1], modelOf(all, e, swapStops))) n++; }
       else partText.includes(e[1]) || partText.push(e[1]);
     }
-    if (partText.length && await selectIds([...new Set(partText.map((id) => SB.topLevelIdOf(id) || id))])) {
+    if (partText.length && (await clear(), await selectIds([...new Set(partText.map((id) => SB.topLevelIdOf(id) || id))]))) {
       const part = SB.readSelection();
       if (part) {
         const out = part.map((e) => {
@@ -2680,14 +2785,17 @@ console.log('[svg2slides] shape-tools.js loaded');
     if (!topIdsOf(sel).length) {
       // Nothing selected: change a colour wherever the slide uses it.
       open({ which: 'replace', title: 'Replace a colour', modes: [['solid', 'Solid']], state: { mode: 'solid', hex: '#4285F4', alpha: 1 },
+        live: true, onChange: (st) => previewReplace(st),
         replace: { deck: document.querySelectorAll('.punch-filmstrip-thumbnail').length > 1, deckColours },
-        onDone: (keep, st) => { if (keep && st.from) replaceColour(st); } });
+        onDone: (keep, st) => { if (keep && st.from) commitWithPreview(() => replaceColour(st)); else clearPreview(); } });
       return;
     }
     if (!shapes.length) { showSlidesMenu(which); return; }
     const modes = which === 'fill' ? [['solid', 'Solid'], ['linear', 'Linear'], ['radial', 'Radial'], ['none', 'None']] : [['solid', 'Solid'], ['none', 'None']];
+    const liveIds = shapes.map((e) => e[1]);
     open({ which, title: which === 'fill' ? 'Fill' : 'Stroke', modes, state: readPaint(shapes[0], which),
-      onMenu: () => showSlidesMenu(which), onDone: (keep, st) => { if (keep) applyPaintState(which, st); } });
+      live: true, onChange: (st) => previewPaint(which, st, liveIds),
+      onMenu: () => showSlidesMenu(which), onDone: (keep, st) => { if (keep) commitWithPreview(() => applyPaintState(which, st)); else clearPreview(); } });
   }
 
   let lastStroke = null; // colour to bring back when stroke goes on again
