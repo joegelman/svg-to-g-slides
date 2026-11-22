@@ -20,7 +20,7 @@ with sync_playwright() as p:
     b=p.chromium.launch(executable_path=__import__('os').environ.get('CHROME') or None)
     pgs={}
     for k,src in (('1.3.0',old),('branch',new)):
-        pg=b.new_page(); pg.set_content('<html></html>'); pg.add_script_tag(content=src); pgs[k]=pg
+        pg=b.new_page(); pg.set_content('<html></html>'); pg.add_script_tag(content=src); pg.add_script_tag(content=open(REPO+'/extension/geo-ops.js').read()); pgs[k]=pg
     for name,pat in SETS.items():
         fs=sorted(glob.glob(pat.replace('ICONS',os.environ.get('ICONS','node_modules')))); fs=random.sample(fs,min(200,len(fs)))
         res={}

@@ -6,7 +6,7 @@ src=open(REPO+'/extension/svg-convert.js').read()
 files=sorted(glob.glob(REPO+'/cloud/static/specs/samples/*.svg'))
 rows=[]
 with sync_playwright() as p:
-    b=p.chromium.launch(executable_path=__import__('os').environ.get('CHROME') or None); pg=b.new_page(); pg.set_content('<html></html>'); pg.add_script_tag(content=src)
+    b=p.chromium.launch(executable_path=__import__('os').environ.get('CHROME') or None); pg=b.new_page(); pg.set_content('<html></html>'); pg.add_script_tag(content=src); pg.add_script_tag(content=open(REPO+'/extension/geo-ops.js').read())
     for f in files:
         t=open(f,'rb').read().decode('latin-1')
         for legacy in (False,):
