@@ -2210,6 +2210,323 @@ console.log('[svg2slides] shape-tools.js loaded');
     await sleep(200);
     return true;
   }
+  // ── Colour picker and gradient builder ──────────────────────────────────
+  // The toolbar's own fill and stroke panel. The colour well is the
+  // browser's (input type=color, plus the EyeDropper where Chrome has it);
+  // around it: hex and opacity fields, the colours already on the slide,
+  // recent colours, and for fills a gradient bar with any number of stops
+  // (click the bar to add one, drag to move, drag away or Delete to remove),
+  // an angle, and where a radial gradient starts. Nothing touches the slide
+  // until ✓ (or ↵); ✕ (or Esc) closes it unchanged.
+  // What Slides stores (checked live, Nov 2026): fill on 14, colour 15,
+  // opacity 16; stroke on 18, colour 19, opacity 20, weight 22; gradient
+  // kind 60 (1 linear, 2 radial), stops 61 [[hex, 0..1], …] which must
+  // start at 0 and end at 1 or Slides drops them, angle 62 in radians
+  // clockwise from left→right, radial start 73 (0 middle, 1 top left,
+  // 2 top right, 3 bottom left, 4 bottom right).
+  let cpop = null;
+  const RECENT_KEY = 'paintRecent';
+  let recentColours = [];
+  try { chrome.storage.local.get(RECENT_KEY, (v) => { recentColours = (v && v[RECENT_KEY]) || []; }); } catch { /* storage unavailable */ }
+  const normHex = (raw) => {
+    let h = String(raw || '').trim().replace(/^#/, '');
+    if (/^[0-9a-f]{3}$/i.test(h)) h = h.split('').map((c) => c + c).join('');
+    if (/^[0-9a-f]{8}$/i.test(h)) return { hex: '#' + h.slice(0, 6).toUpperCase(), alpha: Math.round(parseInt(h.slice(6), 16) / 255 * 100) / 100 };
+    return /^[0-9a-f]{6}$/i.test(h) ? { hex: '#' + h.toUpperCase() } : null;
+  };
+  const mixHex = (a, b, t) => '#' + [1, 3, 5].map((i) => Math.round(parseInt(a.slice(i, i + 2), 16) * (1 - t) + parseInt(b.slice(i, i + 2), 16) * t).toString(16).padStart(2, '0')).join('').toUpperCase();
+  function stopColourAt(stops, pos) {
+    const st = stops.slice().sort((a, b) => a.pos - b.pos);
+    if (pos <= st[0].pos) return st[0].hex;
+    for (let i = 1; i < st.length; i++) if (pos <= st[i].pos) return st[i].pos - st[i - 1].pos < 1e-6 ? st[i].hex : mixHex(st[i - 1].hex, st[i].hex, (pos - st[i - 1].pos) / (st[i].pos - st[i - 1].pos));
+    return st[st.length - 1].hex;
+  }
+  // The stops as Slides wants them: in order, first at 0, last at 1.
+  function slidesStops(stops) {
+    const st = stops.slice().sort((a, b) => a.pos - b.pos).map((x) => [x.hex, Math.round(Math.min(1, Math.max(0, x.pos)) * 1e4) / 1e4]);
+    if (st[0][1] > 0) st.unshift([st[0][0], 0]);
+    if (st[st.length - 1][1] < 1) st.push([st[st.length - 1][0], 1]);
+    return st;
+  }
+  const paintable = (e) => e[0] === 3 && typeof SB.getProp(e[4], 49) !== 'string';
+  function readPaint(e, which) {
+    const p = e[4];
+    if (which === 'stroke') {
+      const c = SB.getProp(p, 19), on = SB.getProp(p, 18);
+      const a = SB.getProp(p, 20);
+      return { mode: on === 0 || typeof c !== 'string' ? 'none' : 'solid', hex: typeof c === 'string' ? c.toUpperCase() : '#000000', alpha: typeof a === 'number' ? a : 1 };
+    }
+    const c = SB.getProp(p, 15), a = SB.getProp(p, 16), kind = SB.getProp(p, 60), raw = SB.getProp(p, 61);
+    const out = { mode: 'solid', hex: typeof c === 'string' ? c.toUpperCase() : '#4285F4', alpha: typeof a === 'number' ? a : 1 };
+    if (SB.getProp(p, 14) === 0 || (typeof c !== 'string' && !kind)) out.mode = 'none';
+    else if ((kind === 1 || kind === 2) && Array.isArray(raw) && raw.length >= 2) {
+      out.mode = kind === 1 ? 'linear' : 'radial';
+      out.stops = raw.map((x) => ({ hex: String(x[0]).toUpperCase(), pos: +x[1] || 0 }));
+      out.angle = Math.round(((SB.getProp(p, 62) || 0) * 180 / Math.PI) * 10) / 10;
+      out.centre = SB.getProp(p, 73) || 0;
+    }
+    return out;
+  }
+  function writePaint(props, which, st) {
+    if (which === 'stroke') {
+      [18, 19, 20].forEach((k) => SB.removeProp(props, k));
+      if (st.mode === 'none') { props.push(18, 0); return; }
+      SB.removeProp(props, 23);
+      props.push(18, 1, 19, st.hex);
+      if (st.alpha < 0.995) props.push(20, Math.round(st.alpha * 100) / 100);
+      const w = SB.getProp(props, 22);
+      if (!(typeof w === 'number' && w > 0)) SB.setProp(props, 22, 381);
+      return;
+    }
+    [14, 15, 16, 60, 61, 62, 73, 145].forEach((k) => SB.removeProp(props, k));
+    if (st.mode === 'none') { props.push(14, 0); return; }
+    if (st.mode === 'solid') {
+      props.push(14, 1, 15, st.hex);
+      if (st.alpha < 0.995) props.push(16, Math.round(st.alpha * 100) / 100);
+      return;
+    }
+    const stops = slidesStops(st.stops);
+    props.push(14, 1, 145, 1, 15, stops[0][0]);
+    if (st.alpha < 0.995) props.push(16, Math.round(st.alpha * 100) / 100);
+    props.push(60, st.mode === 'linear' ? 1 : 2, 61, stops, 62, st.mode === 'linear' ? Math.round((((st.angle % 360) + 360) % 360) * Math.PI / 180 * 1e4) / 1e4 : 1.5708);
+    if (st.mode === 'radial') props.push(73, st.centre || 0);
+  }
+  function slideColours() {
+    const page = SB.currentPageGroup();
+    const seen = new Map();
+    if (page) {
+      page.querySelectorAll('path, text').forEach((n) => ['fill', 'stroke'].forEach((a) => {
+        const c = normHex(hex(n.getAttribute(a) || '') || '');
+        if (c) seen.set(c.hex, (seen.get(c.hex) || 0) + 1);
+      }));
+    }
+    return [...seen.entries()].sort((a, b) => b[1] - a[1]).map((x) => x[0]).slice(0, 16);
+  }
+  function closePaint() {
+    if (!cpop) return;
+    const c = cpop;
+    cpop = null;
+    window.removeEventListener('pointerdown', c.away, true);
+    c.node.remove();
+    rk.setOn(c.which, false);
+    SB.focusTextbox();
+  }
+  function applyPaintState(which, st) {
+    return run(which === 'fill' ? 'fill' : 'stroke colour', async () => {
+      const sel = requireSelection();
+      let n = 0;
+      const out = sel.map((e) => {
+        if (!paintable(e)) return e;
+        const c = clone(e);
+        writePaint(c[4], which, st);
+        n++;
+        return c;
+      });
+      if (!n) throw userError('Nothing selected can take a ' + (which === 'fill' ? 'fill' : 'stroke'));
+      await replaceSelection(sel, out);
+      const used = st.mode === 'solid' ? [st.hex] : st.mode === 'none' ? [] : st.stops.map((x) => x.hex);
+      if (used.length) {
+        recentColours = [...new Set([...used, ...recentColours])].slice(0, 12);
+        try { chrome.storage.local.set({ [RECENT_KEY]: recentColours }); } catch { /* storage unavailable */ }
+      }
+    });
+  }
+  async function openPaint(which) {
+    if (cpop) { const same = cpop.which === which; closePaint(); if (same) return; }
+    if (busy || adjust) return;
+    await outOfText();
+    const sel = SB.readSelection();
+    const shapes = (sel || []).filter(paintable);
+    // What a delete-and-paste would change or lose goes to Slides' own menu.
+    const raw = SB.readSelectionRaw();
+    const viaSlides = !shapes.length || SB.placeholderIds(raw).length || topIdsOf(sel).some((id) => pickedFromGroup(sel, id));
+    if (viaSlides) { showSlidesMenu(which); return; }
+    const st = Object.assign({ stops: null, angle: 90, centre: 0, sel: 0 }, readPaint(shapes[0], which));
+    if (!st.stops) st.stops = [{ hex: st.hex, pos: 0 }, { hex: mixHex(st.hex, '#000000', 0.45), pos: 1 }];
+    const start = JSON.stringify(st);
+    const modes = which === 'fill' ? [['solid', 'Solid'], ['linear', 'Linear'], ['radial', 'Radial'], ['none', 'None']] : [['solid', 'Solid'], ['none', 'None']];
+    const tabs = el('div', { class: 'tabs', role: 'tablist' }, ...modes.map(([m, label]) => el('button', { type: 'button', role: 'tab', 'data-mode': m }, label)));
+    const bar = el('div', { class: 'gbar', 'data-tip': 'Click to add a stop · drag to move · drag away or Delete to remove' });
+    const prevFill = el('i');
+    const prev = el('div', { class: 'prev' }, prevFill);
+    const well = el('input', { type: 'color', 'aria-label': 'Colour', 'data-tip': 'Open the colour picker' });
+    const hexIn = el('input', { type: 'text', class: 'hex', spellcheck: 'false', maxlength: '9', 'aria-label': 'Hex colour', 'data-tip': 'Hex: 3, 6 or 8 digits (8 sets opacity too)' });
+    const alphaIn = el('input', { type: 'number', min: '0', max: '100', step: '1', 'aria-label': 'Opacity, percent' });
+    const drop = el('button', { type: 'button', class: 'ib', 'aria-label': 'Pick a colour from the screen', 'data-tip': 'Pick a colour from the screen' }, icon([['M14.9 3.3a2 2 0 0 1 1.8 3.2l-2 2 .7.7-1.1 1.1-.7-.7-5.2 5.2-2.9.7-.9.9-1-1 .9-.9.7-2.9 5.2-5.2-.7-.7 1.1-1.1.7.7 2-2a2 2 0 0 1 1.4-.6ZM11.5 8.9 6.6 13.8l-.4 1.4 1.4-.4 4.9-4.9Z']]));
+    const posIn = el('input', { type: 'number', min: '0', max: '100', step: '1', 'aria-label': 'Stop position, percent' });
+    const angIn = el('input', { type: 'number', step: '1', 'aria-label': 'Angle in degrees' });
+    const dial = el('div', { class: 'dial', 'data-tip': 'Drag to turn · ⇧ snaps to 15°' }, el('i'));
+    const rev = el('button', { type: 'button', class: 'tx', 'data-tip': 'Reverse the stops' }, 'Reverse');
+    const delStop = el('button', { type: 'button', class: 'tx', 'data-tip': 'Remove the selected stop', 'data-key': 'Delete' }, 'Remove stop');
+    const centre = el('div', { class: 'cgrid', role: 'radiogroup', 'aria-label': 'Where the gradient starts' },
+      ...[[1, 'Top left'], [2, 'Top right'], [0, 'Middle'], [3, 'Bottom left'], [4, 'Bottom right']].map(([v, label]) => el('button', { type: 'button', 'data-c': v, 'aria-label': label, 'data-tip': 'Starts: ' + label.toLowerCase() })));
+    const swSlide = el('div', { class: 'sws' }), swRecent = el('div', { class: 'sws' });
+    const bNo = el('button', { type: 'button', class: 'pb no', 'aria-label': 'Cancel', 'data-tip': 'Cancel', 'data-key': 'Esc' }), bOk = el('button', { type: 'button', class: 'pb ok', 'aria-label': 'Apply', 'data-tip': 'Apply', 'data-key': '↵' });
+    [[bNo, 'M5.5 5.5l9 9M14.5 5.5l-9 9'], [bOk, 'M4.5 10.5l3.6 3.6 7.4-8']].forEach(([b, d]) => {
+      const g = sv('svg', { viewBox: '0 0 20 20', 'aria-hidden': 'true' });
+      g.append(sv('path', { d, fill: 'none', stroke: 'currentColor', 'stroke-width': '2.2', 'stroke-linecap': 'round', 'stroke-linejoin': 'round' }));
+      b.append(g);
+    });
+    const more = el('button', { type: 'button', class: 'tx', 'data-tip': 'Open Slides’ own ' + (which === 'fill' ? 'fill' : 'border') + ' colour menu (theme colours live there)' }, 'Slides menu');
+    const rowColour = el('div', { class: 'row' }, well, hexIn, el('label', { class: 'f', 'data-tip': 'Opacity · ⌥-drag to scrub' }, alphaIn, el('span', {}, '%')), drop);
+    const rowStop = el('div', { class: 'row g' }, el('label', { class: 'f', 'data-tip': 'Position of the selected stop · ⌥-drag to scrub' }, el('span', {}, 'Stop'), posIn, el('span', {}, '%')), delStop, rev);
+    const rowLin = el('div', { class: 'row g lin' }, dial, el('label', { class: 'f', 'data-tip': 'Angle: 0° runs left to right, 90° top to bottom · ⌥-drag to scrub' }, angIn, el('span', {}, '°')),
+      ...[0, 45, 90, 180].map((a) => el('button', { type: 'button', class: 'tx', 'data-ang': a }, a + '°')));
+    const rowRad = el('div', { class: 'row g rad' }, el('span', { class: 'cap' }, 'Starts from'), centre);
+    const node = el('div', { class: 'cpop', role: 'dialog', 'aria-label': which === 'fill' ? 'Fill' : 'Stroke colour', tabindex: '-1' },
+      el('div', { class: 'hd' }, el('span', {}, which === 'fill' ? 'Fill' : 'Stroke'), tabs),
+      prev, bar, rowColour, rowStop, rowLin, rowRad,
+      el('div', { class: 'cap sl' }, 'On this slide'), swSlide, el('div', { class: 'cap rc' }, 'Recent'), swRecent,
+      el('div', { class: 'ft' }, more, el('span', { class: 'sp' }), bNo, bOk));
+    if (!('EyeDropper' in window)) drop.style.display = 'none';
+    const cur = () => (st.mode === 'linear' || st.mode === 'radial' ? st.stops[st.sel] : st);
+    const cssStops = () => st.stops.slice().sort((a, b) => a.pos - b.pos).map((x) => `${x.hex} ${Math.round(x.pos * 1000) / 10}%`).join(', ');
+    const rgba = (h, a) => `rgba(${parseInt(h.slice(1, 3), 16)}, ${parseInt(h.slice(3, 5), 16)}, ${parseInt(h.slice(5, 7), 16)}, ${a})`;
+    const sync = () => {
+      const grad = st.mode === 'linear' || st.mode === 'radial';
+      node.dataset.mode = st.mode;
+      tabs.querySelectorAll('button').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.mode === st.mode)));
+      const c = cur();
+      well.value = c.hex.toLowerCase();
+      if (root.activeElement !== hexIn) hexIn.value = c.hex.replace('#', '');
+      if (root.activeElement !== alphaIn) alphaIn.value = String(Math.round(st.alpha * 100));
+      if (grad) {
+        if (root.activeElement !== posIn) posIn.value = String(Math.round(c.pos * 100));
+        if (root.activeElement !== angIn) angIn.value = String(st.angle);
+        dial.firstChild.style.transform = `rotate(${st.angle}deg)`;
+        delStop.disabled = st.stops.length <= 2;
+        centre.querySelectorAll('button').forEach((b) => b.setAttribute('aria-checked', String(+b.dataset.c === st.centre)));
+        bar.style.background = `linear-gradient(to right, ${cssStops()})`;
+        bar.replaceChildren(...st.stops.map((x, i) => {
+          const h = el('button', { type: 'button', class: 'st' + (i === st.sel ? ' on' : ''), 'data-i': i, 'aria-label': `Stop at ${Math.round(x.pos * 100)}%` });
+          h.style.left = x.pos * 100 + '%';
+          h.style.setProperty('--c', x.hex);
+          return h;
+        }));
+      }
+      const at = [['50% 50%', 'farthest-corner'], ['0 0', 'farthest-corner'], ['100% 0', 'farthest-corner'], ['0 100%', 'farthest-corner'], ['100% 100%', 'farthest-corner']][st.centre || 0];
+      prevFill.style.opacity = st.mode === 'none' ? 1 : st.alpha;
+      prev.classList.toggle('none', st.mode === 'none');
+      prevFill.style.background = st.mode === 'none' ? '' : st.mode === 'solid' ? st.hex
+        : st.mode === 'linear' ? `linear-gradient(${st.angle + 90}deg, ${cssStops()})` : `radial-gradient(circle ${at[1]} at ${at[0]}, ${cssStops()})`;
+    };
+    const swatch = (h) => { const b = el('button', { type: 'button', class: 'sw', 'data-hex': h, 'aria-label': h, 'data-tip': h }); b.style.background = h; return b; };
+    const fillSwatches = () => {
+      const a = slideColours(), b = recentColours.filter((h) => normHex(h));
+      swSlide.replaceChildren(...a.map(swatch)); swRecent.replaceChildren(...b.map(swatch));
+      node.querySelector('.sl').style.display = swSlide.style.display = a.length ? '' : 'none';
+      node.querySelector('.rc').style.display = swRecent.style.display = b.length ? '' : 'none';
+    };
+    const setColour = (h, a) => {
+      cur().hex = h;
+      if (a !== undefined) st.alpha = a;
+      if (st.mode === 'none') st.mode = 'solid';
+      sync();
+    };
+    tabs.addEventListener('click', (e) => {
+      const b = e.target.closest('button');
+      if (!b) return;
+      const was = st.mode;
+      st.mode = b.dataset.mode;
+      // Going solid ↔ gradient carries the colour in hand across.
+      if ((st.mode === 'linear' || st.mode === 'radial') && was === 'solid' && st.stops.length === 2 && JSON.parse(start).mode !== 'linear' && JSON.parse(start).mode !== 'radial') st.stops[0].hex = st.hex;
+      if (st.mode === 'solid' && (was === 'linear' || was === 'radial')) st.hex = st.stops[st.sel].hex;
+      sync();
+    });
+    well.addEventListener('input', () => setColour(well.value.toUpperCase()));
+    hexIn.addEventListener('input', () => { const c = normHex(hexIn.value); if (c) setColour(c.hex, c.alpha); });
+    hexIn.addEventListener('blur', () => sync());
+    hexIn.addEventListener('focus', () => setTimeout(() => hexIn.select(), 0));
+    alphaIn.addEventListener('input', () => { const v = parseFloat(alphaIn.value); if (Number.isFinite(v)) { st.alpha = Math.min(1, Math.max(0, v / 100)); sync(); } });
+    posIn.addEventListener('input', () => { const v = parseFloat(posIn.value); if (Number.isFinite(v)) { st.stops[st.sel].pos = Math.min(1, Math.max(0, v / 100)); sync(); } });
+    angIn.addEventListener('input', () => { const v = parseFloat(angIn.value); if (Number.isFinite(v)) { st.angle = v; sync(); } });
+    RK.scrub(alphaIn.parentNode, alphaIn, { step: 1, min: 0, max: 100 });
+    RK.scrub(posIn.parentNode, posIn, { step: 1, min: 0, max: 100 });
+    RK.scrub(angIn.parentNode, angIn, { step: 1 });
+    rowLin.addEventListener('click', (e) => { const b = e.target.closest('[data-ang]'); if (b) { st.angle = +b.dataset.ang; sync(); } });
+    centre.addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) { st.centre = +b.dataset.c; sync(); } });
+    rev.addEventListener('click', () => { st.stops.forEach((x) => { x.pos = Math.round((1 - x.pos) * 1e4) / 1e4; }); sync(); });
+    const removeStop = () => { if (st.stops.length <= 2) return; st.stops.splice(st.sel, 1); st.sel = Math.min(st.sel, st.stops.length - 1); sync(); };
+    delStop.addEventListener('click', removeStop);
+    dial.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      const r = dial.getBoundingClientRect(), cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+      const turn = (ev) => {
+        let a = Math.atan2(ev.clientY - cy, ev.clientX - cx) * 180 / Math.PI;
+        a = ev.shiftKey ? Math.round(a / 15) * 15 : Math.round(a);
+        st.angle = (a + 360) % 360;
+        sync();
+      };
+      const end = () => { window.removeEventListener('pointermove', turn, true); window.removeEventListener('pointerup', end, true); };
+      window.addEventListener('pointermove', turn, true);
+      window.addEventListener('pointerup', end, true);
+      turn(e);
+    });
+    bar.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      const r = bar.getBoundingClientRect();
+      const posOf = (ev) => Math.min(1, Math.max(0, (ev.clientX - r.left) / r.width));
+      const h = e.target.closest('.st');
+      if (h) st.sel = +h.dataset.i;
+      else { const pos = Math.round(posOf(e) * 100) / 100; st.stops.push({ hex: stopColourAt(st.stops, pos), pos }); st.sel = st.stops.length - 1; }
+      sync();
+      const held = st.stops[st.sel];
+      let gone = false;
+      const mv = (ev) => {
+        const away = Math.abs(ev.clientY - (r.top + r.height / 2)) > 36 && st.stops.length > 2;
+        if (away && !gone) { gone = true; st.stops.splice(st.stops.indexOf(held), 1); st.sel = 0; }
+        else if (!away && gone) { gone = false; st.stops.push(held); }
+        if (!gone) { held.pos = Math.round(posOf(ev) * 1000) / 1000; st.sel = st.stops.indexOf(held); }
+        sync();
+      };
+      const end = () => { window.removeEventListener('pointermove', mv, true); window.removeEventListener('pointerup', end, true); };
+      window.addEventListener('pointermove', mv, true);
+      window.addEventListener('pointerup', end, true);
+    });
+    [swSlide, swRecent].forEach((w) => w.addEventListener('click', (e) => { const b = e.target.closest('.sw'); if (b) setColour(b.dataset.hex); }));
+    drop.addEventListener('click', async () => {
+      try { const r = await new window.EyeDropper().open(); const c = normHex(r && r.sRGBHex); if (c) setColour(c.hex); } catch { /* closed without a pick */ }
+    });
+    const done = (keep) => {
+      const changed = JSON.stringify(Object.assign({}, st, { sel: 0 })) !== JSON.stringify(Object.assign(JSON.parse(start), { sel: 0 }));
+      closePaint();
+      if (keep && changed) applyPaintState(which, clone(st));
+    };
+    bNo.addEventListener('click', () => done(false));
+    bOk.addEventListener('click', () => done(true));
+    more.addEventListener('click', () => { closePaint(); showSlidesMenu(which); });
+    node.addEventListener('keydown', (e) => {
+      e.stopPropagation();
+      const typing = e.target.tagName === 'INPUT' && e.target.type !== 'color';
+      if (e.key === 'Escape') { e.preventDefault(); done(false); }
+      else if (e.key === 'Enter') { e.preventDefault(); if (typing) e.target.blur(); done(true); }
+      else if (!typing && (e.key === 'Delete' || e.key === 'Backspace') && (st.mode === 'linear' || st.mode === 'radial')) { e.preventDefault(); removeStop(); }
+      else if (!typing && (e.key === 'ArrowLeft' || e.key === 'ArrowRight') && (st.mode === 'linear' || st.mode === 'radial')) {
+        e.preventDefault();
+        const x = st.stops[st.sel];
+        x.pos = Math.min(1, Math.max(0, Math.round((x.pos + (e.key === 'ArrowLeft' ? -1 : 1) * (e.shiftKey ? 0.1 : 0.01)) * 100) / 100));
+        sync();
+      }
+    });
+    ['keyup', 'keypress', 'mousedown', 'pointerdown', 'click', 'wheel'].forEach((t) => node.addEventListener(t, (e) => e.stopPropagation()));
+    const away = (e) => { if (cpop && !e.composedPath().includes(node) && !(e.composedPath().some((n) => n && n.dataset && n.dataset.act === which))) done(false); };
+    root.append(node);
+    rk.attachTips(node, 'right');
+    rk.setOn(which, true);
+    cpop = { node, which, away };
+    fillSwatches();
+    sync();
+    // Beside the button that opened it, kept on screen.
+    const btn = rail.querySelector(`[data-act="${which}"]`);
+    const br = (btn && btn.getBoundingClientRect().width ? btn : rail).getBoundingClientRect();
+    const pr = node.getBoundingClientRect();
+    node.style.left = Math.min(window.innerWidth - pr.width - 8, br.right + 10) + 'px';
+    node.style.top = Math.max(8, Math.min(window.innerHeight - pr.height - 8, br.top - 12)) + 'px';
+    setTimeout(() => window.addEventListener('pointerdown', away, true), 0);
+    node.focus({ preventScroll: true });
+  }
+
   let lastStroke = null; // colour to bring back when stroke goes on again
   function selectionStroke() {
     const inv = pageInv() || [1, 0, 0, 1, 0, 0];
@@ -2321,8 +2638,8 @@ console.log('[svg2slides] shape-tools.js loaded');
       case 'strokeInside': return strokeAlignOp('inside');
       case 'strokeOutside': return strokeAlignOp('outside');
       case 'palette': return openPalette();
-      case 'fill': case 'fillColor': return showSlidesMenu('fill');
-      case 'stroke': case 'strokeColor': return showSlidesMenu('stroke');
+      case 'fill': case 'fillColor': return openPaint('fill');
+      case 'stroke': case 'strokeColor': return openPaint('stroke');
       case 'strokeToggle': return strokeToggle();
       case 'strokeThinner': return asOne('stroke', () => strokeStep(-1));
       case 'strokeThicker': return asOne('stroke', () => strokeStep(1));
@@ -2387,6 +2704,59 @@ console.log('[svg2slides] shape-tools.js loaded');
     .hint { position: fixed; z-index: 2147482999; pointer-events: none; background: ${GM.tooltip}; color: ${GM.onTooltip};
             font: 400 12px/16px ${FONT}; padding: 6px 10px; border-radius: 4px; max-width: 320px; opacity: 0; transition: opacity .2s; }
     .hint.show { opacity: .95; }
+    .cpop { position: fixed; z-index: 4; width: 292px; box-sizing: border-box; padding: 12px; background: #fff; color: #1f1f1f; border-radius: 12px;
+            box-shadow: 0 2px 6px 2px rgba(60,64,67,.15), 0 1px 2px rgba(60,64,67,.3); font: 400 12px/16px ${FONT}; outline: none; }
+    .cpop * { box-sizing: border-box; font: inherit; }
+    .cpop .hd { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-weight: 500; font-size: 13px; margin-bottom: 10px; }
+    .cpop .tabs { display: flex; background: ${GM.surface}; border-radius: 8px; padding: 2px; }
+    .cpop .tabs button { border: 0; background: none; padding: 3px 8px; border-radius: 6px; cursor: pointer; color: ${GM.icon}; font-size: 12px; font-weight: 500; }
+    .cpop .tabs button[aria-selected="true"] { background: #fff; color: #1f1f1f; box-shadow: 0 1px 2px rgba(60,64,67,.3); }
+    .cpop .prev { height: 44px; border-radius: 8px; border: 1px solid ${GM.outline}; margin-bottom: 10px; overflow: hidden;
+                  background: repeating-conic-gradient(#e3e3e3 0% 25%, #fff 0% 50%) 0 0 / 12px 12px; }
+    .cpop .prev i { display: block; width: 100%; height: 100%; }
+    .cpop .prev.none i { background: linear-gradient(to top right, transparent calc(50% - 1px), #d93025 calc(50% - 1px), #d93025 calc(50% + 1px), transparent calc(50% + 1px)), #fff; }
+    .cpop .gbar { position: relative; height: 16px; border-radius: 8px; border: 1px solid ${GM.outline}; margin: 4px 7px 18px; cursor: copy; }
+    .cpop .st { position: absolute; top: 10px; width: 14px; height: 14px; margin-left: -7px; padding: 0; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; border: 2px solid #fff;
+                background: var(--c); box-shadow: 0 0 0 1px ${GM.outline}, 0 1px 2px rgba(0,0,0,.3); cursor: ew-resize; }
+    .cpop .st.on { box-shadow: 0 0 0 2px #1a73e8, 0 1px 2px rgba(0,0,0,.3); z-index: 1; }
+    .cpop .row { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+    .cpop .row.g .tx { padding: 0 6px; }
+    .cpop .row.rad { gap: 12px; }
+    .cpop input[type="color"] { width: 30px; height: 28px; padding: 0; border: 1px solid ${GM.outline}; border-radius: 6px; background: none; cursor: pointer; flex: none; }
+    .cpop input[type="color"]::-webkit-color-swatch-wrapper { padding: 2px; }
+    .cpop input[type="color"]::-webkit-color-swatch { border: 0; border-radius: 3px; }
+    .cpop input[type="text"], .cpop input[type="number"] { height: 28px; border: 1px solid ${GM.outline}; border-radius: 6px; padding: 0 6px; background: #fff; color: inherit; min-width: 0; }
+    .cpop input:focus { outline: 2px solid #a8c7fa; outline-offset: -1px; }
+    .cpop input::-webkit-inner-spin-button, .cpop input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    .cpop .hex { flex: 1; text-transform: uppercase; font-family: 'Roboto Mono', Menlo, monospace; }
+    .cpop .f { display: flex; align-items: center; gap: 4px; color: ${GM.icon}; }
+    .cpop .f input { width: 46px; text-align: right; }
+    .cpop .ib { width: 28px; height: 28px; border: 0; border-radius: 6px; background: none; cursor: pointer; display: grid; place-items: center; color: ${GM.icon}; flex: none; }
+    .cpop .ib:hover, .cpop .tx:hover { background: ${GM.hover}; }
+    .cpop .ib svg { width: 18px; height: 18px; fill: currentColor; }
+    .cpop .tx { border: 1px solid ${GM.outline}; background: none; height: 26px; padding: 0 8px; border-radius: 6px; cursor: pointer; color: #1f1f1f; white-space: nowrap; }
+    .cpop .tx[disabled] { opacity: .4; pointer-events: none; }
+    .cpop .dial { width: 26px; height: 26px; border-radius: 50%; border: 1px solid ${GM.outline}; position: relative; cursor: grab; flex: none; }
+    .cpop .dial i { position: absolute; left: 50%; top: 50%; width: 11px; height: 2px; margin-top: -1px; background: #1a73e8; border-radius: 1px; transform-origin: 0 50%; }
+    .cpop .cgrid { display: grid; grid-template-columns: repeat(3, 14px); grid-template-rows: repeat(3, 14px); gap: 2px; }
+    .cpop .cgrid button { border: 1px solid ${GM.outline}; background: #fff; border-radius: 3px; padding: 0; cursor: pointer; }
+    .cpop .cgrid button[data-c="1"] { grid-area: 1 / 1; } .cpop .cgrid button[data-c="2"] { grid-area: 1 / 3; } .cpop .cgrid button[data-c="0"] { grid-area: 2 / 2; }
+    .cpop .cgrid button[data-c="3"] { grid-area: 3 / 1; } .cpop .cgrid button[data-c="4"] { grid-area: 3 / 3; }
+    .cpop .cgrid button[aria-checked="true"] { background: #1a73e8; border-color: #1a73e8; }
+    .cpop .cap { color: ${GM.icon}; font-size: 11px; margin: 2px 0 6px; }
+    .cpop .sws { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .cpop .sw { width: 20px; height: 20px; border-radius: 50%; border: 1px solid rgba(0,0,0,.18); padding: 0; cursor: pointer; }
+    .cpop .sw:hover { transform: scale(1.15); }
+    .cpop .ft { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+    .cpop .ft .sp { flex: 1; }
+    .cpop .pb { width: 28px; height: 28px; border-radius: 50%; border: 0; padding: 0; display: grid; place-items: center; cursor: pointer; background: ${GM.surface}; color: #1f1f1f; }
+    .cpop .pb svg { width: 16px; height: 16px; }
+    .cpop .pb.ok { background: #0b57d0; color: #fff; }
+    .cpop .pb:hover { filter: brightness(.94); }
+    .cpop .gbar, .cpop .row.g { display: none; }
+    .cpop[data-mode="linear"] .gbar, .cpop[data-mode="radial"] .gbar { display: block; }
+    .cpop[data-mode="linear"] .row.g:not(.rad), .cpop[data-mode="radial"] .row.g:not(.lin) { display: flex; }
+    .cpop[data-mode="none"] .row { opacity: .5; }
     .madj { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 1; outline: none; cursor: default; }
     .madj .pic { cursor: move; }
     .madj .edge { fill: none; stroke: #1a73e8; stroke-width: 1.5; vector-effect: non-scaling-stroke; pointer-events: none; }

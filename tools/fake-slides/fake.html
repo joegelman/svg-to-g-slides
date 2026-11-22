@@ -1,0 +1,44 @@
+<!doctype html><html><head><meta charset="utf-8"><style>
+html,body{margin:0;height:100%;background:#f8fafd;font-family:Arial}
+#workspace-container{position:absolute;left:230px;top:60px;right:20px;bottom:20px;overflow:hidden;background:#eee}
+#workspace{position:absolute;inset:0}
+.docs-texteventtarget-iframe{position:absolute;left:-1000px;top:0;width:10px;height:10px}
+</style></head><body>
+<div id="workspace-container"><div id="workspace">
+<svg id="stage" width="960" height="540" style="position:absolute;left:40px;top:30px;background:#fff" xmlns="http://www.w3.org/2000/svg">
+ <g id="editor-p" transform="scale(0.0026246719)"><g id="editor-p-bg"><rect width="365760" height="205740" fill="#ffffff"/></g></g>
+</svg></div></div>
+<iframe class="docs-texteventtarget-iframe" srcdoc="<div contenteditable='true' role='textbox' style='width:5px;height:5px'></div>"></iframe>
+<script>
+// A stand-in for the parts of Slides the shape tools talk to: objects drawn
+// as <g id="editor-ID">, a text-event iframe that answers copy with the
+// selection's data, takes pastes, and deletes on Delete.
+const MIME='application/x-vnd.google-docs-drawings-object+wrapped';
+var FAKE={objs:[],sel:[],n:0,pastes:[],log:[]};
+const dOf=(meta,co)=>{let i=0,s='';for(let m=0;m<meta.length;m+=2){const op=meta[m],n=meta[m+1],q=co.slice(i,i+n);i+=n;
+  if(op===0)s+='M'+q[0]+' '+q[1];else if(op===1)for(let j=0;j<n;j+=2)s+='L'+q[j]+' '+q[j+1];else if(op===3)for(let j=0;j<n;j+=6)s+='C'+q.slice(j,j+6).join(' ');else if(op===5)s+='Z';}return s;};
+const P=(props,k)=>{for(let i=0;i+1<props.length;i+=2)if(props[i]===k)return props[i+1];};
+FAKE.render=()=>{const page=document.getElementById('editor-p');[...page.querySelectorAll(':scope > g:not(#editor-p-bg)')].forEach(g=>g.remove());
+  const NS='http://www.w3.org/2000/svg';const mk=(t,a)=>{const n=document.createElementNS(NS,t);for(const k in a)n.setAttribute(k,a[k]);return n;};
+  for(const e of FAKE.objs){ if(e[0]!==3)continue; const pr=e[4]; const g=mk('g',{id:'editor-'+e[1],transform:'matrix('+e[3].join(' ')+')'});
+    const path=P(pr,12); const w=P(pr,8)||100000,h=P(pr,9)||60000; const d=path?dOf(path[0][2],path[0][3]):`M0 0H${w}V${h}H0Z`;
+    if(typeof P(pr,49)==='string'){ const id='fc'+e[1]; const cp=mk('clipPath',{id}); cp.append(mk('path',{d})); g.append(cp);
+      // picture box: fractions of the path's box (taken here as the frame)
+      const im=mk('image',{href:FAKE.img,x:(P(pr,84)||0)*w,y:(P(pr,85)||0)*h,width:(P(pr,79)||1)*w,height:(P(pr,80)||1)*h,preserveAspectRatio:'none','clip-path':`url(#${id})`}); g.append(im);
+      g.append(mk('path',{d,fill:'none'})); }
+    else { const on=P(pr,14)!==0&&(typeof P(pr,15)==='string'); const p=mk('path',{d,fill:on?P(pr,15):'none'}); if(P(pr,16)!==undefined)p.setAttribute('fill-opacity',P(pr,16));
+      if(P(pr,18)!==0&&typeof P(pr,19)==='string'){p.setAttribute('stroke',P(pr,19));p.setAttribute('stroke-width',P(pr,22)||381);} g.append(p); }
+    if(FAKE.sel.includes(e[1])) g.append(mk('rect',{width:w,height:h,fill:'none',stroke:'#8ab4f8','stroke-width':600,'pointer-events':'none'}));
+    page.append(g);} };
+FAKE.img='data:image/svg+xml;base64,'+btoa('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300"><defs><linearGradient id="a" x2="1" y2="1"><stop stop-color="#ffd54f"/><stop offset="1" stop-color="#d81b60"/></linearGradient></defs><rect width="400" height="300" fill="url(#a)"/><circle cx="120" cy="110" r="60" fill="#1e88e5"/><path d="M0 300 150 150 260 240 330 180 400 250V300Z" fill="#2e7d32"/></svg>');
+document.getElementById('stage').addEventListener('mousedown',e=>{const g=e.target.closest&&e.target.closest('g[id^="editor-"]');const id=g&&g.id!=='editor-p'&&!g.id.endsWith('-bg')?g.id.slice(7):null;
+  if(!id){FAKE.sel=[];}else if(e.shiftKey){FAKE.sel=FAKE.sel.includes(id)?FAKE.sel.filter(x=>x!==id):[...FAKE.sel,id];}else FAKE.sel=[id]; FAKE.render();},true);
+addEventListener('load',()=>{const d=document.querySelector('iframe').contentDocument;
+  d.addEventListener('copy',e=>{const ents=FAKE.objs.filter(o=>FAKE.sel.includes(o[1])); if(!ents.length)return; e.clipboardData.setData(MIME,JSON.stringify({data:JSON.stringify({resolved:ents,unresolved:ents})}));
+    if(ents.some(o=>typeof P(o[4],49)==='string')) e.clipboardData.setData('application/x-vnd.google-docs-image-clip+wrapped','{"data":"{}"}'); e.preventDefault();});
+  d.addEventListener('paste',e=>{const s=e.clipboardData.getData(MIME); if(!s)return; const r=JSON.parse(JSON.parse(s).data).resolved; FAKE.pastes.push(r); const made=[];
+    for(const en of r){ if(en[0]!==3)continue; const c=JSON.parse(JSON.stringify(en)); c[1]='f'+(++FAKE.n); FAKE.objs.push(c); made.push(c[1]); } FAKE.sel=made; FAKE.render();});
+  d.addEventListener('keydown',e=>{ if(e.key==='Delete'||e.key==='Backspace'){FAKE.objs=FAKE.objs.filter(o=>!FAKE.sel.includes(o[1]));FAKE.sel=[];FAKE.render();} });
+  FAKE.ready=true;});
+window.chrome={storage:{local:{get:(k,cb)=>cb&&cb({}),set:()=>{}}},runtime:{getURL:x=>x,sendMessage:()=>{},onMessage:{addListener:()=>{}}}};
+</script></body></html>

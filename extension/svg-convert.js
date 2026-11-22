@@ -477,6 +477,16 @@
         cap: pick('stroke-linecap', ['butt', 'round', 'square'], inh.cap), join: pick('stroke-linejoin', ['miter', 'round', 'bevel'], inh.join),
         limit: lim >= 1 ? lim : inh.limit, clip: inh.clip,
       };
+      // Opacity: `opacity` multiplies down the tree (each shape carries its
+      // ancestors' product; overlapping shapes in a faded group will show
+      // through each other, which a true group fade would not), and
+      // fill-opacity / stroke-opacity inherit. Slides takes it as props 16
+      // (fill) and 20 (stroke) (checked live).
+      const op01 = (k) => { const raw = getProp(style, el, k); if (raw === null) return null; const v = raw.trim().endsWith('%') ? parseFloat(raw) / 100 : parseFloat(raw); return Number.isFinite(v) ? Math.min(1, Math.max(0, v)) : null; };
+      const o = op01('opacity'), fo = op01('fill-opacity'), so = op01('stroke-opacity');
+      next.op = (inh.op === undefined ? 1 : inh.op) * (o === null ? 1 : o);
+      next.fo = fo === null ? (inh.fo === undefined ? 1 : inh.fo) : fo;
+      next.so = so === null ? (inh.so === undefined ? 1 : inh.so) : so;
     }
     return [fill, stroke, sw, next];
   }
@@ -1175,21 +1185,24 @@
       let d = elementToD(el);
       if (d) d = normalizeArcs(d);
       if (d) {
-        const put = (pd, col) => {
+        const put = (pd, col, alpha) => {
           const cut = next && next.clip ? clipPiece(pd, xfm, next.clip) : undefined;
           if (cut === null) return;                       // clipped away entirely
-          if (cut === undefined) out.push([pd, xfm || ident, col]);
-          else out.push([cut, ident, col]);
+          const a = alpha === undefined || alpha >= 0.9995 ? [] : [Math.round(alpha * 1e4) / 1e4];
+          if (a.length && a[0] <= 0) return;              // fully transparent: nothing to draw
+          if (cut === undefined) out.push([pd, xfm || ident, col, ...a]);
+          else out.push([cut, ident, col, ...a]);
         };
+        const fa = next ? next.op * next.fo : undefined, sa = next ? next.op * next.so : undefined;
         // A gradient paint is placed against this element's own outline.
         const paint = (col) => {
           if (!precise || col === null || typeof col !== 'object') return col;
           const placed = placeGradient(col, gradients, d, xfm);
           return placed || { stops: gradStops(col, gradients).length ? gradStops(col, gradients) : [[0, '000000', 100000]] };
         };
-        if (fill !== null) put(d, paint(fill));
-        if (stroke && sw > 0) put(next ? strokeOutline(d, sw, next) : strokeToOutline(d, sw), paint(stroke));
-        else if (stroke && fill === null) put(d, paint(stroke));
+        if (fill !== null) put(d, paint(fill), fa);
+        if (stroke && sw > 0) put(next ? strokeOutline(d, sw, next) : strokeToOutline(d, sw), paint(stroke), sa);
+        else if (stroke && fill === null) put(d, paint(stroke), sa);
       }
     }
     for (const c of kids(el)) collect(c, xfm, fill, gradients, vb, out, next, depth);
@@ -1360,7 +1373,7 @@
     const ch = vw ? pyRound(COORD * vh / vw) : COORD;
     if (ch === 0) fail('division by zero');
     const resolved = [], childIds = [];
-    for (const [d, xfm, fillHex] of shapes) {
+    for (const [d, xfm, fillHex, alpha] of shapes) {
       const [meta, coords] = pathToClipGeometry(d, xfm, vx, vy, vw, vh);
       const [xs, ys] = endpointBbox(meta, coords);
       if (!xs.length) continue;
@@ -1387,6 +1400,7 @@
       const entry = shapeEntry(id, meta, local, lw, lh, xU, yU, fill);
       entry[3][0] = scale;
       entry[3][3] = scale;
+      if (alpha !== undefined) entry[4].splice(entry[4].indexOf(15) + 2, 0, 16, alpha);
       if (typeof fillHex === 'object' && fillHex.pts) {
         const toLocal = (x, y) => [((x - vx) / vw * cw - x0) * kx, ((y - vy) / vh * ch - y0) * ky];
         const gp = gradientProps(fillHex, toLocal, lw, lh);
