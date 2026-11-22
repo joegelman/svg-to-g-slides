@@ -186,15 +186,36 @@ const SB = (() => {
       const g = elementFor(id);
       if (!g) return;
       let t = id;
+      // A gradient fill is url(#gradient-N), and N changes whenever Slides
+      // redraws: read the gradient itself. Opacity, a text run's style
+      // (its colour lives there) and where a picture sits under its mask
+      // count too, or a change to only those looks like no change.
+      const paintOf = (v) => {
+        const m = /^url\(["']?#([^"')]+)/.exec(v || '');
+        const gr = m && document.getElementById(m[1]);
+        if (!gr) return v || '';
+        const r3 = (a) => { const x = parseFloat(gr.getAttribute(a)); return Number.isFinite(x) ? x.toPrecision(3) : ''; };
+        return gr.tagName + ['x1', 'y1', 'x2', 'y2', 'cx', 'cy', 'r'].map(r3).join(',') + [...gr.querySelectorAll('stop')].map((st) => (st.getAttribute('offset') || '') + (st.getAttribute('stop-color') || '') + (st.getAttribute('stop-opacity') || '')).join(';');
+      };
       g.querySelectorAll('path, text, image').forEach((n) => {
-        t += '|' + n.tagName + (n.getAttribute('d') || '').replace(/(\d+\.\d)\d+/g, '$1') + (n.getAttribute('fill') || '') + (n.getAttribute('stroke') || '') +
-          (n.getAttribute('stroke-width') || '') + (n.getAttribute('transform') || '').replace(/(\d+\.\d)\d+/g, '$1') + (n.tagName === 'text' ? n.textContent : '');
+        t += '|' + n.tagName + (n.getAttribute('d') || '').replace(/(\d+\.\d)\d+/g, '$1') + paintOf(n.getAttribute('fill')) + paintOf(n.getAttribute('stroke')) +
+          (n.getAttribute('stroke-width') || '') + (n.getAttribute('fill-opacity') || '') + (n.getAttribute('stroke-opacity') || '') + (n.getAttribute('opacity') || '') +
+          (n.getAttribute('transform') || '').replace(/(\d+\.\d)\d+/g, '$1') +
+          (n.tagName === 'text' ? n.textContent + (n.getAttribute('style') || '') : '') +
+          (n.tagName === 'image' ? ['x', 'y', 'width', 'height'].map((a) => (n.getAttribute(a) || '').replace(/(\d+\.\d)\d+/g, '$1')).join(',') : '');
       });
       parts.push(hashStr(t));
     });
     return parts.join(',');
   }
   function tick() { if (macro && !replaying) macro.steps++; }
+  function untick() { if (macro && !replaying && macro.steps > 0) macro.steps--; }
+  function forceMacro() { if (macro) macro.force = true; }
+  // exact: undo presses every one of our steps instead of stopping when the
+  // slide first looks right. Needed when steps cancel out on the way (a
+  // copy pasted and later removed): stopping early would leave them in
+  // Slides' history, and the next ⌘Z would bring the copy back.
+  function exactMacro() { if (macro) macro.exact = true; }
   // Where our last action left the slide: after a macro (s1) or before it
   // (s0). With no input of the person's own since, that is where the slide
   // still is, even if Slides redrew it slightly differently.
@@ -227,7 +248,9 @@ const SB = (() => {
     const m = macro;
     macro = null;
     m.s1 = slideSig();
-    if (!m.s0 || !m.s1 || m.s0 === m.s1) return; // nothing changed
+    // m.force: the change is on other slides (a colour replaced through the
+    // deck), so this slide can look the same before and after.
+    if (!m.s0 || !m.s1 || (m.s0 === m.s1 && !m.force)) return; // nothing changed
     lastOursAt = Date.now();
     // One Slides step needs no help, but the slide is somewhere new now.
     if (m.steps < 2) { here = null; return; }
@@ -310,6 +333,7 @@ const SB = (() => {
         const before = slideSig();
         undoKey(redo);
         for (let w = 0; w < 25 && slideSig() === before; w++) await sleep(40);
+        if (m.exact) { done++; continue; }
         if (slideSig() === to) { ok = true; break; }
         if (slideSig() === before) break; // history ran out
         done++;
@@ -1228,7 +1252,7 @@ const SB = (() => {
 
   return {
     MIME, iframe, textbox, focusTextbox, wrap, unwrap,
-    readSelection, readSelectionRaw, placeholderIds, readClip, withClip, hasClip: () => !!pasteClip, paste, pressKey, sleep, waitForSelection,
+    forceMacro, exactMacro, untick, readSelection, readSelectionRaw, placeholderIds, readClip, withClip, hasClip: () => !!pasteClip, paste, pressKey, sleep, waitForSelection,
     getProp, setProp, newId, pathRecord, isEditableShape,
     matMul, matInv, apply, localToPage, pageCTM, elementFor, currentPageGroup, visibleWorkspaceRect,
     topLevelOrder, topLevelIdOf, pressArrange, moveToIndex,

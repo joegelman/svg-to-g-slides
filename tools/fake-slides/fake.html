@@ -9,6 +9,10 @@ html,body{margin:0;height:100%;background:#f8fafd;font-family:Arial}
  <div id="lineColorMenuButton" style="width:28px;height:28px;background:#ccc" title="border"></div>
  <div id="textColorButton" style="width:28px;height:28px;background:#bbb" title="text"></div>
 </div>
+<div class="filmstrip" style="position:absolute;left:0;top:60px;width:200px;bottom:0"><div class="punch-filmstrip-scroll"><svg class="punch-filmstrip-thumbnails" width="180" height="240" xmlns="http://www.w3.org/2000/svg">
+ <g class="punch-filmstrip-thumbnail"><rect class="punch-filmstrip-thumbnail-background" x="10" y="10" width="160" height="90" fill="#ffffff"/><path d="M20 20H80V60H20Z" fill="#4285F4"/></g>
+ <g class="punch-filmstrip-thumbnail"><rect class="punch-filmstrip-thumbnail-background" x="10" y="120" width="160" height="90" fill="#ffffff"/><path d="M20 130H80V170H20Z" fill="#9C27B0"/></g>
+</svg></div></div>
 <div id="workspace-container"><div id="workspace">
 <svg id="stage" width="960" height="540" style="position:absolute;left:40px;top:30px;background:#fff" xmlns="http://www.w3.org/2000/svg">
  <g id="editor-p" transform="scale(0.0026246719)"><g id="editor-p-bg"><rect width="365760" height="205740" fill="#ffffff"/></g></g>
@@ -19,7 +23,7 @@ html,body{margin:0;height:100%;background:#f8fafd;font-family:Arial}
 // as <g id="editor-ID">, a text-event iframe that answers copy with the
 // selection's data, takes pastes, and deletes on Delete.
 const MIME='application/x-vnd.google-docs-drawings-object+wrapped';
-var FAKE={objs:[],sel:[],n:0,pastes:[],log:[]};
+var FAKE={gn:0,objs:[],sel:[],n:0,pastes:[],log:[]};
 const dOf=(meta,co)=>{let i=0,s='';for(let m=0;m<meta.length;m+=2){const op=meta[m],n=meta[m+1],q=co.slice(i,i+n);i+=n;
   if(op===0)s+='M'+q[0]+' '+q[1];else if(op===1)for(let j=0;j<n;j+=2)s+='L'+q[j]+' '+q[j+1];else if(op===3)for(let j=0;j<n;j+=6)s+='C'+q.slice(j,j+6).join(' ');else if(op===5)s+='Z';}return s;};
 const P=(props,k)=>{for(let i=0;i+1<props.length;i+=2)if(props[i]===k)return props[i+1];};
@@ -31,7 +35,10 @@ FAKE.render=()=>{const page=document.getElementById('editor-p');[...page.querySe
       // picture box: fractions of the path's box (taken here as the frame)
       const im=mk('image',{href:FAKE.img,x:(P(pr,84)||0)*w,y:(P(pr,85)||0)*h,width:(P(pr,79)||1)*w,height:(P(pr,80)||1)*h,preserveAspectRatio:'none','clip-path':`url(#${id})`}); g.append(im);
       g.append(mk('path',{d,fill:'none'})); }
-    else { const on=P(pr,14)!==0&&(typeof P(pr,15)==='string'); const p=mk('path',{d,fill:on?P(pr,15):'none'}); if(P(pr,16)!==undefined)p.setAttribute('fill-opacity',P(pr,16));
+    else { const on=P(pr,14)!==0&&(typeof P(pr,15)==='string'); const p=mk('path',{d,fill:on?P(pr,15):'none'});
+      // like Slides: a gradient is a <linearGradient>/<radialGradient> whose id changes on every redraw
+      if(on&&(P(pr,60)===1||P(pr,60)===2)&&Array.isArray(P(pr,61))){ const gid='gradient-'+(++FAKE.gn); const gr=mk(P(pr,60)===1?'linearGradient':'radialGradient',P(pr,60)===1?{id:gid,x1:0,y1:0,x2:Math.cos(P(pr,62)||0),y2:Math.sin(P(pr,62)||0)}:{id:gid,cx:[.5,0,1,0,1][P(pr,73)||0],cy:[.5,0,0,1,1][P(pr,73)||0],r:1});
+        P(pr,61).forEach(([c,o])=>gr.append(mk('stop',{offset:o,'stop-color':c}))); g.append(gr); p.setAttribute('fill','url(#'+gid+')'); } if(P(pr,16)!==undefined)p.setAttribute('fill-opacity',P(pr,16));
       if(P(pr,18)!==0&&typeof P(pr,19)==='string'){p.setAttribute('stroke',P(pr,19));p.setAttribute('stroke-width',P(pr,22)||381);} g.append(p); }
     if(FAKE.sel.includes(e[1])) g.append(mk('rect',{width:w,height:h,fill:'none',stroke:'#8ab4f8','stroke-width':600,'pointer-events':'none'}));
     page.append(g);} };
@@ -41,14 +48,15 @@ document.getElementById('stage').addEventListener('mousedown',e=>{const g=e.targ
 addEventListener('load',()=>{const d=document.querySelector('iframe').contentDocument;
   d.addEventListener('copy',e=>{ if(FAKE.textRange){e.clipboardData.setData('text/plain','Some words\n');e.preventDefault();return;} const ents=FAKE.objs.filter(o=>FAKE.sel.includes(o[1])); if(!ents.length)return; e.clipboardData.setData(MIME,JSON.stringify({data:JSON.stringify({resolved:ents,unresolved:ents})}));
     if(ents.some(o=>typeof P(o[4],49)==='string')) e.clipboardData.setData('application/x-vnd.google-docs-image-clip+wrapped','{"data":"{}"}'); e.preventDefault();});
-  d.addEventListener('paste',e=>{const s=e.clipboardData.getData(MIME); if(!s)return; const r=JSON.parse(JSON.parse(s).data).resolved; FAKE.pastes.push(r); const made=[];
+  d.addEventListener('paste',e=>{const s=e.clipboardData.getData(MIME); if(!s)return; FAKE.snap(); const r=JSON.parse(JSON.parse(s).data).resolved; FAKE.pastes.push(r); const made=[];
     for(const en of r){ if(en[0]!==3)continue; const c=JSON.parse(JSON.stringify(en)); c[1]='f'+(++FAKE.n); FAKE.objs.push(c); made.push(c[1]); } FAKE.sel=made; FAKE.render();});
   const FMT=[14,15,16,60,61,62,73,145,18,19,20,22];
   d.addEventListener('keydown',e=>{ const mod=e.metaKey||e.ctrlKey;
-    if(e.key==='Delete'||e.key==='Backspace'){FAKE.objs=FAKE.objs.filter(o=>!FAKE.sel.includes(o[1]));FAKE.sel=[];FAKE.render();}
+    if(mod&&!e.altKey&&!e.shiftKey&&e.key.toLowerCase()==='z'){ if(FAKE.hist.length){FAKE.objs=JSON.parse(FAKE.hist.pop());FAKE.sel=[];FAKE.undos=(FAKE.undos||0)+1;FAKE.render();} }
+    else if(e.key==='Delete'||e.key==='Backspace'){ if(FAKE.sel.length)FAKE.snap(); FAKE.objs=FAKE.objs.filter(o=>!FAKE.sel.includes(o[1]));FAKE.sel=[];FAKE.render();}
     else if(e.key==='Escape'){ if(FAKE.textRange)FAKE.textRange=false; else {FAKE.sel=[];FAKE.render();} }
     else if(mod&&e.altKey&&e.key.toLowerCase()==='c'){ const o=targets()[0]; if(o){FAKE.format={}; FMT.forEach(k=>{const v=P(o[4],k); if(v!==undefined)FAKE.format[k]=JSON.parse(JSON.stringify(v));});} }
-    else if(mod&&e.altKey&&e.key.toLowerCase()==='v'){ if(FAKE.format)targets().forEach(o=>{FMT.forEach(k=>delP(o[4],k)); for(const k in FAKE.format)o[4].push(+k,JSON.parse(JSON.stringify(FAKE.format[k])));}); FAKE.fmtPastes=(FAKE.fmtPastes||0)+1; FAKE.render(); }
+    else if(mod&&e.altKey&&e.key.toLowerCase()==='v'){ if(FAKE.format&&FAKE.sel.length)FAKE.snap(); if(FAKE.format)targets().forEach(o=>{FMT.forEach(k=>delP(o[4],k)); for(const k in FAKE.format)o[4].push(+k,JSON.parse(JSON.stringify(FAKE.format[k])));}); FAKE.fmtPastes=(FAKE.fmtPastes||0)+1; FAKE.render(); }
     else if(mod&&e.key.toLowerCase()==='a'){ FAKE.sel=FAKE.objs.filter(o=>o[0]===3).map(o=>o[1]); FAKE.render(); } });
   FAKE.ready=true;});
 // Slides' colour menus and custom colour dialog, as far as the tools drive them:
@@ -60,6 +68,8 @@ const setP=(props,k,v)=>{for(let i=0;i+1<props.length;i+=2)if(props[i]===k){prop
 const delP=(props,k)=>{for(let i=0;i+1<props.length;i+=2)if(props[i]===k){props.splice(i,2);return;}};
 const closeMenus=()=>document.querySelectorAll('.goog-menu,.docs-material-gm-dialog').forEach(n=>n.remove());
 const targets=()=>FAKE.objs.filter(o=>FAKE.sel.includes(o[1]));
+// Slides' own undo history: one entry per change, ⌘Z steps back one.
+FAKE.hist=[]; FAKE.snap=()=>FAKE.hist.push(JSON.stringify(FAKE.objs));
 ['fill','stroke','text'].forEach(which=>{const id={fill:'fillColorMenuButton',stroke:'lineColorMenuButton',text:'textColorButton'}[which];
   document.getElementById(id).addEventListener('mousedown',()=>{ if(document.querySelector('.goog-menu')){closeMenus();return;}
     const m=document.createElement('div'); m.className='goog-menu goog-menu-vertical'; m.style.cssText='position:absolute;left:230px;top:44px;width:200px;background:#fff;border:1px solid #999;z-index:5;padding:6px';
@@ -68,12 +78,12 @@ const targets=()=>FAKE.objs.filter(o=>FAKE.sel.includes(o[1]));
     const solid=document.createElement('div'); solid.className='solid'; solid.style.display=which!=='fill'||FAKE.tab==='Solid'?'block':'none';
     const add=document.createElement('div'); add.className='docs-customcolorpalette-add-custom-color-button'; add.textContent='+'; add.style.cssText='width:20px;height:20px;background:#eee';
     const tr=document.createElement('div'); tr.className='goog-menuitem'; tr.textContent='Transparent';
-    tr.addEventListener('mousedown',()=>{targets().forEach(o=>{ if(which==='fill'){setP(o[4],14,0);} else {setP(o[4],18,0);} }); FAKE.native.push(which+':none'); closeMenus(); FAKE.render();});
+    tr.addEventListener('mousedown',()=>{FAKE.snap();targets().forEach(o=>{ if(which==='fill'){setP(o[4],14,0);} else {setP(o[4],18,0);} }); FAKE.native.push(which+':none'); closeMenus(); FAKE.render();});
     add.addEventListener('mousedown',()=>{ const d=document.createElement('div'); d.className='docs-material-gm-dialog color-dialog'; d.style.cssText='position:absolute;left:460px;top:120px;width:240px;background:#fff;border:1px solid #666;z-index:6;padding:10px';
       const inp=document.createElement('input'); inp.className='docs-material-hsv-color-picker-input docs-material-hex-input'; inp.value=which==='fill'?'#ff0000ff':'#000000';
       const ok=document.createElement('div'); ok.className='docs-material-button'; ok.textContent='OK'; const ca=document.createElement('div'); ca.className='docs-material-button'; ca.textContent='Cancel';
       ok.addEventListener('mousedown',()=>{ const v=inp.value.trim(); const good=which==='fill'?/^#[0-9a-f]{8}$/i.test(v):/^#[0-9a-f]{6}$/i.test(v); FAKE.native.push(which+':'+v+(good?'':' (rejected)'));
-        if(good){ const hex=v.slice(0,7).toUpperCase(), al=which==='fill'?Math.round(parseInt(v.slice(7),16)/255*100)/100:1;
+        if(good){ FAKE.snap(); const hex=v.slice(0,7).toUpperCase(), al=which==='fill'?Math.round(parseInt(v.slice(7),16)/255*100)/100:1;
           if(which==='text'){FAKE.textColour=hex; targets().forEach(o=>FAKE.runs&&FAKE.runs[o[1]]&&FAKE.runs[o[1]].forEach(r=>setP(r[6],4,hex)));}
           else targets().forEach(o=>{ if(which==='fill'){setP(o[4],14,1);setP(o[4],15,hex);delP(o[4],16);if(al<0.995)setP(o[4],16,al);[60,61,62,73].forEach(k=>delP(o[4],k));} else {setP(o[4],18,1);setP(o[4],19,hex);} }); }
         closeMenus(); FAKE.render(); });

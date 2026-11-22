@@ -942,7 +942,15 @@ const RK = (() => {
         } else setColour(c.hex);
       } catch { /* closed without a pick */ }
     });
-    deckBox.addEventListener('change', () => { st.deck = deckBox.checked; });
+    // All slides: the list becomes every colour in the presentation.
+    deckBox.addEventListener('change', () => {
+      st.deck = deckBox.checked;
+      const list = st.deck && opts.replace.deckColours ? opts.replace.deckColours() : (opts.slide || []);
+      fillSlide(list);
+      capSlide.textContent = st.deck ? 'In this presentation: pick the colour to change' : 'On this slide: pick the colour to change';
+      if (st.from && !list.map((h) => (normHex(h) || {}).hex).includes(st.from)) st.from = null;
+      sync(true);
+    });
     const ro = typeof ResizeObserver === 'function' ? new ResizeObserver(() => place()) : null;
     function close() {
       if (closed) return;
@@ -986,9 +994,13 @@ const RK = (() => {
     if (opts.tips) opts.tips(node);
     const a = (opts.slide || []).map((h) => normHex(h)).filter(Boolean).map((c) => c.hex);
     const b = (opts.recent || []).map((h) => normHex(h)).filter(Boolean).map((c) => c.hex);
-    swSlide.replaceChildren(...[...new Set(a)].slice(0, 27).map(swatch));
+    function fillSlide(list) {
+      const hs = [...new Set(list.map((h) => normHex(h)).filter(Boolean).map((c) => c.hex))];
+      swSlide.replaceChildren(...hs.slice(0, 45).map(swatch));
+      capSlide.style.display = swSlide.style.display = hs.length ? '' : 'none';
+    }
+    fillSlide(a);
     swRecent.replaceChildren(...[...new Set(b)].slice(0, 9).map(swatch));
-    capSlide.style.display = swSlide.style.display = a.length ? '' : 'none';
     capRecent.style.display = swRecent.style.display = b.length ? '' : 'none';
     sync(true);
     place();

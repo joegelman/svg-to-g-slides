@@ -85,13 +85,16 @@ console.log('[svg2slides] shape-tools.js loaded');
       .map((c) => c.id.slice('editor-'.length));
   }
 
-  function keyCombo(key, code, keyCode, mods) {
+  // noStep: the key changes nothing Slides can undo (select all, copy
+  // format). The one-step undo counts Slides' own undo steps and never
+  // presses undo more times than that, so the count has to be exact.
+  function keyCombo(key, code, keyCode, mods, noStep) {
     const tb = SB.textbox();
     if (!tb) return false;
     const o = Object.assign({ key, code, keyCode, which: keyCode, bubbles: true, cancelable: true }, mods);
     tb.dispatchEvent(new KeyboardEvent('keydown', o));
     tb.dispatchEvent(new KeyboardEvent('keyup', o));
-    if (key !== 'Tab' && key !== 'Escape') SB.tick(); // Tab only moves the selection
+    if (key !== 'Tab' && key !== 'Escape' && !noStep) SB.tick(); // Tab only moves the selection
     return true;
   }
   const PRIMARY = IS_MAC ? { metaKey: true } : { ctrlKey: true };
@@ -506,8 +509,7 @@ console.log('[svg2slides] shape-tools.js loaded');
       try {
         const r = GEO.offsetSubs(GEO.unionAll(subs), growEm * font.unitsPerEm, { join: 'round' });
         if (r && !r.empty && r.subs.length) subs = r.subs;
-        else notes.add('Some bold letters could not be fattened and came out regular weight');
-      } catch (err) { console.warn('[svg2slides] synthetic bold failed', err); notes.add('Some bold letters could not be fattened and came out regular weight'); }
+      } catch (err) { console.warn('[svg2slides] synthetic bold failed', err); }
       m.set(key, subs);
     }
     return m.get(key);
@@ -577,7 +579,6 @@ console.log('[svg2slides] shape-tools.js loaded');
         if (!g || !g.glyph || !g.glyph.path) continue;
         const s = size / g.font.unitsPerEm;
         const syn = pf ? { bold: pf.bold, italic: pf.slant } : synthFor(g.face, weight, italic);
-        if (syn.bold) notes.add(`${family} has no bold of its own, so the bold is drawn the way Chrome draws it`);
         const m = SB.matMul(Mt, [s, 0, syn.italic ? 0.25 * s : 0, -s, pos.x, pos.y]);
         const subs = mapSubs(glyphSubs(g.font, g.glyph, syn.bold ? fakeBoldEm(size) : 0), m);
         if (!subs.length) continue;
@@ -862,6 +863,8 @@ console.log('[svg2slides] shape-tools.js loaded');
     notes.clear();
     touched = false;
     SB.beginMacro(name);
+    // Anything that takes a moment shows a bar instead of the steps.
+    const barT = setTimeout(() => { if (busy && !pbarShown()) progress(PROGRESS_LABEL[name] || 'Working…', null); }, 220);
     try {
       await fn();
     } catch (err) {
@@ -869,6 +872,8 @@ console.log('[svg2slides] shape-tools.js loaded');
       toast(err && err.userMessage ? err.userMessage
         : touched ? `Something went wrong. Press ${MOD}Z to put the slide back.` : 'Something went wrong. Nothing on the slide changed.');
     } finally {
+      clearTimeout(barT);
+      progress(null);
       SB.endMacro();
       busy = false;
       rail && rail.classList.remove('busy');
@@ -877,6 +882,25 @@ console.log('[svg2slides] shape-tools.js loaded');
     }
   }
   const userError = (msg) => Object.assign(new Error(msg), { userMessage: msg });
+  // The loading bar: a label and a track at the top of the slide area.
+  // frac null = no known length (the bar slides); 0..1 = how far along.
+  const PROGRESS_LABEL = { fill: 'Changing the fill…', 'stroke colour': 'Changing the stroke…', 'text colour': 'Changing the text colour…', 'replace colour': 'Replacing the colour…',
+    group: 'Grouping…', mask: 'Masking…', maskAdjust: 'Saving the picture…', 'outline text': 'Outlining text…', 'outline stroke': 'Outlining stroke…' };
+  let pbar = null;
+  const pbarShown = () => !!(pbar && pbar.classList.contains('show'));
+  function progress(label, frac) {
+    if (!root) return;
+    if (label === null) { if (pbar) pbar.classList.remove('show'); return; }
+    if (!pbar) { pbar = el('div', { class: 'pbar', role: 'status', 'aria-live': 'polite' }, el('span', {}), el('div', { class: 'tr' }, el('i'))); root.append(pbar); }
+    pbar.firstChild.textContent = label;
+    const fillEl = pbar.querySelector('i');
+    pbar.classList.toggle('run', frac === null || frac === undefined);
+    fillEl.style.width = frac === null || frac === undefined ? '' : Math.round(Math.min(1, Math.max(0.03, frac)) * 100) + '%';
+    const v = SB.visibleWorkspaceRect();
+    pbar.style.left = (v.left + v.right) / 2 + 'px';
+    pbar.style.top = v.top + 14 + 'px';
+    pbar.classList.add('show');
+  }
 
   function requireSelection() {
     const sel = SB.readSelection();
@@ -1647,7 +1671,7 @@ console.log('[svg2slides] shape-tools.js loaded');
       { act: 'toggleRail', label: rail && rail.classList.contains('min') ? 'Show the toolbar' : 'Hide the toolbar', group: 'Shape tools', key: SB.SHORTCUT_LABEL.toggleRail, icon: 'logo' },
       { act: 'themeBuilder', label: 'Theme builder (layouts and master)', group: 'Shape tools', key: SB.SHORTCUT_LABEL.themeBuilder, icon: 'logo' },
       { act: 'restoreText', label: 'Restore outlined text', group: 'Outline', key: SB.SHORTCUT_LABEL.outlineText, icon: 'restoreText' },
-    ]).map((c) => Object.assign(c, { enabled: ['layers', 'toggleRail', 'themeBuilder', 'pen'].includes(c.act) || n > 0 }));
+    ]).map((c) => Object.assign(c, { enabled: ['layers', 'toggleRail', 'themeBuilder', 'pen', 'fill', 'fillColor'].includes(c.act) || n > 0 }));
     pal = RK.palette(root, cmds, (act) => { SB.focusTextbox(); command(act); }, {
       rect: SB.visibleWorkspaceRect(),
       onClose: () => { pal = null; SB.focusTextbox(); },
@@ -1655,7 +1679,7 @@ console.log('[svg2slides] shape-tools.js loaded');
   }
 
   // Shortcuts that work with nothing selected.
-  const ANYTIME = new Set(['palette', 'toggleRail', 'layers', 'themeBuilder', 'pen']);
+  const ANYTIME = new Set(['palette', 'toggleRail', 'layers', 'themeBuilder', 'pen', 'fillColor', 'fill']);
 
   // ── ⌘Z / ⌘⇧Z over our multi-step changes ──────────────────────────────
   // See SB.beginMacro: right after one of ours, one press walks Slides'
@@ -2323,18 +2347,25 @@ console.log('[svg2slides] shape-tools.js loaded');
     props.push(60, st.mode === 'linear' ? 1 : 2, 61, stops, 62, st.mode === 'linear' ? Math.round((((st.angle % 360) + 360) % 360) * Math.PI / 180 * 1e4) / 1e4 : 1.5708);
     if (st.mode === 'radial') props.push(73, st.centre || 0);
   }
+  function coloursIn(nodes, cap) {
+    const seen = new Map();
+    nodes.forEach((n) => ['fill', 'stroke', 'stop-color'].forEach((a) => {
+      const raw = n.getAttribute(a) || (a === 'fill' && n.tagName === 'text' ? getComputedStyle(n).fill : '');
+      if (!raw || /^url\(/.test(raw) || SELECTION_BLUE.test(raw)) return;
+      const c = normHex(hex(raw) || '');
+      if (c) seen.set(c.hex, (seen.get(c.hex) || 0) + 1);
+    }));
+    return [...seen.entries()].sort((a, b) => b[1] - a[1]).map((x) => x[0]).slice(0, cap);
+  }
   function slideColours() {
     const page = SB.currentPageGroup();
-    const seen = new Map();
-    if (page) {
-      page.querySelectorAll('path, text, stop').forEach((n) => ['fill', 'stroke', 'stop-color'].forEach((a) => {
-        const raw = n.getAttribute(a) || (a === 'fill' && n.tagName === 'text' ? getComputedStyle(n).fill : '');
-        if (!raw || /^url\(/.test(raw) || SELECTION_BLUE.test(raw)) return;
-        const c = normHex(hex(raw) || '');
-        if (c) seen.set(c.hex, (seen.get(c.hex) || 0) + 1);
-      }));
-    }
-    return [...seen.entries()].sort((a, b) => b[1] - a[1]).map((x) => x[0]).slice(0, 27);
+    return page ? coloursIn([...page.querySelectorAll('path, text, stop')], 27) : [];
+  }
+  // Every slide's colours without opening each one: the filmstrip draws
+  // them all as small SVGs (plus any slide already opened this session).
+  function deckColours() {
+    const nodes = [...document.querySelectorAll('.punch-filmstrip-thumbnail path, .punch-filmstrip-thumbnail text, .punch-filmstrip-thumbnail stop, g[id^="editor-"] path, g[id^="editor-"] text')];
+    return coloursIn(nodes, 45);
   }
   function closePaint() {
     if (!cpop) return;
@@ -2418,16 +2449,17 @@ console.log('[svg2slides] shape-tools.js loaded');
   // copy of it with the new look), copy its format, remove it, paste the
   // format on the original. The original is never deleted.
   async function paintFormat(id, model) {
+    SB.exactMacro(); // paste, delete, paste format: all three have to be undone
     SB.paste(model);
     const shapeId = model.find((e) => e[0] === 3)[1];
     const temp = await SB.waitForSelection((x) => x.filter((e) => e[0] === 3).length === 1 && !entryById(x, id));
     if (!temp) return false;
-    keyCombo('c', 'KeyC', 67, Object.assign({ altKey: true }, PRIMARY));
+    keyCombo('c', 'KeyC', 67, Object.assign({ altKey: true }, PRIMARY), true);
     await sleep(120);
     const tempId = topIdsOf(temp)[0];
     SB.pressKey('Delete');
-    await sleep(160);
-    if (SB.elementFor(tempId)) { SB.pressKey('Delete'); await sleep(160); }
+    for (let i = 0; i < 12 && SB.elementFor(tempId); i++) await sleep(40);
+    if (SB.elementFor(tempId)) return false;
     if (!(await selectIds([id]))) return false;
     keyCombo('v', 'KeyV', 86, Object.assign({ altKey: true }, PRIMARY));
     await sleep(220);
@@ -2444,7 +2476,9 @@ console.log('[svg2slides] shape-tools.js loaded');
     return [c, ...resolved.filter((x) => (x[0] === 15 || x[0] === 17) && x[1] === e[1]).map((x) => { const t = clone(x); t[1] = id; return t; })];
   }
   function applyPaintState(which, st) {
-    return run(which === 'text' ? 'text colour' : which === 'fill' ? 'fill' : 'stroke colour', async () => {
+    // The in-between states (menus, a copy pasted and removed, the
+    // selection moving) happen under a still copy of the slide.
+    return run(which === 'text' ? 'text colour' : which === 'fill' ? 'fill' : 'stroke colour', () => frozenWhile(null, async () => {
       touched = true;
       if (which === 'text') {
         SB.focusTextbox();
@@ -2467,8 +2501,11 @@ console.log('[svg2slides] shape-tools.js loaded');
         return;
       }
       // Gradient: paint format where the text allows it.
-      const safe = shapes.filter((e) => oneTextStyle(sel, e[1]));
-      const rest = shapes.filter((e) => !safe.includes(e));
+      // One way or the other for the whole selection, never both: the two
+      // are undone differently (see SB.exactMacro).
+      const mixed = shapes.some((e) => !oneTextStyle(sel, e[1]));
+      const safe = mixed ? [] : shapes;
+      const rest = mixed ? shapes : [];
       await frozenWhile(null, async () => {
         for (const e of safe) {
           const ok = await paintFormat(e[1], modelOf(sel, e, (props) => writePaint(props, which, st)));
@@ -2486,7 +2523,7 @@ console.log('[svg2slides] shape-tools.js loaded');
       }
       noteRecent(st.mode === 'solid' ? [st.hex] : st.stops.map((x) => x.hex));
       toastNotes();
-    });
+    }));
   }
 
   // ── Replace a colour everywhere on the slide (or the deck) ─────────────
@@ -2502,7 +2539,7 @@ console.log('[svg2slides] shape-tools.js loaded');
     // click; straight after a filmstrip click it means the slides (checked live).
     const blank = emptyCanvasPoint();
     if (blank) { clickAt(blank, false); await sleep(120); }
-    keyCombo('a', 'KeyA', 65, PRIMARY);
+    keyCombo('a', 'KeyA', 65, PRIMARY, true);
     const all = await SB.waitForSelection((x) => x.some((e) => e[0] === 3), [60, 120, 250, 500]);
     if (!all) return 0;
     const shapes = all.filter(paintable);
@@ -2519,8 +2556,11 @@ console.log('[svg2slides] shape-tools.js loaded');
     if (strokes.length && await selectIds(strokes) && await nativeColour('stroke', st)) n += strokes.length;
     if (wholeText.length && await selectIds(wholeText) && await nativeColour('text', st)) n += wholeText.length;
     const swapStops = (props) => SB.setProp(props, 61, SB.getProp(props, 61).map((x) => (sameHex(x[0], from) ? [st.hex, x[1]] : x)));
+    // Gradients by paint format, unless something on this slide has to be
+    // replaced anyway: then they go with it (one kind of undo per run).
+    const viaFormat = !partText.length && grads.every((e) => oneTextStyle(all, e[1]) && !ancestorsOf(e[1]).length);
     for (const e of grads) {
-      if (oneTextStyle(all, e[1]) && !ancestorsOf(e[1]).length) { if (await paintFormat(e[1], modelOf(all, e, swapStops))) n++; }
+      if (viaFormat) { if (await paintFormat(e[1], modelOf(all, e, swapStops))) n++; }
       else partText.includes(e[1]) || partText.push(e[1]);
     }
     if (partText.length && await selectIds([...new Set(partText.map((id) => SB.topLevelIdOf(id) || id))])) {
@@ -2538,51 +2578,84 @@ console.log('[svg2slides] shape-tools.js loaded');
     SB.pressKey('Escape'); await sleep(40);
     return n;
   }
+  // A still copy over the filmstrip while slides are walked through.
+  function freezeFilmstrip() {
+    const f = document.querySelector('.punch-filmstrip-scroll') || document.querySelector('.filmstrip');
+    if (!f) return null;
+    const r = f.getBoundingClientRect();
+    if (!r.width) return null;
+    const c = f.cloneNode(true);
+    c.querySelectorAll('[id]').forEach((n) => n.removeAttribute('id'));
+    c.removeAttribute('id');
+    const top = f.scrollTop;
+    const cover = document.createElement('div');
+    cover.setAttribute('aria-hidden', 'true');
+    cover.style.cssText = `position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;z-index:2;pointer-events:none;overflow:hidden;background:${getComputedStyle(f).backgroundColor && !/rgba\(.*,\s*0\)$/.test(getComputedStyle(f).backgroundColor) && getComputedStyle(f).backgroundColor !== 'transparent' ? getComputedStyle(f).backgroundColor : '#f9fbfd'};`;
+    c.style.cssText += ';position:absolute;left:0;top:0;width:100%;height:100%;margin:0;';
+    cover.append(c);
+    document.documentElement.insertBefore(cover, host || null);
+    c.scrollTop = top;
+    return cover;
+  }
   function replaceColour(st) {
-    return run('replace colour', async () => {
+    return run('replace colour', () => frozenWhile(null, async () => {
       touched = true;
       let n = 0, slides = 1;
       if (!st.deck) {
         n = await replaceOnSlide(st.from, st);
       } else {
-        // One slide after another, by its thumbnail in the filmstrip.
+        // This slide first, then the rest by their thumbnails. This slide
+        // first so its steps are the last to be undone: ⌘Z walks back
+        // until this slide looks as it did, and by then the others are done.
+        SB.forceMacro();
+        SB.exactMacro();
         const thumbs = () => [...document.querySelectorAll('.punch-filmstrip-thumbnail')];
+        const pageId = () => { const g = SB.currentPageGroup(); return g ? g.id : null; };
         const total = thumbs().length;
-        const home = SB.currentPageGroup() && SB.currentPageGroup().id;
-        let homeIndex = -1;
-        slides = 0;
-        for (let i = 0; i < total; i++) {
+        const home = pageId();
+        const cover = freezeFilmstrip();
+        const film = document.querySelector('.punch-filmstrip-scroll');
+        const scroll0 = film ? film.scrollTop : 0;
+        const go = async (i) => {
           const t = thumbs()[i];
-          if (!t) break;
-          const before = SB.currentPageGroup() && SB.currentPageGroup().id;
+          if (!t) return false;
+          const before = pageId();
           t.scrollIntoView({ block: 'nearest' });
           const r = t.getBoundingClientRect();
-          const target = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2) || t;
-          clickAt({ x: r.left + r.width / 2, y: r.top + r.height / 2, t: target }, false);
-          let now = before;
-          for (let k = 0; k < 40; k++) { await sleep(50); now = SB.currentPageGroup() && SB.currentPageGroup().id; if (now !== before) break; }
-          if (now === home) homeIndex = i;
-          if (i > 0 && now === before && total > 1) continue; // the slide didn't open: leave it alone
-          await sleep(150);
-          n += await replaceOnSlide(st.from, st);
-          slides++;
-          hintShow(`Replacing colour: slide ${i + 1} of ${total}`);
-        }
-        if (homeIndex >= 0 && thumbs()[homeIndex]) {
-          const t = thumbs()[homeIndex], r = t.getBoundingClientRect();
           clickAt({ x: r.left + r.width / 2, y: r.top + r.height / 2, t: document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2) || t }, false);
-          await sleep(200);
+          for (let k = 0; k < 40 && pageId() === before; k++) await sleep(50);
+          await sleep(150);
+          return true;
+        };
+        try {
+          progress(`Replacing the colour: slide 1 of ${total}`, 0);
+          n += await replaceOnSlide(st.from, st);
+          const seen = new Set([home]);
+          let homeIndex = -1, done = 1;
+          for (let i = 0; i < total; i++) {
+            if (!(await go(i))) break;
+            const id = pageId();
+            if (id === home) { homeIndex = i; continue; }
+            if (seen.has(id)) continue; // that slide didn't open
+            seen.add(id);
+            done++;
+            progress(`Replacing the colour: slide ${done} of ${total}`, (done - 1) / total);
+            n += await replaceOnSlide(st.from, st);
+          }
+          slides = done;
+          progress('Replacing the colour: finishing', 1);
+          if (homeIndex >= 0) await go(homeIndex);
+          const blank = emptyCanvasPoint();
+          if (blank) { clickAt(blank, false); await sleep(80); }
+        } finally {
+          if (film) film.scrollTop = scroll0;
+          if (cover) cover.remove();
         }
-        hintShow('');
       }
       noteRecent([st.hex]);
       notes.add(n ? `Changed ${st.from} in ${n} place${n === 1 ? '' : 's'}${st.deck ? ` on ${slides} slide${slides === 1 ? '' : 's'}` : ''}` : `Nothing on ${st.deck ? 'these slides' : 'this slide'} uses ${st.from} in a way that could be changed`);
       toastNotes();
-    });
-  }
-  function hintShow(msg) {
-    if (msg) toast(msg, 60000);
-    else if (hint) hint.classList.remove('show');
+    }));
   }
 
   async function openPaint(which) {
@@ -2607,7 +2680,7 @@ console.log('[svg2slides] shape-tools.js loaded');
     if (!topIdsOf(sel).length) {
       // Nothing selected: change a colour wherever the slide uses it.
       open({ which: 'replace', title: 'Replace a colour', modes: [['solid', 'Solid']], state: { mode: 'solid', hex: '#4285F4', alpha: 1 },
-        replace: { deck: document.querySelectorAll('.punch-filmstrip-thumbnail').length > 1 },
+        replace: { deck: document.querySelectorAll('.punch-filmstrip-thumbnail').length > 1, deckColours },
         onDone: (keep, st) => { if (keep && st.from) replaceColour(st); } });
       return;
     }
@@ -2794,6 +2867,13 @@ console.log('[svg2slides] shape-tools.js loaded');
     .hint { position: fixed; z-index: 2147482999; pointer-events: none; background: ${GM.tooltip}; color: ${GM.onTooltip};
             font: 400 12px/16px ${FONT}; padding: 6px 10px; border-radius: 4px; max-width: 320px; opacity: 0; transition: opacity .2s; }
     .hint.show { opacity: .95; }
+    .pbar { position: fixed; z-index: 2147482998; transform: translateX(-50%); display: none; align-items: center; gap: 12px; padding: 8px 14px; border-radius: 18px;
+            background: #fff; color: #1f1f1f; font: 500 12px/16px ${FONT}; box-shadow: 0 1px 3px rgba(60,64,67,.3), 0 4px 8px 3px rgba(60,64,67,.15); white-space: nowrap; pointer-events: none; }
+    .pbar.show { display: flex; }
+    .pbar .tr { width: 140px; height: 4px; border-radius: 2px; background: #d3e3fd; overflow: hidden; position: relative; }
+    .pbar .tr i { position: absolute; left: 0; top: 0; bottom: 0; background: #0b57d0; border-radius: 2px; transition: width .2s; }
+    .pbar.run .tr i { width: 40%; animation: pbar 1.1s ease-in-out infinite; }
+    @keyframes pbar { 0% { left: -40%; } 100% { left: 100%; } }
     .madj { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 1; outline: none; cursor: default; }
     .madj .pic { cursor: move; }
     .madj .edge { fill: none; stroke: #1a73e8; stroke-width: 1.5; vector-effect: non-scaling-stroke; pointer-events: none; }
@@ -2982,7 +3062,8 @@ console.log('[svg2slides] shape-tools.js loaded');
     set('outline', paths.some((p) => p.hasStroke) || ids.some((id) => hasRenderedText(id)));
     ['arrange', 'forward', 'backward', 'front', 'back'].forEach((a2) => set(a2, ids.length > 0));
     const fillBtn = !!toolbarButton(MENU_IDS.fill), strokeBtn = !!toolbarButton(MENU_IDS.stroke);
-    set('fill', fillBtn);
+    set('fill', true); // nothing selected: it replaces a colour across the slide
+    void fillBtn;
     ['stroke', 'strokeColor', 'strokeToggle', 'strokeThinner', 'strokeThicker', 'strokeAlign'].forEach((a2) => set(a2, strokeBtn));
     set('align', ids.length > 0);
     ['distH', 'distV'].forEach((a2) => set(a2, ids.length >= 3));

@@ -237,6 +237,7 @@ console.log('[svg2slides] svg-editor.js loaded');
     for (let attempt = 0; attempt < 2; attempt++) {
       SB.focusTextbox();
       await SB.sleep(attempt ? 120 : 30);
+      if (attempt) SB.untick(); // the first press deleted nothing, so it is no undo step
       SB.pressKey('Delete');
       await SB.sleep(150);
       if (!ids.some((id) => SB.elementFor(id))) return true;

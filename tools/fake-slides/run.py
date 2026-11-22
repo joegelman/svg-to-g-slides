@@ -64,8 +64,22 @@ with sync_playwright() as p:
     count=pg.evaluate('()=>FAKE.objs.length'); sh('.cpop .pb.ok').click(); pg.wait_for_timeout(2600)
     d=props(obj('a')) if obj('a') else {}
     check('linear gradient on the same object', d.get(60)==1 and len(d.get(61,[]))==3 and d[61][0][1]==0 and d[61][-1][1]==1 and d[61][1][0]=='#FFFFFF' and abs(d.get(62,0)-0.7854)<1e-3, d)
+    check('the three Slides steps undo as one (⌘Z armed, three presses at most)', pg.evaluate('()=>SB.canUndoMacro()') is True)
+    pg.evaluate('()=>FAKE.render()'); pg.wait_for_timeout(100)
+    check('still armed after a redraw gives the gradient a new id', pg.evaluate('()=>SB.canUndoMacro()') is True)
     check('the temporary copy is gone', pg.evaluate('()=>FAKE.objs.length')==count and pg.evaluate('()=>FAKE.fmtPastes')==1, pg.evaluate('()=>FAKE.objs.map(o=>o[1])'))
     check('the shape is selected again', pg.evaluate('()=>FAKE.sel.join()')=='a', pg.evaluate('()=>FAKE.sel.join()'))
+    # ⌘Z after the gradient: Slides' three steps go back in one, and not a step more
+    h=pg.evaluate('()=>FAKE.hist.length'); pg.evaluate('()=>{FAKE.undos=0}')
+    okU=pg.evaluate('async()=>await SB.undoMacro()'); pg.wait_for_timeout(300)
+    d=props(obj('a')) if obj('a') else {}
+    check('one ⌘Z puts the solid fill back', okU is True and d.get(15)=='#0F9D58' and 60 not in d and d.get(16)==0.6, d)
+    check('exactly the three steps were undone, nothing before them', pg.evaluate('()=>FAKE.undos')==3 and pg.evaluate('()=>FAKE.hist.length')==h-3, (pg.evaluate('()=>FAKE.undos'),h,pg.evaluate('()=>FAKE.hist.length')))
+    # put the gradient back for the checks that follow
+    pg.mouse.click(230+40+80,60+30+90); pg.wait_for_timeout(300)
+    cmd('fill'); sh('.cpop [data-mode="linear"]').click(); pg.wait_for_timeout(100)
+    bar=sh('.cpop .gbar').bounding_box(); pg.mouse.click(bar['x']+bar['width']*0.5, bar['y']+bar['height']/2); pg.wait_for_timeout(100)
+    sh('.cpop .hex').fill('ffffff'); sh('.cpop .pb.ok').click(); pg.wait_for_timeout(2600)
     # ── reopen: state read back; cancel changes nothing; radial from a corner
     cmd('fill')
     check('gradient read back', sh('.cpop').get_attribute('data-mode')=='linear' and sh('.cpop .st').count()==3)
@@ -96,10 +110,16 @@ with sync_playwright() as p:
     # ── nothing selected: replace a colour everywhere on the slide
     pg.evaluate("()=>{FAKE.objs.push([3,'c',1,[1,0,0,1,130000,90000],[8,80000,9,50000,12,[[1,1,[0,2,1,6,5,0],[0,0,80000,0,80000,50000,0,50000],[],0]],14,1,15,'#34A853',18,1,19,'#EA4335',22,1500]]);FAKE.sel=[];FAKE.render()}")
     pg.wait_for_timeout(300)
+    check('the paint bucket is live with nothing selected', pg.evaluate("()=>!document.querySelector('#svg2slides-shape-tools').shadowRoot.querySelector('.rail [data-act=fill]').classList.contains('dim')"))
     cmd('fill')
     check('with nothing selected the panel offers to replace a colour', sh('.cpop').get_attribute('aria-label')=='Replace a colour' and sh('.cpop .pb.ok').is_disabled(), sh('.cpop').get_attribute('aria-label') if sh('.cpop').count() else None)
     shot('picker-replace-wait')
     check('the slide colours are listed', sh('.cpop .sw[data-hex="#EA4335"]').count()>=1, sh('.cpop .sw').evaluate_all('ns=>ns.map(n=>n.dataset.hex)'))
+    check('this slide only: a colour from another slide is not listed', sh('.cpop .sw[data-hex="#9C27B0"]').count()==0)
+    sh('.cpop .rep input[type=checkbox]').check(); pg.wait_for_timeout(150)
+    check('All slides lists every colour in the deck', sh('.cpop .sw[data-hex="#9C27B0"]').count()==1 and sh('.cpop .sw[data-hex="#EA4335"]').count()==1, sh('.cpop .sw').evaluate_all('ns=>ns.map(n=>n.dataset.hex)'))
+    shot('picker-replace-deck')
+    sh('.cpop .rep input[type=checkbox]').uncheck(); pg.wait_for_timeout(150)
     sh('.cpop .sw[data-hex="#EA4335"]').first.click(); pg.wait_for_timeout(100); sh('.cpop .hex').fill('00acc1'); pg.wait_for_timeout(100)
     shot('picker-replace')
     n=npaste(); sh('.cpop .pb.ok').click(); pg.wait_for_timeout(3500)
