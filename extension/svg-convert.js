@@ -187,7 +187,19 @@
     return '000000';
   }
 
-  // ── Gradients (only the first stop's colour reaches the payload) ──────
+  // ── Gradients ─────────────────────────────────────────────────────────
+  // The parity path keeps only the first stop's colour, as the Python does.
+  // The precise path carries the gradient across as a Slides gradient fill
+  // (props 60 kind, 61 stops, 62 angle, 73 radial centre; decoded and
+  // checked by pasting into a live deck, Nov 2026):
+  //   linear  the line runs through the middle of the shape's frame at the
+  //           angle (radians, clockwise from left→right) and is
+  //           w·|cos| + h·|sin| long, like a CSS gradient;
+  //   radial  a circle from the frame's middle (radius: half the diagonal)
+  //           or from one of its corners (radius: the diagonal).
+  // An SVG gradient can start and end anywhere, so its stops are re-timed
+  // onto the line Slides draws. Slides has no stop opacity, focal point,
+  // repeat or reflect; those are dropped.
 
   function pct(raw, dflt = '0') {
     const s = raw ? raw.trim() : dflt;
@@ -216,7 +228,7 @@
         const alpha = pyRound(pyFloat(opacityRaw) * 100000);
         stops.push([pos, hex, alpha]);
       }
-      if (!stops.length) continue;
+      if (!stops.length && !(precise && (attr(el, 'href') || el.getAttribute('xlink:href')))) continue;
       stops.sort((a, b) => a[0] - b[0]);
       const usos = attr(el, 'gradientUnits', 'objectBoundingBox') === 'userSpaceOnUse';
       // Parsed for the same errors as the Python; the values aren't used.
@@ -227,9 +239,133 @@
         mod(pyRound(degrees(Math.atan2(y2 - y1, x2 - x1)) * 60000), 21600000);
       } else if (usos) { pyFloat(attr(el, 'cx', 50)); pyFloat(attr(el, 'cy', 50)); }
       else { pyRound(pct(attr(el, 'cx', '0.5')) * 100000); pyRound(pct(attr(el, 'cy', '0.5')) * 100000); }
-      grads.set(gid, { stops });
+      const g = { stops };
+      if (precise) {
+        g.tag = tag;
+        g.el = el;
+        g.href = (attr(el, 'href') || el.getAttribute('xlink:href') || '').trim().replace(/^#/, '') || null;
+        g.own = stops.length > 0;
+      }
+      grads.set(gid, g);
     }
     return grads;
+  }
+
+  // A gradient's own attribute, or the one it inherits through href.
+  function gradAttr(g, grads, name, depth = 0) {
+    const v = g.el.getAttribute(name);
+    if (v !== null && v !== '') return v;
+    const up = g.href && depth < 8 ? grads.get(g.href) : null;
+    return up && up.el ? gradAttr(up, grads, name, depth + 1) : null;
+  }
+  function gradStops(g, grads, depth = 0) {
+    if (g.stops.length) return g.stops;
+    const up = g.href && depth < 8 ? grads.get(g.href) : null;
+    return up ? gradStops(up, grads, depth + 1) : [];
+  }
+  function userBBox(d) {
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    let cx = 0, cy = 0, mx = 0, my = 0;
+    const see = (x, y) => { if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; };
+    for (const [cmd, a] of expandPath(d)) {
+      const rel = cmd !== cmd.toUpperCase() && cmd !== 'z';
+      const C = cmd.toUpperCase();
+      if (C === 'Z') { cx = mx; cy = my; continue; }
+      if (C === 'H') { cx = rel ? cx + a[0] : a[0]; see(cx, cy); continue; }
+      if (C === 'V') { cy = rel ? cy + a[0] : a[0]; see(cx, cy); continue; }
+      const n = C === 'A' ? a.length - 2 : 0;
+      for (let i = C === 'A' ? n : 0; i + 1 < a.length; i += 2) see(rel ? cx + a[i] : a[i], rel ? cy + a[i + 1] : a[i + 1]);
+      const ex = a[a.length - 2], ey = a[a.length - 1];
+      cx = rel ? cx + ex : ex; cy = rel ? cy + ey : ey;
+      if (C === 'M') { mx = cx; my = cy; }
+    }
+    return Number.isFinite(x0) ? [x0, y0, x1 - x0, y1 - y0] : null;
+  }
+  // Where a gradient sits for one element: three points for a linear one
+  // (start, end, and a point on the start's colour line), centre and a
+  // point on the rim for a radial one, all after the element's transform.
+  function placeGradient(g, grads, d, xfm) {
+    try {
+      const stops = gradStops(g, grads);
+      if (!stops.length) return null;
+      const units = gradAttr(g, grads, 'gradientUnits') || 'objectBoundingBox';
+      const gt = parseTransform(gradAttr(g, grads, 'gradientTransform') || '');
+      let frame = (x, y) => [x, y];
+      if (units !== 'userSpaceOnUse') {
+        const bb = userBBox(d);
+        if (!bb || !(bb[2] > 0) || !(bb[3] > 0)) return null;
+        frame = (x, y) => [bb[0] + x * bb[2], bb[1] + y * bb[3]];
+      }
+      const at = (x, y) => { const a = gt ? gt(x, y) : [x, y]; const b = frame(a[0], a[1]); return (xfm || ident)(b[0], b[1]); };
+      const num = (name, dflt) => { const v = gradAttr(g, grads, name); return v === null ? dflt : pct(v); };
+      if (g.tag === 'linearGradient') {
+        const x1 = num('x1', 0), y1 = num('y1', 0), x2 = num('x2', 1), y2 = num('y2', 0);
+        if (x1 === x2 && y1 === y2) return { stops: [stops[stops.length - 1]], flat: true };
+        return { stops, kind: 1, pts: [at(x1, y1), at(x2, y2), at(x1 - (y2 - y1), y1 + (x2 - x1))] };
+      }
+      const cx = num('cx', 0.5), cy = num('cy', 0.5), r = num('r', 0.5);
+      if (!(r > 0)) return { stops: [stops[stops.length - 1]], flat: true };
+      return { stops, kind: 2, pts: [at(cx, cy), at(cx + r, cy), at(cx, cy + r)] };
+    } catch (e) {
+      if (e instanceof ConvertError) return null;
+      throw e;
+    }
+  }
+  const hexMix = (a, b, t) => {
+    const pa = parseInt(a, 16), pb = parseInt(b, 16);
+    const ch = (sh) => Math.round(((pa >> sh) & 255) + (((pb >> sh) & 255) - ((pa >> sh) & 255)) * t);
+    return ((ch(16) << 16) | (ch(8) << 8) | ch(0)).toString(16).padStart(6, '0').toUpperCase();
+  };
+  function colourAt(stops, t) {
+    if (t <= stops[0][0] / 100000) return stops[0][1].toUpperCase();
+    for (let i = 1; i < stops.length; i++) {
+      const a = stops[i - 1][0] / 100000, b = stops[i][0] / 100000;
+      if (t <= b) return b - a < 1e-9 ? stops[i][1].toUpperCase() : hexMix(stops[i - 1][1], stops[i][1], (t - a) / (b - a));
+    }
+    return stops[stops.length - 1][1].toUpperCase();
+  }
+  // SVG stop time t is t0 at the start of the line Slides draws and t1 at
+  // its end. Slides' stops: the two ends, plus every SVG stop in between.
+  function retime(stops, t0, t1) {
+    const out = [['#' + colourAt(stops, t0), 0]];
+    const span = t1 - t0;
+    if (Math.abs(span) > 1e-9) {
+      const mid = stops.map(([pos, hex]) => [(pos / 100000 - t0) / span, hex]).filter(([u]) => u > 0.0005 && u < 0.9995);
+      mid.sort((a, b) => a[0] - b[0]);
+      for (const [u, hex] of mid.slice(0, 30)) out.push(['#' + hex.toUpperCase(), Math.round(u * 10000) / 10000]);
+    }
+    out.push(['#' + colourAt(stops, t1), 1]);
+    return out;
+  }
+  // toLocal maps a placed point into the shape's own frame (w × h).
+  // Returns the fill props to add, or null to fall back to a flat colour.
+  function gradientProps(g, toLocal, w, h) {
+    if (!g || !g.pts || !(w > 0) || !(h > 0)) return null;
+    const q = g.pts.map(([x, y]) => toLocal(x, y));
+    if (q.some(([x, y]) => !Number.isFinite(x) || !Number.isFinite(y))) return null;
+    if (g.kind === 1) {
+      // Colour lines run along q0→q2; the gradient advances across them.
+      const ux = q[2][0] - q[0][0], uy = q[2][1] - q[0][1];
+      let nx = -uy, ny = ux;
+      const len = Math.hypot(nx, ny);
+      if (len < 1e-9) return null;
+      nx /= len; ny /= len;
+      let D = (q[1][0] - q[0][0]) * nx + (q[1][1] - q[0][1]) * ny;
+      if (Math.abs(D) < 1e-9) return null;
+      if (D < 0) { nx = -nx; ny = -ny; D = -D; }
+      const Ls = w * Math.abs(nx) + h * Math.abs(ny);
+      const t0 = ((w / 2 - q[0][0]) * nx + (h / 2 - q[0][1]) * ny - Ls / 2) / D;
+      let ang = Math.atan2(ny, nx);
+      if (ang < 0) ang += 2 * Math.PI;
+      return [60, 1, 61, retime(g.stops, t0, t0 + Ls / D), 62, Math.round(ang * 10000) / 10000];
+    }
+    const r = (Math.hypot(q[1][0] - q[0][0], q[1][1] - q[0][1]) + Math.hypot(q[2][0] - q[0][0], q[2][1] - q[0][1])) / 2;
+    if (!(r > 1e-9)) return null;
+    const u = q[0][0] / w, v = q[0][1] / h;
+    const diag = Math.hypot(w, h);
+    const centred = u > 0.25 && u < 0.75 && v > 0.25 && v < 0.75;
+    const corner = centred ? 0 : (v < 0.5 ? (u < 0.5 ? 1 : 2) : (u < 0.5 ? 3 : 4));
+    return [60, 2, 61, retime(g.stops, 0, (centred ? diag / 2 : diag) / r), 62, 1.5708, 73, corner];
   }
 
   // ── Style ─────────────────────────────────────────────────────────────
@@ -1045,9 +1181,15 @@
           if (cut === undefined) out.push([pd, xfm || ident, col]);
           else out.push([cut, ident, col]);
         };
-        if (fill !== null) put(d, fill);
-        if (stroke && sw > 0) put(next ? strokeOutline(d, sw, next) : strokeToOutline(d, sw), stroke);
-        else if (stroke && fill === null) put(d, stroke);
+        // A gradient paint is placed against this element's own outline.
+        const paint = (col) => {
+          if (!precise || col === null || typeof col !== 'object') return col;
+          const placed = placeGradient(col, gradients, d, xfm);
+          return placed || { stops: gradStops(col, gradients).length ? gradStops(col, gradients) : [[0, '000000', 100000]] };
+        };
+        if (fill !== null) put(d, paint(fill));
+        if (stroke && sw > 0) put(next ? strokeOutline(d, sw, next) : strokeToOutline(d, sw), paint(stroke));
+        else if (stroke && fill === null) put(d, paint(stroke));
       }
     }
     for (const c of kids(el)) collect(c, xfm, fill, gradients, vb, out, next, depth);
@@ -1245,6 +1387,16 @@
       const entry = shapeEntry(id, meta, local, lw, lh, xU, yU, fill);
       entry[3][0] = scale;
       entry[3][3] = scale;
+      if (typeof fillHex === 'object' && fillHex.pts) {
+        const toLocal = (x, y) => [((x - vx) / vw * cw - x0) * kx, ((y - vy) / vh * ch - y0) * ky];
+        const gp = gradientProps(fillHex, toLocal, lw, lh);
+        if (gp) {
+          const props = entry[4];
+          const i = props.indexOf(15);
+          props.splice(i, 0, 145, 1);
+          props.push(...gp);
+        }
+      }
       resolved.push(entry);
     }
     if (childIds.length > 1) resolved.push([2, newId(), childIds, [1, 0, 0, 1, 0, 0]]);
