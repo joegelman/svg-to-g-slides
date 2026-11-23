@@ -8,7 +8,6 @@ Version 1.3.0 is the current release of the Chrome extension. It adds a toolbar 
 
 | Version | Date | What it added | Download | Installed | Chrome permissions |
 |---|---|---|---|---|---|
-| 1.3.1 | November 2026 | Outline icon sets convert (strokes set on the root element), round caps and joins, colours from CSS classes, currentColor, hsl(), clip paths, use and symbol | 399 KB | 1.1 MB | storage |
 | [1.3.0](https://svgslid.es/docs/release-notes/1-3-0.md) | November 2026 | Toolbar, pen, snapping, image masks, combine, one-press undo, instant align, Layers, outline stroke and text, command palette, full-precision points, JavaScript converter | 392 KB | 1.1 MB | storage |
 | [1.2.0](https://svgslid.es/docs/release-notes/1-2-0.md) | November 2026 | Edit Shape, round corners, editing Slides' own shapes, click to insert, exact placement | 5.8 MB | 14 MB | storage, one host permission |
 | [1.0.1](https://svgslid.es/docs/release-notes/1-0.md) | July 2026 | Removed an unused permission |  |  | One host permission |
@@ -73,4 +72,4 @@ The illustrated release posts, with animations of each feature, are on the [What
 - [Installing and updating](https://svgslid.es/docs/install.md#updates)
 - [What's new: release posts](https://svgslid.es/whats-new)
 
-Source: https://svgslid.es/docs/release-notes (SVG to Slides Documentation, Release Notes). Last reviewed November 21, 2026.
+Source: https://svgslid.es/docs/release-notes (SVG to Slides Documentation, Release Notes). Last reviewed November 20, 2026.

@@ -180,8 +180,8 @@
   "2026-11-20"
  ],
  "doc:release-notes": [
-  "e0d41835562051e9",
-  "2026-11-21"
+  "92511827add3eff8",
+  "2026-11-20"
  ],
  "doc:release-notes/1-0": [
   "3e738cfc9bc70515",
@@ -544,8 +544,8 @@
   "2026-11-21"
  ],
  "url:/docs/release-notes": [
-  "cdb1cbdae0c4895f",
-  "2026-11-23"
+  "3a3d19643f811f7b",
+  "2026-11-21"
  ],
  "url:/docs/release-notes/1-0": [
   "f4e88c96b68a2ad0",
@@ -568,7 +568,7 @@
   "2026-11-21"
  ],
  "url:/docs/svg-compatibility": [
-  "aad2e23a76e3525c",
+  "688fd12ffbedcb9c",
   "2026-11-21"
  ],
  "url:/docs/theme-objects": [
@@ -632,8 +632,8 @@
   "2026-11-20"
  ],
  "url:/specs": [
-  "b985ead1bf41b956",
-  "2026-11-21"
+  "9cf81f9c2dedbfb0",
+  "2026-11-20"
  ],
  "url:/support": [
   "016eca9ba9faa8c1",
@@ -644,7 +644,7 @@
   "2026-11-10"
  ],
  "url:/whats-new": [
-  "e706f5e117a6543f",
-  "2026-11-23"
+  "2da05bcfeb759c03",
+  "2026-11-21"
  ]
 }

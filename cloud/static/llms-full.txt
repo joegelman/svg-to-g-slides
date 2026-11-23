@@ -1466,18 +1466,6 @@ The screens in this post are mockups, not captures of Google’s products. Googl
 
 # What's new in SVG to Slides
 
-## 1.4.0 (November 2026)
-
-- Colour picker in the toolbar (Option+Shift+F for fill, Option+Shift+L for stroke): spectrum, hue and opacity sliders, eyedropper, hex field, the slide's colours and recent ones. With text highlighted it sets the colour of those words only. Colour changes are made on the object itself, so animation and links stay.
-- Gradient builder: linear and radial, stops on a bar, an angle dial, a start point for radial. Results are native Slides gradients.
-- Replace a colour: with nothing selected, pick a colour in use and what it becomes. Changes fills, strokes, gradient stops and text, inside groups too. "All slides" lists the deck's colours and runs across every slide; one Cmd+Z undoes it.
-- Live preview: the slide shows the colour, opacity, gradient or stroke width while the panel is open.
-- Mask image with shape (Option+Shift+K) keeps the shape on top as an unfilled outline, grouped with the masked picture. Double-click the group, or press Mask again, to move or resize the picture under its mask.
-- SVG import: linear and radial gradients arrive as Slides gradients; opacity, fill-opacity and stroke-opacity come across. The web uploader still flattens gradients.
-- From 1.3.1: icon sets drawn with strokes (Lucide, Feather, Heroicons outline, Tabler) import as shapes.
-- Limits: a gradient on a shape with mixed text styles replaces the shape (animation lost); a fill on a whole mask group is refused; stroke widths outside Slides' presets replace the shape.
-- Permissions unchanged: access to Google Slides pages, where the tools run, and storage.
-
 ## 1.3.0 (November 2026)
 
 - One toolbar at the left of the slide canvas (Option+Backslash): Layers, Edit Shape, Pen, command palette, Arrange, Align, Combine, Group, Outline, fill and stroke. Tooltips show shortcuts.
@@ -3012,16 +3000,10 @@ Tested November 11, 2026 on 20 sample files. Per-file table and sample files: ht
 | One filled path | Converts. | Works |
 | Circle, rounded rectangle and path in three colours | Converts. | Works |
 | rect, circle, ellipse, polygon, polyline, line | Lines and polylines become filled outline shapes | Works. Lines and polylines become filled outline shapes |
-| Line icon with the stroke set on the root <svg> (Lucide and Feather style) | Strokes become filled outline shapes | Works. Strokes become filled outline shapes |
 | Arc commands (A and a) | Converts. | Works |
 | translate, rotate and scale on nested groups | Converts. | Works |
 | fill-rule="evenodd" cut-outs | Converts. | Works |
-| Colours set by CSS classes in a <style> block (Illustrator style) | Converts. | Partly. Shapes kept, colours become black |
 | Figma-style frame clip and white background | Frame clip and background skipped | Works. Frame clip and background skipped |
-| clip-path that crops a shape | Cropped to the clip shape | Partly. Clip ignored; the full shape shows |
-| <use> referencing a <symbol> (icon sprites) | Converts. | Not converted. Not converted |
-| stroke="currentColor" | Strokes become filled outline shapes | Partly. Converted, but black instead of the inherited colour |
-| rgb(), named, short hex and hsl() colours | Converts. | Partly. hsl() becomes black; the rest are exact |
 
 ## Converts in part
 
@@ -3029,16 +3011,22 @@ Tested November 11, 2026 on 20 sample files. Per-file table and sample files: ht
 |---|---|---|
 | Linear gradient fill | Solid fill in the first colour | Works. Kept as a gradient |
 | Radial gradient fill | Solid fill in the first colour; a white-centred gradient pastes white | Works. Kept as a gradient |
+| Colours set by CSS classes in a <style> block (Illustrator style) | Shapes kept, colours become black | Partly. Shapes kept, colours become black |
+| clip-path that crops a shape | Clip ignored; the full shape shows | Partly. Clip ignored; the full shape shows |
 | mask that cuts a hole | Mask ignored | Partly. Mask ignored |
 | fill-opacity | Shapes kept, transparency lost | Partly. Shapes kept, transparency lost |
 | Pattern fill | Shape kept, filled black | Partly. Shape kept, filled black |
 | Drop-shadow filter | Shape kept, shadow dropped | Partly. Shape kept, shadow dropped |
+| rgb(), named, short hex and hsl() colours | hsl() becomes black; the rest are exact | Partly. hsl() becomes black; the rest are exact |
 
 ## Does not convert
 
 | SVG feature | Chrome extension and add-on | Web Uploader |
 |---|---|---|
+| Line icon with the stroke set on the root <svg> (Lucide and Feather style) | Nothing pastes | Works. Strokes become filled outline shapes |
 | <text> element | Not converted | Works. Outlined into shapes, not editable text |
+| <use> referencing a <symbol> (icon sprites) | Not converted | Not converted. Not converted |
+| stroke="currentColor" | Not converted | Partly. Converted, but black instead of the inherited colour |
 
 
 ## Reading the table
@@ -4502,7 +4490,6 @@ Version 1.3.0 is the current release of the Chrome extension. It adds a toolbar 
 
 | Version | Date | What it added | Download | Installed | Chrome permissions |
 |---|---|---|---|---|---|
-| 1.3.1 | November 2026 | Outline icon sets convert (strokes set on the root element), round caps and joins, colours from CSS classes, currentColor, hsl(), clip paths, use and symbol | 399 KB | 1.1 MB | storage |
 | [1.3.0](https://svgslid.es/docs/release-notes/1-3-0.md) | November 2026 | Toolbar, pen, snapping, image masks, combine, one-press undo, instant align, Layers, outline stroke and text, command palette, full-precision points, JavaScript converter | 392 KB | 1.1 MB | storage |
 | [1.2.0](https://svgslid.es/docs/release-notes/1-2-0.md) | November 2026 | Edit Shape, round corners, editing Slides' own shapes, click to insert, exact placement | 5.8 MB | 14 MB | storage, one host permission |
 | [1.0.1](https://svgslid.es/docs/release-notes/1-0.md) | July 2026 | Removed an unused permission |  |  | One host permission |
@@ -4567,7 +4554,7 @@ The illustrated release posts, with animations of each feature, are on the [What
 - [Installing and updating](https://svgslid.es/docs/install.md#updates)
 - [What's new: release posts](https://svgslid.es/whats-new)
 
-Source: https://svgslid.es/docs/release-notes (SVG to Slides Documentation, Release Notes). Last reviewed November 21, 2026.
+Source: https://svgslid.es/docs/release-notes (SVG to Slides Documentation, Release Notes). Last reviewed November 20, 2026.
 
 
 ---
