@@ -418,7 +418,7 @@ WHATS_NEW_CSS = """
 .wn .rel{font:600 13px var(--display);letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin:2.4em 0 .2em}
 .wn h2{margin-top:.2em}
 .wn .clip{margin:24px 0 8px;border-radius:14px;overflow:hidden;border:1px solid var(--rule);background:#fff}
-.wn .clip video,.wn .clip img{display:block;width:100%;height:auto}
+.wn .clip video{display:block;width:100%;height:auto}
 .wn .cap{font-size:14px;color:var(--mute);margin:0 0 1.4em}
 .wn table{width:100%;border-collapse:collapse;font-size:15px;margin:8px 0 1.4em}
 .wn th,.wn td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
@@ -506,33 +506,24 @@ def whats_new_page(ctx):
     v14 = """  <article class="about wn" id="v14">
     <div class="rel">Version 1.4.0 &middot; November 2026</div>
     <p>Version 1.4 puts colour in the toolbar. It has its own picker, a gradient builder, and a way to swap one colour for another across a slide or the whole deck. The slide shows each change while you pick. Image masks now keep their shape, and the picture under a mask can be moved.</p>
-    <p>The pictures below show the extension&rsquo;s own toolbar and panels over a sample layout.</p>
     <h2 id="colour">A colour picker of its own</h2>
     <p>Select a shape and press the paint bucket (<kbd>&#8997;&#8679;F</kbd>), or the stroke button (<kbd>&#8997;&#8679;L</kbd>). The panel has a spectrum, hue and opacity sliders, an eyedropper, a hex field, the colours already on the slide and the ones you used last.</p>
-    <div class="clip"><img src="/static/whats-new/14-colour.webp" width="1545" height="930" loading="lazy" alt="The colour panel open beside a slide, with a spectrum, hue and opacity sliders, a hex field and the slide&rsquo;s colours"></div><p class="cap">The card takes the new colour while the panel is still open.</p>
     <p>Highlight a stretch of text and the same panel becomes <b>Text colour</b>. It recolours those words and leaves the rest of the box alone.</p>
     <p>A colour change is made on the object itself, so its animation and link stay.</p>
     <h2 id="gradients">Gradients</h2>
     <p>Switch the panel to linear or radial. Add and drag stops on the bar, set the angle on the dial, and pick where a radial gradient starts. The result is a real Slides gradient.</p>
-    <div class="clip"><img src="/static/whats-new/14-gradient.webp" width="1545" height="930" loading="lazy" alt="The gradient builder with three stops on a bar and angle buttons, and a card filled with the gradient"></div><p class="cap">Three stops at 45&deg;.</p>
     <h2 id="replace">Replace a colour</h2>
     <p>With nothing selected, the paint bucket opens <b>Replace a colour</b>. Pick a colour that is in use, from the list or with the eyedropper, and choose what it becomes. It changes fills, strokes, gradient stops and text, including inside groups.</p>
     <p>Turn on <b>All slides</b> and the list shows every colour in the deck. The change runs across every slide, with a progress bar, and one <kbd>&#8984;Z</kbd> undoes all of it.</p>
-    <div class="clip"><img src="/static/whats-new/14-replace.webp" width="1545" height="930" loading="lazy" alt="Replace a colour: a teal chip, an arrow and a purple chip, with both teal shapes on the slide shown in purple"></div><p class="cap">Teal becomes purple in both places it is used.</p>
     <h2 id="preview">Live preview</h2>
     <p>While the panel is open, the slide shows the colour, opacity, gradient or stroke width in hand. &#10003; keeps it. &#10005; puts the slide back.</p>
-    <div class="clip"><img src="/static/whats-new/14-preview.webp" width="1545" height="930" loading="lazy" alt="A stroke weight of 8 typed in the toolbar, and the selected shape drawn with the thicker stroke"></div><p class="cap">The stroke thickens as the number changes.</p>
     <h2 id="mask-adjust">Masks you can keep working with</h2>
     <p><b>Mask image with shape</b> (<kbd>&#8997;&#8679;K</kbd>) now keeps the shape. It sits on top as an outline with no fill, grouped with the masked picture, so you can restyle its stroke afterwards.</p>
-    <div class="clip"><img src="/static/whats-new/14-mask.webp" width="1545" height="930" loading="lazy" alt="A beach photo cropped to an arch, with the arch drawn as an outline on top"></div><p class="cap">The arch stays, as an outline over the picture.</p>
     <p>Double-click the group, or press Mask again, to adjust the picture under its mask. Drag to move it, drag a corner to resize, nudge with the arrow keys, type a percentage, or press <b>Fit</b>. <kbd>&#8629;</kbd> keeps the change and <kbd>Esc</kbd> cancels.</p>
-    <div class="clip"><img src="/static/whats-new/14-mask-adjust.webp" width="1545" height="930" loading="lazy" alt="The whole beach photo shown faded around the arch, with corner handles and a bar holding a Picture percentage, Fit, cancel and confirm"></div><p class="cap">The whole picture shows, faded where the mask hides it.</p>
     <h2 id="import-gradients">Gradients and opacity on import</h2>
     <p>Linear and radial gradients in an SVG arrive as Slides gradients. <code>opacity</code>, <code>fill-opacity</code> and <code>stroke-opacity</code> come across too. The <a href="/convert">web uploader</a> still flattens gradients to one colour.</p>
-    <div class="clip"><img src="/static/whats-new/14-import-open.webp" width="1545" height="930" loading="lazy" alt="Four imported shapes with linear and radial gradients, and the gradient builder showing the three stops of the selected one"></div><p class="cap">An imported gradient opens in the builder with its stops.</p>
     <h2 id="outline-icons">Outline icon sets</h2>
     <p>Icons drawn with strokes, such as Lucide, Feather, Heroicons outline and Tabler, now import as shapes. This arrived in 1.3.1.</p>
-    <div class="clip"><img src="/static/whats-new/14-icons.webp" width="1545" height="930" loading="lazy" alt="Six outline icons on a slide: sun, waves, house, camera, map pin and heart"></div><p class="cap">Six stroke icons after import.</p>
     <h2 id="limits14">Known limits</h2>
     <ul>
       <li>A gradient on a shape whose text uses more than one style replaces the shape, so its animation is lost. The extension says so when it happens.</li>
