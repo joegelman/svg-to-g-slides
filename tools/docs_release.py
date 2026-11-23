@@ -44,6 +44,7 @@ TOPICS = [
 
 | Version | Date | What it added | Download | Installed | Chrome permissions |
 |---|---|---|---|---|---|
+| 1.3.1 | November 2026 | Outline icon sets convert (strokes set on the root element), round caps and joins, colours from CSS classes, currentColor, hsl(), clip paths, use and symbol | 399 KB | 1.1 MB | storage |
 | [[release-notes/1-3-0|1.3.0]] | %DATE130% | Toolbar, pen, snapping, image masks, combine, one-press undo, instant align, Layers, outline stroke and text, command palette, full-precision points, JavaScript converter | 392 KB | 1.1 MB | storage |
 | [[release-notes/1-2-0|1.2.0]] | November 2026 | Edit Shape, round corners, editing Slides' own shapes, click to insert, exact placement | 5.8 MB | 14 MB | storage, one host permission |
 | [[release-notes/1-0|1.0.1]] | July 2026 | Removed an unused permission | | | One host permission |

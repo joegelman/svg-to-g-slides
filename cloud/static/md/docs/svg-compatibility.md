@@ -13,10 +13,16 @@ Tested November 11, 2026 on 20 sample files. Per-file table and sample files: ht
 | One filled path | Converts. | Works |
 | Circle, rounded rectangle and path in three colours | Converts. | Works |
 | rect, circle, ellipse, polygon, polyline, line | Lines and polylines become filled outline shapes | Works. Lines and polylines become filled outline shapes |
+| Line icon with the stroke set on the root <svg> (Lucide and Feather style) | Strokes become filled outline shapes | Works. Strokes become filled outline shapes |
 | Arc commands (A and a) | Converts. | Works |
 | translate, rotate and scale on nested groups | Converts. | Works |
 | fill-rule="evenodd" cut-outs | Converts. | Works |
+| Colours set by CSS classes in a <style> block (Illustrator style) | Converts. | Partly. Shapes kept, colours become black |
 | Figma-style frame clip and white background | Frame clip and background skipped | Works. Frame clip and background skipped |
+| clip-path that crops a shape | Cropped to the clip shape | Partly. Clip ignored; the full shape shows |
+| <use> referencing a <symbol> (icon sprites) | Converts. | Not converted. Not converted |
+| stroke="currentColor" | Strokes become filled outline shapes | Partly. Converted, but black instead of the inherited colour |
+| rgb(), named, short hex and hsl() colours | Converts. | Partly. hsl() becomes black; the rest are exact |
 
 ## Converts in part
 
@@ -24,22 +30,16 @@ Tested November 11, 2026 on 20 sample files. Per-file table and sample files: ht
 |---|---|---|
 | Linear gradient fill | Solid fill in the first colour | Works. Kept as a gradient |
 | Radial gradient fill | Solid fill in the first colour; a white-centred gradient pastes white | Works. Kept as a gradient |
-| Colours set by CSS classes in a <style> block (Illustrator style) | Shapes kept, colours become black | Partly. Shapes kept, colours become black |
-| clip-path that crops a shape | Clip ignored; the full shape shows | Partly. Clip ignored; the full shape shows |
 | mask that cuts a hole | Mask ignored | Partly. Mask ignored |
 | fill-opacity | Shapes kept, transparency lost | Partly. Shapes kept, transparency lost |
 | Pattern fill | Shape kept, filled black | Partly. Shape kept, filled black |
 | Drop-shadow filter | Shape kept, shadow dropped | Partly. Shape kept, shadow dropped |
-| rgb(), named, short hex and hsl() colours | hsl() becomes black; the rest are exact | Partly. hsl() becomes black; the rest are exact |
 
 ## Does not convert
 
 | SVG feature | Chrome extension and add-on | Web Uploader |
 |---|---|---|
-| Line icon with the stroke set on the root <svg> (Lucide and Feather style) | Nothing pastes | Works. Strokes become filled outline shapes |
 | <text> element | Not converted | Works. Outlined into shapes, not editable text |
-| <use> referencing a <symbol> (icon sprites) | Not converted | Not converted. Not converted |
-| stroke="currentColor" | Not converted | Partly. Converted, but black instead of the inherited colour |
 
 
 ## Reading the table
