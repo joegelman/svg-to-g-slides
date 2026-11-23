@@ -503,12 +503,42 @@ def whats_new_page(ctx):
         return (f'<div class="clip"><div class="lot" data-lottie="/static/lottie/svgslides_13_{name}.json" '
                 f'style="aspect-ratio:16/9" role="img" aria-label="{label}"></div></div><p class="cap">{cap}</p>')
     keys13 = "".join(f"<tr><td>{a}</td><td>{b}</td></tr>" for a, b in KEYS_13)
+    v14 = """  <article class="about wn" id="v14">
+    <div class="rel">Version 1.4.0 &middot; November 2026</div>
+    <p>Version 1.4 puts colour in the toolbar. It has its own picker, a gradient builder, and a way to swap one colour for another across a slide or the whole deck. The slide shows each change while you pick. Image masks now keep their shape, and the picture under a mask can be moved.</p>
+    <h2 id="colour">A colour picker of its own</h2>
+    <p>Select a shape and press the paint bucket (<kbd>&#8997;&#8679;F</kbd>), or the stroke button (<kbd>&#8997;&#8679;L</kbd>). The panel has a spectrum, hue and opacity sliders, an eyedropper, a hex field, the colours already on the slide and the ones you used last.</p>
+    <p>Highlight a stretch of text and the same panel becomes <b>Text colour</b>. It recolours those words and leaves the rest of the box alone.</p>
+    <p>A colour change is made on the object itself, so its animation and link stay.</p>
+    <h2 id="gradients">Gradients</h2>
+    <p>Switch the panel to linear or radial. Add and drag stops on the bar, set the angle on the dial, and pick where a radial gradient starts. The result is a real Slides gradient.</p>
+    <h2 id="replace">Replace a colour</h2>
+    <p>With nothing selected, the paint bucket opens <b>Replace a colour</b>. Pick a colour that is in use, from the list or with the eyedropper, and choose what it becomes. It changes fills, strokes, gradient stops and text, including inside groups.</p>
+    <p>Turn on <b>All slides</b> and the list shows every colour in the deck. The change runs across every slide, with a progress bar, and one <kbd>&#8984;Z</kbd> undoes all of it.</p>
+    <h2 id="preview">Live preview</h2>
+    <p>While the panel is open, the slide shows the colour, opacity, gradient or stroke width in hand. &#10003; keeps it. &#10005; puts the slide back.</p>
+    <h2 id="mask-adjust">Masks you can keep working with</h2>
+    <p><b>Mask image with shape</b> (<kbd>&#8997;&#8679;K</kbd>) now keeps the shape. It sits on top as an outline with no fill, grouped with the masked picture, so you can restyle its stroke afterwards.</p>
+    <p>Double-click the group, or press Mask again, to adjust the picture under its mask. Drag to move it, drag a corner to resize, nudge with the arrow keys, type a percentage, or press <b>Fit</b>. <kbd>&#8629;</kbd> keeps the change and <kbd>Esc</kbd> cancels.</p>
+    <h2 id="import-gradients">Gradients and opacity on import</h2>
+    <p>Linear and radial gradients in an SVG arrive as Slides gradients. <code>opacity</code>, <code>fill-opacity</code> and <code>stroke-opacity</code> come across too. The <a href="/convert">web uploader</a> still flattens gradients to one colour.</p>
+    <h2 id="outline-icons">Outline icon sets</h2>
+    <p>Icons drawn with strokes, such as Lucide, Feather, Heroicons outline and Tabler, now import as shapes. This arrived in 1.3.1.</p>
+    <h2 id="limits14">Known limits</h2>
+    <ul>
+      <li>A gradient on a shape whose text uses more than one style replaces the shape, so its animation is lost. The extension says so when it happens.</li>
+      <li>A fill on a whole mask group is refused, because it would cover the picture. Select the shape inside the group to fill it.</li>
+      <li>A stroke width that isn&rsquo;t one of Slides&rsquo; own presets replaces the shape.</li>
+    </ul>
+    <p>1.4 asks for nothing new: access to Google Slides pages, where the tools run, and <b>storage</b>.</p>
+  </article>"""
     body = f"""  <div class="wrap"><p class="crumb"><a href="/">SVG to Slides</a> &rsaquo; What&rsquo;s new</p></div>
   <section class="wrap phero wnp">
     <h1>Draw, mask and combine inside Slides.</h1>
-    <p class="lede">1.3 adds a pen, masks, layers and shape combining. Free, and nothing is uploaded.</p>
-    <div class="ctas"><a class="btn btn-primary" href="{cws('whats-new', 'hero')}" data-cta="hero"><img src="/static/chrome-glyph.svg" alt="">Add to Chrome, free</a><a class="btn btn-ghost" href="#pen">See how it works</a></div>
+    <p class="lede">1.4 adds a colour picker, gradients, replace a colour and masks you can adjust. 1.3 added the pen, masks, layers and shape combining. Free, and nothing is uploaded.</p>
+    <div class="ctas"><a class="btn btn-primary" href="{cws('whats-new', 'hero')}" data-cta="hero"><img src="/static/chrome-glyph.svg" alt="">Add to Chrome, free</a><a class="btn btn-ghost" href="#v14">New in 1.4</a></div>
   </section>
+{v14}
   <section class="glance top" id="glance">
     <div class="gg"><a class="gt" href="#pen"><img src="/static/whats-new/tile-pen.webp" width="720" height="405" loading="eager" alt="Drawing a curve with the pen in Google Slides"><b>Draw curves</b><span>Draw the shapes the shape menu doesn&rsquo;t have. Points and handles snap to a grid.</span></a><a class="gt" href="#outline"><img src="/static/whats-new/tile-beach.webp" width="720" height="405" loading="eager" alt="Letters of the word BEACH filled with a beach photo"><b>Outline text</b><span>Turn text into shapes, then use the letters as a mask.</span></a><a class="gt" href="#mask"><img src="/static/whats-new/tile-mask.webp" width="720" height="405" loading="eager" alt="A photo masked by an arch shape"><b>Mask with any shape</b><span>Crop a picture to any shape. It stays exactly where it was.</span></a><a class="gt" href="#combine"><img src="/static/whats-new/tile-combine.webp" width="720" height="405" loading="eager" alt="Shapes combined into a cloud"><b>Combine shapes</b><span>Union, subtract, intersect, exclude. Undo in one press.</span></a><a class="gt" href="#layers"><img src="/static/whats-new/tile-layers.webp" width="720" height="405" loading="lazy" alt="The Layers panel open on nested groups"><b>Reach into groups</b><span>Select, rename and hide anything, including objects inside groups.</span></a><a class="gt" href="#theme"><img src="/static/whats-new/tile-theme.webp" width="720" height="405" loading="lazy" alt="A theme object edited on a slide"><b>Jump to theme objects</b><span>Select one in Layers, or &#8984;-click it. The theme builder opens on it.</span></a><a class="gt" href="#palette"><img src="/static/whats-new/tile-palette.webp" width="720" height="405" loading="lazy" alt="The command palette open over a slide"><b>Search every command</b><span>Every command with its shortcut, one search away.</span></a><a class="gt" href="#paste"><img src="/static/whats-new/tile-paste.webp" width="720" height="405" loading="lazy" alt="A logo pasted onto a slide as shapes"><b>Paste SVG code</b><span>Copy SVG from any site. Paste it as editable shapes.</span></a></div>
   </section>
@@ -518,7 +548,7 @@ def whats_new_page(ctx):
     <div><b>Free</b><span>No account, no Pro tier</span></div>
   </div>
   <div class="wn wnmid">{lot('hero', 'SVG to Slides 1.3', 'Every clip on this page is drawn as a vector animation, using the Vacay.com pitch deck we use for demos.')}</div>
-  <div class="wnband"><p>Chrome updates the extension on its own. Check chrome://extensions for 1.3.0.</p><div class="ctas"><a class="btn btn-primary" href="{cws('whats-new', 'mid')}" data-cta="mid"><img src="/static/chrome-glyph.svg" alt="">Add to Chrome, free</a></div></div>
+  <div class="wnband"><p>Chrome updates the extension on its own. Check chrome://extensions for 1.4.0.</p><div class="ctas"><a class="btn btn-primary" href="{cws('whats-new', 'mid')}" data-cta="mid"><img src="/static/chrome-glyph.svg" alt="">Add to Chrome, free</a></div></div>
   <article class="about wn">
     <p>SVG to Slides started as a way to drop SVG files onto a slide as real shapes. Version 1.3 turns it into a set of drawing tools that work on any shape in the deck: a pen that draws curves and snaps them to a grid, exact stroke weights, text you can outline and use as a mask, union and subtract, a layers panel that reaches into nested groups and theme objects, and a command palette that lists all of it. The extension also got 92% smaller, and it no longer talks to a server.</p>
     <div class="rel">Version 1.3.0 &middot; November 2026</div>
@@ -726,13 +756,25 @@ def whats_new_page(ctx):
     <div class="ctas"><a class="btn btn-primary" href="{cws('whats-new', 'close')}" data-cta="close"><img src="/static/chrome-glyph.svg" alt="">Add to Chrome, free</a><a class="btn btn-ghost" href="/guides/insert-svg-into-google-slides">Read the guide</a></div>
   </section>"""
     ld = [{"@context": "https://schema.org", "@type": "WebPage", "name": "What's new in SVG to Slides", "url": C.SITE + "/whats-new",
-           "about": {"@id": C.SITE + "/#app"}, "dateModified": "2026-11-21"},
+           "about": {"@id": C.SITE + "/#app"}, "dateModified": "2026-11-23"},
           ctx["crumbs"]([("What's new", "/whats-new")])]
-    doc = shell(title="What's New in 1.3: Pen, Outline Text, Masks, Layers and Theme Objects in Google Slides | SVG to Slides",
-                desc="SVG to Slides 1.3 adds a pen with curves and grid snapping, exact strokes, outline text, masks with any shape, union and subtract, layers with nested groups and theme objects, a command palette and SVG code paste to Google Slides.",
+    doc = shell(title="What's New in 1.4: Colour Picker, Gradients and Replace Colour in Google Slides | SVG to Slides",
+                desc="SVG to Slides 1.4 adds a colour picker with opacity and eyedropper, a gradient builder, replace a colour across a slide or deck, live preview and adjustable image masks to Google Slides. 1.3 added the pen, layers and shape combining.",
                 path="/whats-new", body=body, md="/whats-new.md", extra_css=ABOUT_CSS + WHATS_NEW_CSS, campaign="whats-new",
                 ld_block=ctx["ld_block"](ld), tail=ctx["lottie_js"], **ctx["common"])
     md = f"""# What's new in SVG to Slides
+
+## 1.4.0 (November 2026)
+
+- Colour picker in the toolbar (Option+Shift+F for fill, Option+Shift+L for stroke): spectrum, hue and opacity sliders, eyedropper, hex field, the slide's colours and recent ones. With text highlighted it sets the colour of those words only. Colour changes are made on the object itself, so animation and links stay.
+- Gradient builder: linear and radial, stops on a bar, an angle dial, a start point for radial. Results are native Slides gradients.
+- Replace a colour: with nothing selected, pick a colour in use and what it becomes. Changes fills, strokes, gradient stops and text, inside groups too. "All slides" lists the deck's colours and runs across every slide; one Cmd+Z undoes it.
+- Live preview: the slide shows the colour, opacity, gradient or stroke width while the panel is open.
+- Mask image with shape (Option+Shift+K) keeps the shape on top as an unfilled outline, grouped with the masked picture. Double-click the group, or press Mask again, to move or resize the picture under its mask.
+- SVG import: linear and radial gradients arrive as Slides gradients; opacity, fill-opacity and stroke-opacity come across. The web uploader still flattens gradients.
+- From 1.3.1: icon sets drawn with strokes (Lucide, Feather, Heroicons outline, Tabler) import as shapes.
+- Limits: a gradient on a shape with mixed text styles replaces the shape (animation lost); a fill on a whole mask group is refused; stroke widths outside Slides' presets replace the shape.
+- Permissions unchanged: access to Google Slides pages, where the tools run, and storage.
 
 ## 1.3.0 (November 2026)
 
