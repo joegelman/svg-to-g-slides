@@ -3,7 +3,7 @@
 // something worth announcing, leave a flag for the content script, which
 // shows a one-time "What's new" card inside Slides. New installs get
 // nothing (the store listing already told them what it does).
-const ANNOUNCE = '1.3.0'; // bump when a release deserves the card again
+const ANNOUNCE = '1.4.0'; // bump when a release deserves the card again
 
 function older(a, b) {
   const pa = String(a).split('.').map(Number);

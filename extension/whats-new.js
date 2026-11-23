@@ -60,12 +60,12 @@
       el('div', { class: 't' }, 'SVG to Slides got an upgrade'),
       el('div', { class: 'v' }, 'Version ' + version),
       el('ul', {},
-        el('li', {}, el('b', {}, 'Pen. '), 'Draw curves anywhere on the slide, snapped to a grid you size. ', key('pen')),
-        el('li', {}, el('b', {}, 'Mask with any shape. '), 'Put a shape or outlined text over a picture, select both. ', key('mask')),
-        el('li', {}, el('b', {}, 'Combine and outline. '), 'Union, subtract, intersect, exclude. Turn strokes and text into shapes.'),
-        el('li', {}, el('b', {}, 'Layers. '), 'Open nested groups, rename and hide. Theme objects open in the theme builder. ', key('layers')),
-        el('li', {}, el('b', {}, 'Every command, one search away. '), key('palette'))),
-      el('div', { class: 'also' }, 'Also: paste SVG code, instant align, one-step undo, and a 92% smaller extension.'),
+        el('li', {}, el('b', {}, 'Colour picker. '), 'Spectrum, opacity, eyedropper and the colours on your slide, for fill, stroke and highlighted text. ', key('fillColor')),
+        el('li', {}, el('b', {}, 'Gradients. '), 'Build linear and radial gradients in the toolbar.'),
+        el('li', {}, el('b', {}, 'Replace a colour. '), 'With nothing selected, swap one colour for another on the slide or across every slide.'),
+        el('li', {}, el('b', {}, 'Live preview. '), 'The slide shows the change while you pick.'),
+        el('li', {}, el('b', {}, 'Masks you can adjust. '), 'The shape stays as an outline. Double-click to move the picture under it. ', key('mask'))),
+      el('div', { class: 'also' }, 'Also: SVG gradients and opacity come across on import, and outline icon sets now import as shapes.'),
       el('div', { class: 'row' }, more, ok));
     root.append(style, card);
     card.style.left = Math.max(12, r.left + 16) + 'px';
