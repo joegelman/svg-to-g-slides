@@ -517,7 +517,7 @@ def whats_new_page(ctx):
     <h2 id="replace">Replace a colour</h2>
     <p>With nothing selected, the paint bucket opens <b>Replace a colour</b>. Pick a colour that is in use, from the list or with the eyedropper, and choose what it becomes. It changes fills, strokes, gradient stops and text, including inside groups.</p>
     <p>Turn on <b>All slides</b> and the list shows every colour in the deck. The change runs across every slide, with a progress bar, and one <kbd>&#8984;Z</kbd> undoes all of it.</p>
-    @@replace|Picking teal in Replace a colour and turning every teal shape purple, then running it across all slides|Pick the colour to change, choose the new one, run it across the deck.@@
+    @@replace|Picking the card&rsquo;s teal in Replace a colour, choosing indigo, ticking All slides, then each slide and thumbnail in the deck changing in turn|Pick the colour, choose the new one, tick All slides. Every slide follows.@@
     <h2 id="preview">Live preview</h2>
     <p>While the panel is open, the slide shows the colour, opacity, gradient or stroke width in hand. &#10003; keeps it. &#10005; puts the slide back.</p>
     @@preview|A highlighted word changing colour as the panel is dragged|Highlighted words take the colour while you are still picking.@@
