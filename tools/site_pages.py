@@ -508,22 +508,29 @@ def whats_new_page(ctx):
     <p>Version 1.4 puts colour in the toolbar. It has its own picker, a gradient builder, and a way to swap one colour for another across a slide or the whole deck. The slide shows each change while you pick. Image masks now keep their shape, and the picture under a mask can be moved.</p>
     <h2 id="colour">A colour picker of its own</h2>
     <p>Select a shape and press the paint bucket (<kbd>&#8997;&#8679;F</kbd>), or the stroke button (<kbd>&#8997;&#8679;L</kbd>). The panel has a spectrum, hue and opacity sliders, an eyedropper, a hex field, the colours already on the slide and the ones you used last.</p>
+    @@colour|Picking a new fill colour in the panel while the card on the slide changes with it|Open the panel, drag, and the shape follows.@@
     <p>Highlight a stretch of text and the same panel becomes <b>Text colour</b>. It recolours those words and leaves the rest of the box alone.</p>
     <p>A colour change is made on the object itself, so its animation and link stay.</p>
     <h2 id="gradients">Gradients</h2>
     <p>Switch the panel to linear or radial. Add and drag stops on the bar, set the angle on the dial, and pick where a radial gradient starts. The result is a real Slides gradient.</p>
+    @@gradient|Switching the panel to Linear, adding a stop on the bar and turning the angle dial|Add a stop on the bar, colour it, turn the dial.@@
     <h2 id="replace">Replace a colour</h2>
     <p>With nothing selected, the paint bucket opens <b>Replace a colour</b>. Pick a colour that is in use, from the list or with the eyedropper, and choose what it becomes. It changes fills, strokes, gradient stops and text, including inside groups.</p>
     <p>Turn on <b>All slides</b> and the list shows every colour in the deck. The change runs across every slide, with a progress bar, and one <kbd>&#8984;Z</kbd> undoes all of it.</p>
+    @@replace|Picking teal in Replace a colour and turning every teal shape purple, then running it across all slides|Pick the colour to change, choose the new one, run it across the deck.@@
     <h2 id="preview">Live preview</h2>
     <p>While the panel is open, the slide shows the colour, opacity, gradient or stroke width in hand. &#10003; keeps it. &#10005; puts the slide back.</p>
+    @@preview|A highlighted word changing colour as the panel is dragged|Highlighted words take the colour while you are still picking.@@
     <h2 id="mask-adjust">Masks you can keep working with</h2>
     <p><b>Mask image with shape</b> (<kbd>&#8997;&#8679;K</kbd>) now keeps the shape. It sits on top as an outline with no fill, grouped with the masked picture, so you can restyle its stroke afterwards.</p>
     <p>Double-click the group, or press Mask again, to adjust the picture under its mask. Drag to move it, drag a corner to resize, nudge with the arrow keys, type a percentage, or press <b>Fit</b>. <kbd>&#8629;</kbd> keeps the change and <kbd>Esc</kbd> cancels.</p>
+    @@mask|Double-clicking a photo masked by an arch, dragging and resizing the whole picture under it, then confirming|Double-click, drag the picture, resize it, confirm.@@
     <h2 id="import-gradients">Gradients and opacity on import</h2>
     <p>Linear and radial gradients in an SVG arrive as Slides gradients. <code>opacity</code>, <code>fill-opacity</code> and <code>stroke-opacity</code> come across too. The <a href="/convert">web uploader</a> still flattens gradients to one colour.</p>
+    @@import|An SVG file dropped on a slide becomes shapes with gradients, and one opens in the gradient builder with its three stops|Drop the file. The gradients open in the builder with their stops.@@
     <h2 id="outline-icons">Outline icon sets</h2>
     <p>Icons drawn with strokes, such as Lucide, Feather, Heroicons outline and Tabler, now import as shapes. This arrived in 1.3.1.</p>
+    @@icons|An SVG of six outline icons dropped on a slide, then filled orange in one go|Stroke icons land as shapes, so a fill works on them.@@
     <h2 id="limits14">Known limits</h2>
     <ul>
       <li>A gradient on a shape whose text uses more than one style replaces the shape, so its animation is lost. The extension says so when it happens.</li>
@@ -532,6 +539,9 @@ def whats_new_page(ctx):
     </ul>
     <p>1.4 asks for nothing new: access to Google Slides pages, where the tools run, and <b>storage</b>.</p>
   </article>"""
+    import re as _re
+    v14 = _re.sub(r'@@(\w+)\|([^|]+)\|([^@]+)@@', lambda m: (f'<div class="clip"><div class="lot" data-lottie="/static/lottie/svgslides_14_{m.group(1)}.json" '
+                  f'style="aspect-ratio:16/9" role="img" aria-label="{m.group(2)}"></div></div><p class="cap">{m.group(3)}</p>'), v14)
     body = f"""  <div class="wrap"><p class="crumb"><a href="/">SVG to Slides</a> &rsaquo; What&rsquo;s new</p></div>
   <section class="wrap phero wnp">
     <h1>Draw, mask and combine inside Slides.</h1>
