@@ -1,6 +1,6 @@
 # The Layers panel
 
-Applies to: SVG to Slides Chrome extension, version 1.3.0.
+Applies to: SVG to Slides Chrome extension, version 1.3.0 and later.
 
 Press Option+1 to list every object on the current slide, front first. Click a row to select the object. Drag rows to restack, double-click to rename, and use the eye to hide an object while you work.
 
@@ -52,4 +52,4 @@ Layer names are kept on the computer you used. They are not saved in the present
 - [PRB: Layer names are missing on another computer](https://svgslid.es/docs/kb/layer-names-missing.md)
 - [INFO: An object in Layers is greyed and marked M](https://svgslid.es/docs/kb/object-greyed-with-m.md)
 
-Source: https://svgslid.es/docs/layers (SVG to Slides Documentation, User's Guide). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/layers (SVG to Slides Documentation, User's Guide). Last reviewed November 24, 2026.

@@ -1,6 +1,6 @@
 # Outlining strokes and text
 
-Applies to: SVG to Slides Chrome extension, version 1.3.0.
+Applies to: SVG to Slides Chrome extension, version 1.3.0 and later.
 
 **Outline stroke** turns lines and borders into filled shapes. **Outline text** turns text into shapes whose points you can edit. On the computer that outlined it, the same command puts the text back.
 
@@ -54,10 +54,10 @@ The extension remembers the original outline on this computer, so **Centre strok
 
 ## See also
 
-- [Fill, stroke and exact values](https://svgslid.es/docs/fill-stroke.md)
+- [Colour, gradients and stroke](https://svgslid.es/docs/fill-stroke.md)
 - [Combining shapes](https://svgslid.es/docs/combine-shapes.md)
 - [Masking an image](https://svgslid.es/docs/mask-image.md)
 - [PRB: Outline text reports that it could not get the font](https://svgslid.es/docs/kb/outline-text-font.md)
 - [Permissions and data](https://svgslid.es/docs/permissions-privacy.md#network)
 
-Source: https://svgslid.es/docs/outline-stroke-text (SVG to Slides Documentation, User's Guide). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/outline-stroke-text (SVG to Slides Documentation, User's Guide). Last reviewed November 24, 2026.

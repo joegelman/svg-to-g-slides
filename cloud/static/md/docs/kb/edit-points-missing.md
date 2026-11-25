@@ -1,8 +1,8 @@
 # INFO: Slides' own Edit points is offered for some inserted shapes only
 
-Article ID: Q100108. Last reviewed: November 20, 2026.
+Article ID: Q100108. Last reviewed: November 24, 2026.
 
-Applies to: SVG to Slides Chrome extension, versions 1.2.0 and 1.3.0.
+Applies to: SVG to Slides Chrome extension, version 1.2.0 and later.
 
 Slides' own Edit points works only on polylines. Inserted shapes with one outline and straight segments land as polylines. Curved shapes and shapes with holes do not, because Slides' point editor would damage them. Use Edit Shape for those.
 
@@ -23,4 +23,4 @@ The tests behind this rule are described in [Edit points and polylines](https://
 - [Edit points and polylines](https://svgslid.es/docs/edit-points-and-polylines.md)
 - [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md)
 
-Source: https://svgslid.es/docs/kb/edit-points-missing (SVG to Slides Documentation, Knowledge Base). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/kb/edit-points-missing (SVG to Slides Documentation, Knowledge Base). Last reviewed November 24, 2026.

@@ -1,8 +1,8 @@
 # PRB: Shapes arrive black
 
-Article ID: Q100105. Last reviewed: November 20, 2026.
+Article ID: Q100105. Last reviewed: November 24, 2026.
 
-Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.3.0; SVG to Slides Workspace Add-on for Google Slides; SVG to Slides Web Uploader.
+Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.4.0; SVG to Slides Workspace Add-on for Google Slides; SVG to Slides Web Uploader.
 
 Colours set by CSS classes in a style block, colours written as hsl(), and pattern fills are not read by the converter, so those shapes arrive black. Export with colours written on each element, or recolour the shapes in Slides.
 
@@ -33,4 +33,4 @@ This is a known limit in all three products.
 - [Quick start](https://svgslid.es/docs/quick-start.md#next)
 - [Guide: Recolor SVGs in Google Slides](https://svgslid.es/guides/recolor-svg-in-google-slides)
 
-Source: https://svgslid.es/docs/kb/colours-arrive-black (SVG to Slides Documentation, Knowledge Base). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/kb/colours-arrive-black (SVG to Slides Documentation, Knowledge Base). Last reviewed November 24, 2026.

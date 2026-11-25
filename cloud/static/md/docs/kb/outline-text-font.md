@@ -1,8 +1,8 @@
 # PRB: Outline text reports that it could not get the font
 
-Article ID: Q100113. Last reviewed: November 20, 2026.
+Article ID: Q100113. Last reviewed: November 24, 2026.
 
-Applies to: SVG to Slides Chrome extension, version 1.3.0.
+Applies to: SVG to Slides Chrome extension, version 1.3.0 and later.
 
 Outline text reads letter shapes from the font. It downloads Google fonts from Google Fonts and asks Chrome for access to fonts installed on your computer. If neither works, allow font access when Chrome asks, or set the text in a Google font and outline it again.
 
@@ -30,4 +30,4 @@ For some system fonts that cannot be downloaded, the extension outlines the text
 - [Outlining strokes and text](https://svgslid.es/docs/outline-stroke-text.md#fonts)
 - [Permissions and data](https://svgslid.es/docs/permissions-privacy.md#network)
 
-Source: https://svgslid.es/docs/kb/outline-text-font (SVG to Slides Documentation, Knowledge Base). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/kb/outline-text-font (SVG to Slides Documentation, Knowledge Base). Last reviewed November 24, 2026.

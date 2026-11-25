@@ -1,6 +1,6 @@
 # Aligning and distributing
 
-Applies to: SVG to Slides Chrome extension, version 1.3.0.
+Applies to: SVG to Slides Chrome extension, version 1.3.0 and later.
 
 The align and distribute commands move objects in one step, straight to the result, and leave images intact. One object on its own, an image included, aligns to the slide's edges.
 
@@ -48,4 +48,4 @@ The extension runs Slides' own Align, Distribute and Center on page commands beh
 - [Multi-step changes and undo](https://svgslid.es/docs/undo-and-still-copy.md)
 - [Keyboard shortcuts](https://svgslid.es/docs/keyboard-shortcuts.md#align)
 
-Source: https://svgslid.es/docs/align-distribute (SVG to Slides Documentation, User's Guide). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/align-distribute (SVG to Slides Documentation, User's Guide). Last reviewed November 24, 2026.

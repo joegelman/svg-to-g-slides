@@ -5,7 +5,7 @@ Applies to: SVG to Slides Chrome extension; SVG to Slides Web Uploader; SVG to S
 Each article covers one symptom: what you see, why it happens, and what to do. Articles are numbered so that they can be cited.
 
 - Q100101: [PRB: An SVG placed in Google Slides becomes a flat image](https://svgslid.es/docs/kb/svg-becomes-a-flat-image.md)
-- Q100102: [PRB: A gradient arrives as one solid colour](https://svgslid.es/docs/kb/gradient-becomes-solid-colour.md)
+- Q100102: [FIX: A gradient arrives as one solid colour](https://svgslid.es/docs/kb/gradient-becomes-solid-colour.md)
 - Q100103: [PRB: Text in an SVG does not appear on the slide](https://svgslid.es/docs/kb/text-missing-after-insert.md)
 - Q100104: [PRB: A line icon inserts nothing](https://svgslid.es/docs/kb/line-icon-inserts-nothing.md)
 - Q100105: [PRB: Shapes arrive black](https://svgslid.es/docs/kb/colours-arrive-black.md)

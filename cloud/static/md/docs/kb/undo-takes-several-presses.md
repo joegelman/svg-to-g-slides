@@ -1,8 +1,8 @@
 # PRB: COMMAND+Z undoes only part of a combine or outline
 
-Article ID: Q100109. Last reviewed: November 20, 2026.
+Article ID: Q100109. Last reviewed: November 24, 2026.
 
-Applies to: SVG to Slides Chrome extension, version 1.3.0.
+Applies to: SVG to Slides Chrome extension, version 1.3.0 and later.
 
 A combine, outline or mask is several steps inside Slides. The extension undoes them in one press only while the slide is as it left it. If you changed the slide afterwards, Slides' own undo takes over and goes one step per press. Keep pressing COMMAND+Z until the original returns.
 
@@ -31,4 +31,4 @@ In version 1.2.0, which had no one-press undo, undoing an Edit Shape session alw
 - [Undo and redo](https://svgslid.es/docs/undo-redo.md)
 - [Multi-step changes and undo](https://svgslid.es/docs/undo-and-still-copy.md#undo)
 
-Source: https://svgslid.es/docs/kb/undo-takes-several-presses (SVG to Slides Documentation, Knowledge Base). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/kb/undo-takes-several-presses (SVG to Slides Documentation, Knowledge Base). Last reviewed November 24, 2026.

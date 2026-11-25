@@ -1,8 +1,8 @@
 # PRB: An SVG placed in Google Slides becomes a flat image
 
-Article ID: Q100101. Last reviewed: November 20, 2026.
+Article ID: Q100101. Last reviewed: November 24, 2026.
 
-Applies to: Google Slides; SVG to Slides Chrome extension, versions 1.0.0 through 1.3.0; SVG to Slides Web Uploader; SVG to Slides Workspace Add-on for Google Slides.
+Applies to: Google Slides; SVG to Slides Chrome extension, versions 1.0.0 through 1.4.0; SVG to Slides Web Uploader; SVG to Slides Workspace Add-on for Google Slides.
 
 Google Slides has no SVG import, so an SVG placed on a slide is flattened into a picture. To keep it as vectors, insert it with SVG to Slides: drag the file onto the slide with the Chrome extension, or convert it with the Web Uploader.
 
@@ -44,4 +44,4 @@ There are two manual routes that need no extension: convert the SVG to EMF, open
 - [Guide: Does Google Slides support SVG?](https://svgslid.es/guides/does-google-slides-support-svg)
 - [Guide: SVG vs PNG in Google Slides](https://svgslid.es/guides/svg-vs-png-google-slides)
 
-Source: https://svgslid.es/docs/kb/svg-becomes-a-flat-image (SVG to Slides Documentation, Knowledge Base). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/kb/svg-becomes-a-flat-image (SVG to Slides Documentation, Knowledge Base). Last reviewed November 24, 2026.

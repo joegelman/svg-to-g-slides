@@ -1,8 +1,8 @@
 # PRB: Nothing is inserted when more than 25 files are dropped
 
-Article ID: Q100107. Last reviewed: November 20, 2026.
+Article ID: Q100107. Last reviewed: November 24, 2026.
 
-Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.3.0.
+Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.4.0.
 
 The extension inserts up to 25 SVG files per drop. A larger drop inserts nothing and shows a message. Drop the files in batches of 25, or use the Web Uploader, which makes one slide per SVG.
 
@@ -29,4 +29,4 @@ This behaviour is by design.
 - [Web Uploader](https://svgslid.es/docs/web-uploader.md)
 - [Limits and known issues](https://svgslid.es/docs/limits.md#inserting)
 
-Source: https://svgslid.es/docs/kb/more-than-25-files (SVG to Slides Documentation, Knowledge Base). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/kb/more-than-25-files (SVG to Slides Documentation, Knowledge Base). Last reviewed November 24, 2026.

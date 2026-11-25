@@ -1,6 +1,6 @@
 # Editing Slides' own shapes
 
-Applies to: SVG to Slides Chrome extension, versions 1.2.0 and 1.3.0.
+Applies to: SVG to Slides Chrome extension, version 1.2.0 and later.
 
 Edit Shape also opens on objects you did not bring in as SVG: shapes from Slides' shape menu, arrows, callouts, lines, text boxes and WordArt. It converts the object into custom shapes first, and tells you what that costs before you start.
 
@@ -41,4 +41,4 @@ Text inside a shape stays editable after conversion.
 - [Outlining strokes and text](https://svgslid.es/docs/outline-stroke-text.md)
 - [Edit points and polylines](https://svgslid.es/docs/edit-points-and-polylines.md)
 
-Source: https://svgslid.es/docs/convert-slides-shapes (SVG to Slides Documentation, User's Guide). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/convert-slides-shapes (SVG to Slides Documentation, User's Guide). Last reviewed November 24, 2026.

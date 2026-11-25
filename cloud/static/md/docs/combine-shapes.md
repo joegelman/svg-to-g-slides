@@ -1,6 +1,6 @@
 # Combining shapes
 
-Applies to: SVG to Slides Chrome extension, version 1.3.0.
+Applies to: SVG to Slides Chrome extension, version 1.3.0 and later.
 
 Union, Subtract, Intersect and Exclude make one shape from two or more. They work on the slide and inside Edit Shape, and each is one undo step.
 
@@ -42,4 +42,4 @@ The same four buttons are on the editor's toolbar. There they act on the shapes 
 - [Undo and redo](https://svgslid.es/docs/undo-redo.md)
 - [Limits and known issues](https://svgslid.es/docs/limits.md)
 
-Source: https://svgslid.es/docs/combine-shapes (SVG to Slides Documentation, User's Guide). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/combine-shapes (SVG to Slides Documentation, User's Guide). Last reviewed November 24, 2026.

@@ -1,8 +1,8 @@
 # PRB: Text in an SVG does not appear on the slide
 
-Article ID: Q100103. Last reviewed: November 20, 2026.
+Article ID: Q100103. Last reviewed: November 24, 2026.
 
-Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.3.0; SVG to Slides Workspace Add-on for Google Slides.
+Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.4.0; SVG to Slides Workspace Add-on for Google Slides.
 
 The extension and the add-on do not convert SVG text elements. Convert the text to outlines in your design tool before exporting, or use the Web Uploader, which outlines text into shapes.
 
@@ -33,4 +33,4 @@ This is a known limit of the extension and the add-on.
 - [Web Uploader](https://svgslid.es/docs/web-uploader.md)
 - [Outlining strokes and text](https://svgslid.es/docs/outline-stroke-text.md)
 
-Source: https://svgslid.es/docs/kb/text-missing-after-insert (SVG to Slides Documentation, Knowledge Base). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/kb/text-missing-after-insert (SVG to Slides Documentation, Knowledge Base). Last reviewed November 24, 2026.

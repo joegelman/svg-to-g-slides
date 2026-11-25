@@ -1,8 +1,8 @@
 # PRB: A line icon inserts nothing
 
-Article ID: Q100104. Last reviewed: November 20, 2026.
+Article ID: Q100104. Last reviewed: November 24, 2026.
 
-Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.3.0; SVG to Slides Workspace Add-on for Google Slides.
+Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.4.0; SVG to Slides Workspace Add-on for Google Slides.
 
 Icons that set their stroke once on the root svg element, or use stroke="currentColor", are not converted by the extension. Convert them with the Web Uploader, or outline the strokes in your design tool before exporting.
 
@@ -34,4 +34,4 @@ This is a known limit of the extension and the add-on. Test files 04 and 17 on t
 - [How conversion works](https://svgslid.es/docs/how-conversion-works.md#stages)
 - [Guide: SVG logos and icons in Slides themes](https://svgslid.es/guides/svg-logos-icons-google-slides)
 
-Source: https://svgslid.es/docs/kb/line-icon-inserts-nothing (SVG to Slides Documentation, Knowledge Base). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/kb/line-icon-inserts-nothing (SVG to Slides Documentation, Knowledge Base). Last reviewed November 24, 2026.

@@ -1,6 +1,6 @@
 # Slides' Edit points and polylines
 
-Applies to: SVG to Slides Chrome extension, versions 1.2.0 and 1.3.0; SVG to Slides Workspace Add-on for Google Slides.
+Applies to: SVG to Slides Chrome extension, version 1.2.0 and later; SVG to Slides Workspace Add-on for Google Slides.
 
 Google Slides has an Edit points command of its own, which works on polylines. Inserted shapes with one outline and only straight segments land as polylines, so that command works on them. Curved shapes land as custom shapes. Use Edit Shape for those.
 
@@ -48,4 +48,4 @@ So only shapes that Slides' editor can represent exactly are marked for it.
 - [How conversion works](https://svgslid.es/docs/how-conversion-works.md)
 - [INFO: Slides' own Edit points is offered for some inserted shapes only](https://svgslid.es/docs/kb/edit-points-missing.md)
 
-Source: https://svgslid.es/docs/edit-points-and-polylines (SVG to Slides Documentation, Technical Notes). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/edit-points-and-polylines (SVG to Slides Documentation, Technical Notes). Last reviewed November 24, 2026.

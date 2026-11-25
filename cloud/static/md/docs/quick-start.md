@@ -1,6 +1,6 @@
 # Quick start: your first SVG
 
-Applies to: SVG to Slides Chrome extension, versions 1.2.0 and 1.3.0.
+Applies to: SVG to Slides Chrome extension, version 1.2.0 and later.
 
 Drag an .svg file onto a slide, click where it goes, and it lands as native shapes. This topic walks through the first insert and the three things most people do next.
 
@@ -33,4 +33,4 @@ Figure 1. The file has been dropped. The preview follows the pointer until you c
 - [SVG feature support](https://svgslid.es/docs/svg-compatibility.md)
 - [Guide: Recolor SVGs in Google Slides](https://svgslid.es/guides/recolor-svg-in-google-slides)
 
-Source: https://svgslid.es/docs/quick-start (SVG to Slides Documentation, Getting Started). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/quick-start (SVG to Slides Documentation, Getting Started). Last reviewed November 24, 2026.

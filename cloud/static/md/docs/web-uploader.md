@@ -30,7 +30,7 @@ The copy belongs to your account and does not expire.
 |  | Web Uploader | Chrome extension |
 |---|---|---|
 | Where the result goes | A new file, one slide per SVG | The slide you have open |
-| Gradients | Kept as gradients | First colour only |
+| Gradients | Kept as gradients | Kept as gradients since version 1.4.0. First colour only before that |
 | SVG text | Outlined into shapes. Not editable as text. | Not converted |
 | Line icons that set the stroke on the whole SVG | Converted. Strokes become filled outline shapes. | Not converted |
 | Where conversion runs | On the svgslid.es server | In your browser |
@@ -50,4 +50,4 @@ Uploaded SVG files are held only while the request runs and are deleted when it 
 - [PRB: A Web Uploader link stops working after 7 days](https://svgslid.es/docs/kb/web-uploader-link-expired.md)
 - [Guide: SVG to Google Slides converter](https://svgslid.es/guides/svg-to-google-slides-converter)
 
-Source: https://svgslid.es/docs/web-uploader (SVG to Slides Documentation, Web Uploader and Add-on). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/web-uploader (SVG to Slides Documentation, Web Uploader and Add-on). Last reviewed November 24, 2026.

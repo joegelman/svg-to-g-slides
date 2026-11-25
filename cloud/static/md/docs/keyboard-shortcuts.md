@@ -1,6 +1,6 @@
 # Keyboard shortcuts
 
-Applies to: SVG to Slides Chrome extension, version 1.3.0. Editor keys also apply to version 1.2.0 unless they name a 1.3.0 tool..
+Applies to: SVG to Slides Chrome extension, version 1.3.0 and later. Editor keys also apply to version 1.2.0 unless they name a 1.3.0 tool..
 
 All shortcuts, with the Mac and Windows keys side by side. The extension's own shortcuts work while objects are selected and you are not typing in a text box. Five of them work at any time.
 
@@ -128,4 +128,4 @@ Align and distribute use the keys Figma uses. Rotate, resize, arrange, group and
 - [The toolbar](https://svgslid.es/docs/toolbar.md)
 - [Document conventions](https://svgslid.es/docs/conventions.md#keys)
 
-Source: https://svgslid.es/docs/keyboard-shortcuts (SVG to Slides Documentation, Reference). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/keyboard-shortcuts (SVG to Slides Documentation, Reference). Last reviewed November 24, 2026.

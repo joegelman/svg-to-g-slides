@@ -9,9 +9,9 @@ import re
 
 import site_content as C
 
-A13 = "SVG to Slides Chrome extension, version 1.3.0"
-A12 = "SVG to Slides Chrome extension, versions 1.2.0 and 1.3.0"
-AALL = "SVG to Slides Chrome extension, versions 1.0.0 through 1.3.0"
+A13 = "SVG to Slides Chrome extension, version 1.3.0 and later"
+A12 = "SVG to Slides Chrome extension, version 1.2.0 and later"
+AALL = "SVG to Slides Chrome extension, versions 1.0.0 through 1.4.0"
 AWEB = "SVG to Slides Web Uploader"
 AADD = "SVG to Slides Workspace Add-on for Google Slides"
 
@@ -44,14 +44,14 @@ COMMANDS = [
 
     ("group", "group", "Group", "Command+Option+G", "Groups the selection.", "Two objects or more", "toolbar", "slides"),
     ("ungroup", "group", "Ungroup", "Shift+Command+Option+G", "Ungroups the selected group.", "A group", "toolbar", "slides"),
-    ("mask", "group", "Mask image with shape", "Option+Shift+K", "The shape on top cuts out the picture under it.", "One image and one shape or group", "mask-image", "ext"),
+    ("mask", "group", "Mask image with shape", "Option+Shift+K", "The shape on top cuts out the picture under it. On a masked picture or its group, opens the picture for moving and resizing under the mask.", "One image and one shape or group, or a masked picture", "mask-image", "ext"),
 
     ("outline-stroke", "outline", "Outline stroke", "Option+Command+O", "Turns a stroke into a filled shape.", "A shape or line with a stroke", "outline-stroke-text", "ext"),
     ("outline-text", "outline", "Outline text", "Option+Command+T", "Turns text into shapes.", "An object with text", "outline-stroke-text", "ext"),
     ("restore-text", "outline", "Restore outlined text", "Option+Command+T", "Puts outlined text back as live text.", "Text outlined on this computer", "outline-stroke-text#restore", "ext"),
 
-    ("fill", "paint", "Fill colour", "Option+Shift+F", "Opens Slides' fill colour menu.", "A shape", "fill-stroke", "ext"),
-    ("stroke", "paint", "Stroke colour", "Option+Shift+L", "Opens Slides' border colour menu.", "A shape or line", "fill-stroke", "ext"),
+    ("fill", "paint", "Fill colour", "Option+Shift+F", "Opens the colour panel on the fill. With text highlighted, sets the text colour. With nothing selected, opens Replace a colour.", "A shape, highlighted text, or nothing", "fill-stroke", "ext"),
+    ("stroke", "paint", "Stroke colour", "Option+Shift+L", "Opens the colour panel on the stroke.", "A shape or line", "fill-stroke", "ext"),
     ("stroke-toggle", "paint", "Stroke on / off", "Option+Shift+/", "Removes the stroke or puts it back.", "A shape or line", "fill-stroke#weight", "ext"),
     ("stroke-thinner", "paint", "Thinner stroke", "Option+Shift+[", "Steps the stroke weight down.", "A shape or line", "fill-stroke#weight", "ext"),
     ("stroke-thicker", "paint", "Thicker stroke", "Option+Shift+]", "Steps the stroke weight up.", "A shape or line", "fill-stroke#weight", "ext"),
@@ -335,7 +335,7 @@ When a command cannot run, the extension shows a short message under the toolbar
         title="SVG feature support",
         desc="Which SVG features convert to Google Slides shapes: paths, arcs, transforms, gradients, text, strokes, clip paths, masks, CSS classes, patterns, filters.",
         applies=[AALL, AADD, AWEB],
-        summary="Paths, basic shapes, arcs, nested transforms and even-odd cut-outs convert in every product. Gradients and text convert only in the Web Uploader. Clip paths, masks, patterns, filters and transparency do not convert.",
+        summary="Paths, basic shapes, arcs, nested transforms and even-odd cut-outs convert in every product. Gradients convert in the Web Uploader and, since version 1.4.0, in the extension, which also keeps transparency. Text converts only in the Web Uploader. Masks, patterns and filters do not convert.",
         keys=["SVG feature support", "compatibility", "gradients#partly", "clip paths#partly", "masks, SVG#partly", "CSS classes#partly", "currentColor#not-converted", "text, SVG#not-converted", "use and symbol#not-converted", "opacity#partly", "pattern fills#partly", "filters#partly", "hsl colours#partly", "arcs#works", "transforms#works"],
         howto=False,
         body="""
@@ -343,17 +343,17 @@ When a command cannot run, the extension shows a short message under the toolbar
 
 ## Reading the table {#reading}
 
-The extension and the add-on share one converter, so they give the same result. The JavaScript converter in version 1.3.0 was checked against the earlier one and gives the same output for these files. See [[how-conversion-works#javascript]].
+The extension column is for version 1.4.0. Version 1.3.1 added outline icon sets, colours from CSS classes, clip paths and use with symbol. Version 1.4.0 added gradients and transparency. The Workspace Add-on runs the earlier converter: it fills a gradient with its first colour and does not keep transparency. See [[how-conversion-works#javascript]].
 
 ## Getting a file to convert {#workarounds}
 
 | Problem | What to do |
 |---|---|
-| A gradient arrives as one colour | Use the [[web-uploader]], which keeps gradients. |
+| A gradient arrives as one colour | Update the extension to version 1.4.0, which keeps gradients, or use the [[web-uploader]]. See [[kb/gradient-becomes-solid-colour]]. |
 | Text is missing | Convert the text to outlines in your design tool before exporting, or use the [[web-uploader]]. |
-| A line icon inserts nothing | Use the [[web-uploader]], or outline the strokes before exporting. See [[kb/line-icon-inserts-nothing]]. |
+| A line icon inserts nothing | Update the extension to version 1.3.1 or later. See [[kb/line-icon-inserts-nothing]]. |
 | Colours arrive black | Export with colours written on each element. See [[kb/colours-arrive-black]]. |
-| A clipped or masked shape shows in full | Apply the clip in your design tool before exporting, or mask it on the slide with [[mask-image]] and [[combine-shapes]]. |
+| A masked shape shows in full | Apply the mask in your design tool before exporting, or mask it on the slide with [[mask-image]] and [[combine-shapes]]. |
 
 Have a file that does not convert? Send it to the address on the [Support](/support) page.
 """,
@@ -392,6 +392,7 @@ The storage permission keeps these items in Chrome on the computer you use. None
 | Whether the toolbar is open or closed, and whether Layers is open | [[toolbar]] |
 | Snapping settings | [[snapping]] |
 | Layer names | [[layers#stored]] |
+| Recent colours | [[fill-stroke#panel]] |
 | The original text of outlined text | [[outline-stroke-text#restore]] |
 | The original outline of shapes whose stroke was moved inside or outside | [[outline-stroke-text#position]] |
 | Whether the update note has been shown | [[install#updates]] |
@@ -419,7 +420,7 @@ SVG files are not uploaded. The extension makes one kind of network request: **O
     dict(
         slug="limits", book="reference", kind="Reference", nav="Limits and known issues",
         title="Limits and known issues",
-        desc="Known limits of SVG to Slides in one list: files per drop, gradients, text, clip paths, combine and outline limits, rotated masks, undo, 7-day links.",
+        desc="Known limits of SVG to Slides in one list: files per drop, text, masks, combine and outline limits, colour and gradient limits, rotated masks, undo, 7-day links.",
         applies=[A13, AWEB, AADD],
         summary="The limits stated across this library, gathered in one place. Each one links to the topic that explains it.",
         keys=["limits", "known issues", "maximum files"],
@@ -431,16 +432,20 @@ SVG files are not uploaded. The extension makes one kind of network request: **O
 |---|---|
 | Files per drop | 25 in the extension. See [[insert-svg#several]]. |
 | Where shapes land | On the slide you have open. The extension and the add-on cannot create slides. |
-| Gradients | First colour only in the extension and the add-on. Kept by the Web Uploader. |
+| Gradients | Kept by the extension since version 1.4.0 and by the Web Uploader. First colour only in the add-on and in earlier versions of the extension. `gradientTransform` is not applied. |
 | SVG text | Not converted by the extension or the add-on. Outlined by the Web Uploader. |
-| Clip paths, masks, patterns, filters, transparency | Not converted. See [[svg-compatibility]]. |
+| Masks, patterns, filters | Not converted. See [[svg-compatibility]]. |
 
 ## Shape tools {#shape-tools}
 
 | Limit | Detail |
 |---|---|
 | Combine and outline | Gradients, pattern fills, transparency and shadows are not carried into the result. Images, video and charts are refused. |
-| Mask | Rotated images are not supported yet. Text must be outlined first. See [[mask-image#limits]]. |
+| Mask | Rotated images are not supported yet. Text must be outlined first. A fill on a whole mask group is refused. See [[mask-image#limits]]. |
+| Gradient on text with several styles | The object is replaced, so its animation and link are not kept. See [[fill-stroke#applied]]. |
+| Stroke weight | A weight that is not one of Slides' own replaces the object. See [[fill-stroke#weight]]. |
+| Gradient stops | One opacity for the whole fill. Slides does not keep an opacity per stop. |
+| Replace a colour, all slides | Colours of slides far down a long filmstrip may not be listed until you scroll to them. See [[fill-stroke#replace]]. |
 | Pen | Point by point only. No freehand mode. |
 | Skew | Available in Edit Shape only. |
 | Layers | Only top-level rows can be dragged to restack. |
@@ -449,7 +454,7 @@ SVG files are not uploaded. The extension makes one kind of network request: **O
 
 ## Kept on one computer {#local}
 
-Layer names, snapping settings, the memory that restores outlined text, and the memory of stroke position are kept on the computer you used. They do not travel with the presentation. Hiding an object in Layers affects only your view and ends when the page is reloaded. See [[permissions-privacy#storage]].
+Layer names, snapping settings, recent colours, the memory that restores outlined text, and the memory of stroke position are kept on the computer you used. They do not travel with the presentation. Hiding an object in Layers affects only your view and ends when the page is reloaded. See [[permissions-privacy#storage]].
 
 ## Undo {#undo}
 
@@ -463,7 +468,7 @@ One-press undo applies right after one of the extension's changes. If you change
 | Add-on gradients | First colour only. |
 | Add-on insert | Always ends with <<Command+V>>. A web page cannot paste for you. |
 """,
-        see=["svg-compatibility", "kb", "release-notes/1-3-0#limits"],
+        see=["svg-compatibility", "kb", "release-notes/1-4-0#limits", "release-notes/1-3-0#limits"],
     ),
     dict(
         slug="glossary", book="reference", kind="Reference", nav="Glossary",
@@ -589,7 +594,7 @@ The page at svgslid.es/convert that converts SVG files to a Drive file. See [[we
 | | Extension and add-on | Web Uploader |
 |---|---|---|
 | Output | Slides' own shape data, handed to the open slide. See [[how-shapes-reach-the-slide]]. | A presentation file with one slide per SVG, each path a custom-geometry shape. |
-| Gradients | The first colour stop becomes a solid fill. | Kept as gradients. |
+| Gradients | Extension 1.4.0: written as Slides gradients, with the stops re-timed onto the line Slides draws. Add-on and earlier extension versions: the first colour stop becomes a solid fill. | Kept as gradients. |
 | Text and some strokes | Not converted. | Outlined on the server before conversion. |
 
 ## The JavaScript converter in version 1.3.0 {#javascript}

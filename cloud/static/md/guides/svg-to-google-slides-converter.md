@@ -17,7 +17,7 @@ _Free forever. Every feature, no daily cap, no account, no Pro tier._
 | You want to | Use | Why |
 |---|---|---|
 | Drop an SVG into the deck you're editing | Chrome extension | Converts in your browser and pastes in place. No Google permissions. |
-| Keep gradients, or turn text into shapes | Web uploader | Only the web uploader keeps gradients and outlines text. |
+| Turn text into shapes | Web uploader | Only the web uploader outlines text. |
 | Convert a whole icon set at once | Web uploader | One slide per SVG, in one Google Drive file. |
 | Stay inside Slides without the Chrome extension | Google Slides add-on | Runs from a dialog in the Slides Extensions menu. |
 

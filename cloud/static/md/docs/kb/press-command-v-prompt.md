@@ -1,8 +1,8 @@
 # INFO: The extension asks you to press COMMAND+V
 
-Article ID: Q100106. Last reviewed: November 20, 2026.
+Article ID: Q100106. Last reviewed: November 24, 2026.
 
-Applies to: SVG to Slides Chrome extension, versions 1.2.0 and 1.3.0.
+Applies to: SVG to Slides Chrome extension, version 1.2.0 and later.
 
 The extension hands shapes to Google Slides the way a paste does. If Slides does not accept them, the extension places the shapes on your clipboard and asks you to press COMMAND+V to finish.
 
@@ -28,4 +28,4 @@ In versions 1.0.0 and 1.0.1 every insert ended with Command+V. That was the norm
 - [Inserting SVG files](https://svgslid.es/docs/insert-svg.md#fallback)
 - [How shapes reach the slide](https://svgslid.es/docs/how-shapes-reach-the-slide.md)
 
-Source: https://svgslid.es/docs/kb/press-command-v-prompt (SVG to Slides Documentation, Knowledge Base). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/kb/press-command-v-prompt (SVG to Slides Documentation, Knowledge Base). Last reviewed November 24, 2026.

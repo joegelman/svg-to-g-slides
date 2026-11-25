@@ -1,6 +1,6 @@
 # Edit Shape: points and curves
 
-Applies to: SVG to Slides Chrome extension, versions 1.2.0 and 1.3.0. The box, exact values and the two-column editor toolbar: version 1.3.0..
+Applies to: SVG to Slides Chrome extension, version 1.2.0 and later. The box, exact values and the two-column editor toolbar: version 1.3.0 and later..
 
 Edit Shape opens a vector editor on the slide at the shape's exact size and position. Drag points and curve handles, add or remove points, then click **Done**. The shape updates in place and returns to its place in the stack.
 
@@ -86,4 +86,4 @@ Edit Shape opens directly on shapes inserted by SVG to Slides. On Slides' own sh
 - [Keyboard shortcuts](https://svgslid.es/docs/keyboard-shortcuts.md#editor)
 - [Edit points and polylines](https://svgslid.es/docs/edit-points-and-polylines.md)
 
-Source: https://svgslid.es/docs/edit-shape (SVG to Slides Documentation, User's Guide). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/edit-shape (SVG to Slides Documentation, User's Guide). Last reviewed November 24, 2026.

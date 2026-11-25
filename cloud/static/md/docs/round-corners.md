@@ -1,6 +1,6 @@
 # Rounding corners
 
-Applies to: SVG to Slides Chrome extension, versions 1.2.0 and 1.3.0.
+Applies to: SVG to Slides Chrome extension, version 1.2.0 and later.
 
 In Edit Shape, shapes with corners show a small circle just inside each corner. Drag a circle toward the middle of the shape to round the corner, or type a radius in pixels.
 
@@ -39,4 +39,4 @@ Hold Shift while dragging to change the radius in steps of 10 pixels.
 - [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md#exact-values)
 - [Editing Slides' own shapes](https://svgslid.es/docs/convert-slides-shapes.md)
 
-Source: https://svgslid.es/docs/round-corners (SVG to Slides Documentation, User's Guide). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/round-corners (SVG to Slides Documentation, User's Guide). Last reviewed November 24, 2026.

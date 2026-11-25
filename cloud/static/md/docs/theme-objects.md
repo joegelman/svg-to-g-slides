@@ -1,6 +1,6 @@
 # Theme objects and the theme builder
 
-Applies to: SVG to Slides Chrome extension, version 1.3.0.
+Applies to: SVG to Slides Chrome extension, version 1.3.0 and later.
 
 Objects that come from the slide's layout or master are drawn on the slide but cannot be changed there. The Layers panel greys them and marks them **M**. A second click opens Slides' theme builder on the layout or master that holds the object.
 
@@ -33,4 +33,4 @@ Option+Shift+M opens the theme builder from any slide and returns from it. It is
 - [INFO: An object in Layers is greyed and marked M](https://svgslid.es/docs/kb/object-greyed-with-m.md)
 - [Keyboard shortcuts](https://svgslid.es/docs/keyboard-shortcuts.md#anytime)
 
-Source: https://svgslid.es/docs/theme-objects (SVG to Slides Documentation, User's Guide). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/theme-objects (SVG to Slides Documentation, User's Guide). Last reviewed November 24, 2026.

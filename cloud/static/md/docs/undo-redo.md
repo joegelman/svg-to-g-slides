@@ -1,6 +1,6 @@
 # Undo and redo
 
-Applies to: SVG to Slides Chrome extension, version 1.3.0.
+Applies to: SVG to Slides Chrome extension, version 1.3.0 and later.
 
 One press of Command+Z undoes a whole change made by the extension, even when the change took several steps inside Slides. Shift+Command+Z or Command+Y redoes it in one press.
 
@@ -10,6 +10,9 @@ One press of Command+Z undoes a whole change made by the extension, even when th
 - Mask image with shape.
 - Outline stroke, Outline text and Restore outlined text.
 - Stroke position, a typed stroke weight, Thinner stroke and Thicker stroke.
+- A colour, opacity or gradient set in the colour panel, and text colour.
+- Replace a colour, on one slide or across all slides.
+- Moving the picture under its mask.
 - Restacking in the Layers panel.
 - Aligning one object to a slide edge.
 - A whole Edit Shape or pen session, from opening the editor to **Done**.
@@ -41,4 +44,4 @@ Inside the editor, Command+Z undoes one edit at a time: one moved point, one pen
 - [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md#done)
 - [PRB: COMMAND+Z undoes only part of a combine or outline](https://svgslid.es/docs/kb/undo-takes-several-presses.md)
 
-Source: https://svgslid.es/docs/undo-redo (SVG to Slides Documentation, User's Guide). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/undo-redo (SVG to Slides Documentation, User's Guide). Last reviewed November 24, 2026.

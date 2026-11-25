@@ -1,8 +1,8 @@
 # PRB: The toolbar does not appear
 
-Article ID: Q100116. Last reviewed: November 20, 2026.
+Article ID: Q100116. Last reviewed: November 24, 2026.
 
-Applies to: SVG to Slides Chrome extension, version 1.3.0.
+Applies to: SVG to Slides Chrome extension, version 1.3.0 and later.
 
 The toolbar is part of version 1.3.0 and shows only on a Google Slides presentation open for editing. Check the installed version, reload the tab, and look for the round button at the left edge of the slide canvas: the toolbar starts closed.
 
@@ -28,4 +28,4 @@ There is no round button and no toolbar at the left of the slide.
 - [Installing and updating](https://svgslid.es/docs/install.md)
 - [HOWTO: Find which version of the extension is installed](https://svgslid.es/docs/kb/which-version.md)
 
-Source: https://svgslid.es/docs/kb/toolbar-does-not-appear (SVG to Slides Documentation, Knowledge Base). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/kb/toolbar-does-not-appear (SVG to Slides Documentation, Knowledge Base). Last reviewed November 24, 2026.

@@ -1,6 +1,6 @@
 # Inserting SVG files
 
-Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.3.0. Click to place: version 1.2.0 and later. Pasting SVG code: version 1.3.0..
+Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.4.0. Click to place: version 1.2.0 and later. Pasting SVG code: version 1.3.0 and later. Gradients and transparency: version 1.4.0..
 
 Drag one or more .svg files from your computer onto an open Google Slides tab, then click where they go. Every path lands as its own native shape. Paths from one file arrive as a group.
 
@@ -47,7 +47,7 @@ The extension hands the shapes to Slides the way a paste does. If Slides does no
 
 ## What converts
 
-Paths, basic shapes, arcs, transforms and cut-outs convert. A gradient arrives as its first colour. Text, clip paths, masks, patterns and filters do not convert in the extension. The full table is in [SVG feature support](https://svgslid.es/docs/svg-compatibility.md).
+Paths, basic shapes, arcs, transforms and cut-outs convert. Strokes, including outline icon sets, become filled shapes. Since version 1.4.0 linear and radial gradients arrive as Slides gradients, and `opacity`, `fill-opacity` and `stroke-opacity` are kept. In earlier versions a gradient arrives as its first colour. Text, masks, patterns and filters do not convert in the extension. The full table is in [SVG feature support](https://svgslid.es/docs/svg-compatibility.md).
 
 ## See also
 
@@ -58,4 +58,4 @@ Paths, basic shapes, arcs, transforms and cut-outs convert. A gradient arrives a
 - [PRB: An SVG placed in Google Slides becomes a flat image](https://svgslid.es/docs/kb/svg-becomes-a-flat-image.md)
 - [Guide: How to insert an SVG into Google Slides](https://svgslid.es/guides/insert-svg-into-google-slides)
 
-Source: https://svgslid.es/docs/insert-svg (SVG to Slides Documentation, User's Guide). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/insert-svg (SVG to Slides Documentation, User's Guide). Last reviewed November 24, 2026.

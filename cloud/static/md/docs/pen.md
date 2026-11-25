@@ -1,6 +1,6 @@
 # Drawing with the pen
 
-Applies to: SVG to Slides Chrome extension, version 1.3.0.
+Applies to: SVG to Slides Chrome extension, version 1.3.0 and later.
 
 The pen draws new shapes point by point, anywhere on the slide. Press Option+Shift+P or click **Pen** on the toolbar. Click for a corner, drag for a curve, and click the first point to close the shape.
 
@@ -49,8 +49,8 @@ The pen draws point by point. There is no freehand mode.
 
 - [Snapping](https://svgslid.es/docs/snapping.md)
 - [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md)
-- [Fill, stroke and exact values](https://svgslid.es/docs/fill-stroke.md)
+- [Colour, gradients and stroke](https://svgslid.es/docs/fill-stroke.md)
 - [Combining shapes](https://svgslid.es/docs/combine-shapes.md)
 - [Keyboard shortcuts](https://svgslid.es/docs/keyboard-shortcuts.md#editor)
 
-Source: https://svgslid.es/docs/pen (SVG to Slides Documentation, User's Guide). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/pen (SVG to Slides Documentation, User's Guide). Last reviewed November 24, 2026.

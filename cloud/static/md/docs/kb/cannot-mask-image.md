@@ -1,8 +1,8 @@
 # PRB: Mask image with shape shows a message and does not mask
 
-Article ID: Q100112. Last reviewed: November 20, 2026.
+Article ID: Q100112. Last reviewed: November 24, 2026.
 
-Applies to: SVG to Slides Chrome extension, version 1.3.0.
+Applies to: SVG to Slides Chrome extension, version 1.3.0 and later.
 
 Mask image with shape needs exactly one image and one shape or group selected, an image that is not rotated, and a mask that is a shape and not live text. The message under the toolbar says which condition failed.
 
@@ -33,4 +33,4 @@ Masking rotated images is not supported in version 1.3.0.
 - [Outlining strokes and text](https://svgslid.es/docs/outline-stroke-text.md#text)
 - [Limits and known issues](https://svgslid.es/docs/limits.md#shape-tools)
 
-Source: https://svgslid.es/docs/kb/cannot-mask-image (SVG to Slides Documentation, Knowledge Base). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/kb/cannot-mask-image (SVG to Slides Documentation, Knowledge Base). Last reviewed November 24, 2026.

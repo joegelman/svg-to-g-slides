@@ -1,6 +1,6 @@
 # How conversion works
 
-Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.3.0; SVG to Slides Web Uploader; SVG to Slides Workspace Add-on for Google Slides.
+Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.4.0; SVG to Slides Web Uploader; SVG to Slides Workspace Add-on for Google Slides.
 
 Conversion turns every drawable element of the SVG into a path, and every path into one Slides shape with one fill. The extension and the add-on write the shapes in Slides' own form. The Web Uploader writes a presentation file.
 
@@ -21,7 +21,7 @@ Conversion turns every drawable element of the SVG into a path, and every path i
 |  | Extension and add-on | Web Uploader |
 |---|---|---|
 | Output | Slides' own shape data, handed to the open slide. See [How shapes reach the slide](https://svgslid.es/docs/how-shapes-reach-the-slide.md). | A presentation file with one slide per SVG, each path a custom-geometry shape. |
-| Gradients | The first colour stop becomes a solid fill. | Kept as gradients. |
+| Gradients | Extension 1.4.0: written as Slides gradients, with the stops re-timed onto the line Slides draws. Add-on and earlier extension versions: the first colour stop becomes a solid fill. | Kept as gradients. |
 | Text and some strokes | Not converted. | Outlined on the server before conversion. |
 
 ## The JavaScript converter in version 1.3.0
@@ -48,4 +48,4 @@ A Slides shape has one outline and one fill. SVG features that depend on somethi
 - [Point precision](https://svgslid.es/docs/point-precision.md)
 - [Edit points and polylines](https://svgslid.es/docs/edit-points-and-polylines.md)
 
-Source: https://svgslid.es/docs/how-conversion-works (SVG to Slides Documentation, Technical Notes). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/how-conversion-works (SVG to Slides Documentation, Technical Notes). Last reviewed November 24, 2026.

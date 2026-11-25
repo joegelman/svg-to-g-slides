@@ -1,10 +1,10 @@
 # HOWTO: Find which version of the extension is installed
 
-Article ID: Q100117. Last reviewed: November 20, 2026.
+Article ID: Q100117. Last reviewed: November 24, 2026.
 
-Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.3.0.
+Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.4.0.
 
-Type chrome://extensions in Chrome's address bar and find SVG to Slides. The version number is beside the name. On the slide, version 1.3.0 shows a round toolbar button at the left of the canvas.
+Type chrome://extensions in Chrome's address bar and find SVG to Slides. The version number is beside the name. On the slide, versions 1.3.0 and later show a round toolbar button at the left of the canvas, and in version 1.4.0 the paint bucket opens a colour panel.
 
 **To check the version**
 
@@ -15,7 +15,8 @@ Type chrome://extensions in Chrome's address bar and find SVG to Slides. The ver
 
 | Version | What you see in Google Slides |
 |---|---|
-| 1.3.0 | A round button at the left edge of the slide canvas. It opens the toolbar. |
+| 1.4.0 | The toolbar's paint bucket opens the extension's own colour panel, and works with nothing selected. |
+| 1.3.0, 1.3.1 | A round button at the left edge of the slide canvas. It opens the toolbar. The paint bucket opens Slides' own colour menu. |
 | 1.2.0 | No toolbar. Double-clicking a shape shows an **Edit Shape** button. |
 | 1.0.0, 1.0.1 | Neither. Dropping an SVG ends with a prompt to press Command+V. |
 
@@ -28,4 +29,4 @@ Chrome installs new versions on its own, usually within a few hours of their rel
 - [Installing and updating](https://svgslid.es/docs/install.md#check-version)
 - [Version history](https://svgslid.es/docs/release-notes.md)
 
-Source: https://svgslid.es/docs/kb/which-version (SVG to Slides Documentation, Knowledge Base). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/kb/which-version (SVG to Slides Documentation, Knowledge Base). Last reviewed November 24, 2026.

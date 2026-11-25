@@ -1,6 +1,6 @@
 # The toolbar
 
-Applies to: SVG to Slides Chrome extension, version 1.3.0.
+Applies to: SVG to Slides Chrome extension, version 1.3.0 and later.
 
 The toolbar sits at the left edge of the slide canvas. Closed, it is one round button. Click the button or press Option+\ to open it. It holds every tool the extension adds to Slides.
 
@@ -28,7 +28,7 @@ Figure 2. The toolbar when open, with the logo selected. Buttons that do not app
 10. **Outline stroke** and **Outline text**. See [Outlining strokes and text](https://svgslid.es/docs/outline-stroke-text.md).
 11. **Fill colour** and **Stroke colour**.
 12. Stroke weight in pixels. Type a value. 0 means no stroke.
-13. **Stroke position** and **Stroke on / off**. See [Fill, stroke and exact values](https://svgslid.es/docs/fill-stroke.md).
+13. **Stroke position** and **Stroke on / off**. See [Colour, gradients and stroke](https://svgslid.es/docs/fill-stroke.md).
 
 | Section | Buttons | Shortcuts |
 |---|---|---|
@@ -77,4 +77,4 @@ The toolbar is hidden while Edit Shape is open, because the editor has its own t
 - [The Layers panel](https://svgslid.es/docs/layers.md)
 - [Edit Shape: points and curves](https://svgslid.es/docs/edit-shape.md)
 
-Source: https://svgslid.es/docs/toolbar (SVG to Slides Documentation, User's Guide). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/toolbar (SVG to Slides Documentation, User's Guide). Last reviewed November 24, 2026.

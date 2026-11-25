@@ -22,4 +22,4 @@ Yes, once it's converted. SVG to Slides turns each path into a native shape, so 
 Yes. Right-click a converted shape and choose Edit points, like any native shape.
 
 ### What about gradients?
-Solid fills and strokes convert cleanly. Gradients come through in the online converter; in the Chrome extension and add-on they currently collapse to a single solid colour.
+Solid fills and strokes convert cleanly. Gradients come through in the online converter and, since version 1.4.0, in the Chrome extension. In the add-on they collapse to a single solid colour.

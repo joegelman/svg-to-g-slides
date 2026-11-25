@@ -31,12 +31,12 @@ IMG = OUT / "img"
 
 LIB = "SVG to Slides Documentation"
 PUBLISHED = "2026-11-20"
-CURRENT = "1.3.0"  # the version this library documents
+CURRENT = "1.4.0"  # the version this library documents
 # The version the site treats as released. Set below CURRENT to document a version ahead
 # of its release: every topic about CURRENT then carries an availability note and the
 # release notes say the version is not in the store. 1.3.0 was submitted to the Chrome
 # Web Store on 2026-11-20 and the site went to 1.3 the same day.
-STORE = "1.3.0"
+STORE = "1.4.0"
 CURRENT_DATE = "November 2026"  # month the store published CURRENT; shown once STORE == CURRENT
 PENDING = STORE != CURRENT
 PENDING_TOPICS = {"overview", "install", "quick-start", "permissions-privacy", "how-conversion-works", "kb/which-version"}  # general topics that describe CURRENT

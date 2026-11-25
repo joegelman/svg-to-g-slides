@@ -1,6 +1,6 @@
 # What SVG to Slides does
 
-Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.3.0; SVG to Slides Web Uploader; SVG to Slides Workspace Add-on for Google Slides.
+Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.4.0; SVG to Slides Web Uploader; SVG to Slides Workspace Add-on for Google Slides.
 
 Google Slides has no SVG import. An SVG placed on a slide is flattened into a picture. SVG to Slides converts each path of the SVG into a native Slides shape, so the result can be selected, recoloured, resized and reshaped like a shape drawn in Slides.
 
@@ -47,4 +47,4 @@ Some SVG features have no Slides equivalent or are not handled yet. Clip paths, 
 - [Specs: product facts](https://svgslid.es/specs#facts)
 - [Guide: Does Google Slides support SVG?](https://svgslid.es/guides/does-google-slides-support-svg)
 
-Source: https://svgslid.es/docs/overview (SVG to Slides Documentation, Getting Started). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/overview (SVG to Slides Documentation, Getting Started). Last reviewed November 24, 2026.

@@ -1,6 +1,6 @@
 # How multi-step changes run and undo
 
-Applies to: SVG to Slides Chrome extension, version 1.3.0.
+Applies to: SVG to Slides Chrome extension, version 1.3.0 and later.
 
 A combine, an outline, a mask or an Edit Shape session reaches Slides as several steps: remove, insert, restack. The extension shows a still copy of the slide while they run, so you see only the result, and it counts the steps so that one Command+Z undoes them all.
 
@@ -38,4 +38,4 @@ Two rules keep this safe:
 - [How shapes reach the slide](https://svgslid.es/docs/how-shapes-reach-the-slide.md)
 - [PRB: COMMAND+Z undoes only part of a combine or outline](https://svgslid.es/docs/kb/undo-takes-several-presses.md)
 
-Source: https://svgslid.es/docs/undo-and-still-copy (SVG to Slides Documentation, Technical Notes). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/undo-and-still-copy (SVG to Slides Documentation, Technical Notes). Last reviewed November 24, 2026.

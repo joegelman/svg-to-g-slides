@@ -1,6 +1,6 @@
 # How shapes reach the slide
 
-Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.3.0; SVG to Slides Workspace Add-on for Google Slides.
+Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.4.0; SVG to Slides Workspace Add-on for Google Slides.
 
 The extension never calls a Google API. It hands shapes to Slides in the form Slides itself uses when you copy and paste a shape, so Slides treats them as its own. That is why the extension needs no Google permission.
 
@@ -39,4 +39,4 @@ An edit, a combine or an outline ends by removing the original objects and handi
 - [Multi-step changes and undo](https://svgslid.es/docs/undo-and-still-copy.md)
 - [INFO: The extension asks you to press COMMAND+V](https://svgslid.es/docs/kb/press-command-v-prompt.md)
 
-Source: https://svgslid.es/docs/how-shapes-reach-the-slide (SVG to Slides Documentation, Technical Notes). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/how-shapes-reach-the-slide (SVG to Slides Documentation, Technical Notes). Last reviewed November 24, 2026.

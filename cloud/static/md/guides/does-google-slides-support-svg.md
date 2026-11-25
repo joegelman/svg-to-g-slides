@@ -37,7 +37,7 @@ Not as editable vector shapes. Install the SVG to Slides Chrome extension and dr
 It's been flattened into a raster image, so it pixelates when you resize it. Converted with SVG to Slides, it stays a vector and every edge stays sharp.
 
 ### What happens to gradients and complex curves?
-Solid fills and strokes convert cleanly. Arc commands are converted into smooth curves. Gradients come through in the online converter; in the Chrome extension and add-on they currently collapse to a single solid colour. Tested results are on the specs page.
+Solid fills and strokes convert cleanly. Arc commands are converted into smooth curves. Gradients come through in the online converter and, since version 1.4.0, in the Chrome extension. In the add-on they collapse to a single solid colour. Tested results are on the specs page.
 
 ### Do the converted shapes work in Google Drawings?
 Yes. The native shapes also work in Google Drawings.

@@ -44,7 +44,7 @@ PAGES = [
         ],
         "faq": [
             ("Does Google Slides support SVG natively?", "Not as an editable format. Slides rasterizes an inserted SVG into a flattened image, so you lose the ability to edit individual paths or recolour parts of it. SVG to Slides converts it into Slides' native shape format instead, so it stays fully editable."),
-            ("What happens to gradients and complex curves?", "Solid fills and strokes convert cleanly. Arc commands are converted into smooth curves. Gradients come through in the online converter; in the Chrome extension and add-on they currently collapse to a single solid colour. Tested results are on the <a href=\"/specs#compatibility\">specs page</a>."),
+            ("What happens to gradients and complex curves?", "Solid fills and strokes convert cleanly. Arc commands are converted into smooth curves. Gradients come through in the online converter and, since version 1.4.0, in the Chrome extension. In the add-on they collapse to a single solid colour. Tested results are on the <a href=\"/specs#compatibility\">specs page</a>."),
             ("Is my file uploaded anywhere?", "Depends on the surface. The Chrome extension converts every file inside your browser, and nothing is uploaded. The online converter and add-on send the file to our backend for conversion. See the <a href=\"/privacy\">privacy policy</a> for specifics."),
             ("Is it free?", "Yes. " + FREE_LINE),
         ],
@@ -135,7 +135,7 @@ PAGES = [
         "faq": [
             ("Can you import an SVG into Google Slides?", "Not as editable vector shapes. Install the SVG to Slides Chrome extension and drag the file onto a slide, or upload it at svgslid.es/convert. Both turn every path into a native Slides shape."),
             ("Why does my SVG look blurry in Google Slides?", "It's been flattened into a raster image, so it pixelates when you resize it. Converted with SVG to Slides, it stays a vector and every edge stays sharp."),
-            ("What happens to gradients and complex curves?", "Solid fills and strokes convert cleanly. Arc commands are converted into smooth curves. Gradients come through in the online converter; in the Chrome extension and add-on they currently collapse to a single solid colour. Tested results are on the <a href=\"/specs#compatibility\">specs page</a>."),
+            ("What happens to gradients and complex curves?", "Solid fills and strokes convert cleanly. Arc commands are converted into smooth curves. Gradients come through in the online converter and, since version 1.4.0, in the Chrome extension. In the add-on they collapse to a single solid colour. Tested results are on the <a href=\"/specs#compatibility\">specs page</a>."),
             ("Do the converted shapes work in Google Drawings?", "Yes. The native shapes also work in Google Drawings."),
         ],
         "related": ["insert-svg-into-google-slides", "svg-to-google-slides-converter", "svg-logos-icons-google-slides"],
@@ -158,7 +158,7 @@ PAGES = [
         "tables": [
             ("Which converter to use", ["You want to", "Use", "Why"], [
                 ("Drop an SVG into the deck you're editing", "Chrome extension", "Converts in your browser and pastes in place. No Google permissions."),
-                ("Keep gradients, or turn text into shapes", "Web uploader", "Only the web uploader keeps gradients and outlines text."),
+                ("Turn text into shapes", "Web uploader", "Only the web uploader outlines text."),
                 ("Convert a whole icon set at once", "Web uploader", "One slide per SVG, in one Google Drive file."),
                 ("Stay inside Slides without the Chrome extension", "Google Slides add-on", "Runs from a dialog in the Slides Extensions menu."),
             ]),
@@ -205,7 +205,7 @@ PAGES = [
         "faq": [
             ("Can I change the color of an SVG in Google Slides?", "Yes, once it's converted. SVG to Slides turns each path into a native shape, so you can recolour any element with the standard fill picker."),
             ("Can I edit the points of an SVG shape?", "Yes. Right-click a converted shape and choose Edit points, like any native shape."),
-            ("What about gradients?", "Solid fills and strokes convert cleanly. Gradients come through in the online converter; in the Chrome extension and add-on they currently collapse to a single solid colour."),
+            ("What about gradients?", "Solid fills and strokes convert cleanly. Gradients come through in the online converter and, since version 1.4.0, in the Chrome extension. In the add-on they collapse to a single solid colour."),
         ],
         "related": ["insert-svg-into-google-slides", "svg-logos-icons-google-slides", "does-google-slides-support-svg"],
     },

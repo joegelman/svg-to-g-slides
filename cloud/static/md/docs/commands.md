@@ -1,6 +1,6 @@
 # Command reference
 
-Applies to: SVG to Slides Chrome extension, version 1.3.0.
+Applies to: SVG to Slides Chrome extension, version 1.3.0 and later.
 
 Every command the toolbar and the command palette offer, by group, with what each one needs selected.
 
@@ -46,7 +46,7 @@ Every command the toolbar and the command palette offer, by group, with what eac
 |---|---|---|---|
 | Group | Groups the selection. | Two objects or more | Command+Option+G |
 | Ungroup | Ungroups the selected group. | A group | Shift+Command+Option+G |
-| Mask image with shape | The shape on top cuts out the picture under it. | One image and one shape or group | Option+Shift+K |
+| Mask image with shape | The shape on top cuts out the picture under it. On a masked picture or its group, opens the picture for moving and resizing under the mask. | One image and one shape or group, or a masked picture | Option+Shift+K |
 
 ## Outline
 
@@ -60,8 +60,8 @@ Every command the toolbar and the command palette offer, by group, with what eac
 
 | Command | What it does | Needs selected | Shortcut (Mac) |
 |---|---|---|---|
-| Fill colour | Opens Slides' fill colour menu. | A shape | Option+Shift+F |
-| Stroke colour | Opens Slides' border colour menu. | A shape or line | Option+Shift+L |
+| Fill colour | Opens the colour panel on the fill. With text highlighted, sets the text colour. With nothing selected, opens Replace a colour. | A shape, highlighted text, or nothing | Option+Shift+F |
+| Stroke colour | Opens the colour panel on the stroke. | A shape or line | Option+Shift+L |
 | Stroke on / off | Removes the stroke or puts it back. | A shape or line | Option+Shift+/ |
 | Thinner stroke | Steps the stroke weight down. | A shape or line | Option+Shift+[ |
 | Thicker stroke | Steps the stroke weight up. | A shape or line | Option+Shift+] |
@@ -94,4 +94,4 @@ When a command cannot run, the extension shows a short message under the toolbar
 - [The toolbar](https://svgslid.es/docs/toolbar.md)
 - [Limits and known issues](https://svgslid.es/docs/limits.md)
 
-Source: https://svgslid.es/docs/commands (SVG to Slides Documentation, Reference). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/commands (SVG to Slides Documentation, Reference). Last reviewed November 24, 2026.

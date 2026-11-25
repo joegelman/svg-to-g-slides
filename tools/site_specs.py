@@ -13,6 +13,9 @@ import site_pages as P
 
 TESTED_ON = "November 11, 2026"
 TESTED_ON_ISO = "2026-11-11"
+EXT_VERSION = "1.4.0"
+EXT_TESTED_ON = "November 24, 2026"
+EXT_TESTED_ON_ISO = "2026-11-24"
 
 # (label, value) — plain facts, each one stated somewhere else on the site or in the code.
 FACTS = [
@@ -24,15 +27,17 @@ FACTS = [
     ("Google permissions", "Chrome extension: none. Add-on: reads the current presentation's page size, shows a dialog, and calls the converter."),
     ("Files per drop", "Up to 25 SVGs per drop in the extension. The web uploader takes a batch and makes one slide per SVG."),
     ("Where conversion runs", "Extension: inside your browser, with a JavaScript converter. Nothing is uploaded. Web uploader and add-on: on the svgslid.es backend."),
-    ("Chrome permissions", "Extension 1.3.0: access to Google Slides pages, where its tools run, and storage, to remember your settings. No access to other sites."),
-    ("Extension size", "Version 1.3.0: 392 KB to download, 1.1 MB installed. That is 92% smaller than 1.2."),
+    ("Chrome permissions", "Extension 1.4.0: access to Google Slides pages, where its tools run, and storage, to remember your settings. No access to other sites."),
+    ("Extension size", "Version 1.4.0: 434 KB to download, 1.3 MB installed."),
     ("File retention", "Web uploader files are deleted after 7 days. Make a copy in Drive to keep one."),
-    ("Gradients", "Kept by the web uploader. The extension and add-on fill the shape with the gradient's first colour."),
+    ("Gradients", "Kept by the web uploader and, since version 1.4.0, by the extension. The add-on fills the shape with the gradient's first colour."),
+    ("Colour tools", "Extension 1.4.0: a colour panel with opacity, an eyedropper and a gradient builder, text colour for highlighted words, and Replace a colour across one slide or the whole presentation."),
     ("Text", "Web uploader: converted to outlined shapes, not editable text. Extension and add-on: not converted."),
+    ("Transparency", "Kept by the extension since version 1.4.0. Lost in the web uploader and the add-on."),
     ("Placement", "The extension fits each SVG to about a fifth of the slide, centred where you click. The add-on fits it to the current slide."),
     ("Editing", "Chrome extension: double-click any shape and click Edit Shape to move its points and curve handles on the slide, or round its corners by dragging or typing a radius. Works on Slides' own shapes, lines and WordArt by converting them to custom shapes first. SVG shapes made only of straight lines also support Slides' own Edit points. Version 1.3 adds a toolbar on the slide with a pen, snapping, exact strokes, outline stroke and outline text, image masks, union, subtract, intersect and exclude, align and distribute, a Layers panel and a command palette. Each tool has a topic in the <a href=\"/docs\">documentation</a>."),
     ("Also works in", "Google Drawings"),
-    ("Current versions", 'Chrome extension 1.3.1 (<a href="/whats-new">what&rsquo;s new</a>, <a href="/docs/release-notes">release notes</a>)'),
+    ("Current versions", 'Chrome extension 1.4.0 (<a href="/whats-new">what&rsquo;s new</a>, <a href="/docs/release-notes">release notes</a>)'),
     ("Source code", f'<a href="{C.GITHUB}">github.com/joegelman/svg-to-g-slides</a> (source-available, PolyForm Strict 1.0.0)'),
     ("Built by", 'Joe Gelman. Contact: <a href="mailto:joe@glmn.co">joe@glmn.co</a>'),
 ]
@@ -47,15 +52,15 @@ COMPAT = [
     ("05-arcs", "Arc commands (A and a)", (OK, ""), (OK, "")),
     ("06-nested-transforms", "translate, rotate and scale on nested groups", (OK, ""), (OK, "")),
     ("07-even-odd-holes", "fill-rule=&quot;evenodd&quot; cut-outs", (OK, ""), (OK, "")),
-    ("08-linear-gradient", "Linear gradient fill", (OK, "Kept as a gradient"), (PART, "Solid fill in the first colour")),
-    ("09-radial-gradient", "Radial gradient fill", (OK, "Kept as a gradient"), (PART, "Solid fill in the first colour; a white-centred gradient pastes white")),
+    ("08-linear-gradient", "Linear gradient fill", (OK, "Kept as a gradient"), (OK, "Kept as a gradient")),
+    ("09-radial-gradient", "Radial gradient fill", (OK, "Kept as a gradient"), (OK, "Kept as a gradient")),
     ("10-text", "&lt;text&gt; element", (OK, "Outlined into shapes, not editable text"), (NO, "Not converted")),
     ("11-css-classes-illustrator", "Colours set by CSS classes in a &lt;style&gt; block (Illustrator style)", (PART, "Shapes kept, colours become black"), (OK, "")),
     ("12-figma-clip-path", "Figma-style frame clip and white background", (OK, "Frame clip and background skipped"), (OK, "Frame clip and background skipped")),
     ("13-clip-path-crop", "clip-path that crops a shape", (PART, "Clip ignored; the full shape shows"), (OK, "Cropped to the clip shape")),
     ("14-mask", "mask that cuts a hole", (PART, "Mask ignored"), (PART, "Mask ignored")),
     ("15-use-symbol-sprite", "&lt;use&gt; referencing a &lt;symbol&gt; (icon sprites)", (NO, "Not converted"), (OK, "")),
-    ("16-opacity", "fill-opacity", (PART, "Shapes kept, transparency lost"), (PART, "Shapes kept, transparency lost")),
+    ("16-opacity", "fill-opacity", (PART, "Shapes kept, transparency lost"), (OK, "Transparency kept")),
     ("17-current-color", "stroke=&quot;currentColor&quot;", (PART, "Converted, but black instead of the inherited colour"), (OK, "Strokes become filled outline shapes")),
     ("18-pattern-fill", "Pattern fill", (PART, "Shape kept, filled black"), (PART, "Shape kept, filled black")),
     ("19-filter-shadow", "Drop-shadow filter", (PART, "Shape kept, shadow dropped"), (PART, "Shape kept, shadow dropped")),
@@ -109,18 +114,18 @@ def specs_page(ctx):
     <table class="facts-t"><tbody>{facts}</tbody></table>
 
     <h2 id="compatibility">SVG compatibility</h2>
-    <p>Tested {TESTED_ON} on {len(COMPAT)} small SVGs, one feature each. Fully supported: {n_ok_web} of {len(COMPAT)} on the web uploader, {n_ok_ext} of {len(COMPAT)} in the Chrome extension and add-on. Since version 1.3.0 the extension runs a JavaScript port of the add-on&rsquo;s converter. The port was checked against the original on every test file and gives the same output. Each file name links to the file.</p>
-    <table class="compat-t"><thead><tr><th>Test file</th><th>Web uploader</th><th>Extension and add-on</th></tr></thead><tbody>{rows}</tbody></table>
+    <p>{len(COMPAT)} small SVGs, one feature each. Fully supported: {n_ok_web} of {len(COMPAT)} on the web uploader, {n_ok_ext} of {len(COMPAT)} in the Chrome extension. The web uploader column was tested {TESTED_ON}. The extension column is for version {EXT_VERSION}, run {EXT_TESTED_ON}. The Workspace Add-on runs an earlier converter: it fills a gradient with its first colour and loses transparency. Each file name links to the file.</p>
+    <table class="compat-t"><thead><tr><th>Test file</th><th>Web uploader</th><th>Chrome extension {EXT_VERSION}</th></tr></thead><tbody>{rows}</tbody></table>
     <a class="btn btn-ghost dl" href="/static/specs/svg-to-slides-test-files.zip" download>Download all {len(COMPAT)} test files (.zip)</a>
 
     <h2 id="evidence">What the extension pasted into Google Slides</h2>
     <div class="figs">
       <figure><picture><source type="image/webp" srcset="/static/specs/reference-renders.webp"><img src="/static/specs/reference-renders.png" width="580" height="464" alt="Reference renders of the 20 SVG test files in a five by four grid" loading="lazy"></picture><figcaption>The 20 test files as a browser renders them, in order.</figcaption></figure>
-      <figure><picture><source type="image/webp" srcset="/static/specs/extension-paste-google-slides.webp"><img src="/static/specs/extension-paste-google-slides.png" width="580" height="335" alt="The same 20 SVG files pasted into a Google Slides slide by the SVG to Slides extension, showing gaps where files did not convert" loading="lazy"></picture><figcaption>The same files pasted into Google Slides with the extension's clipboard format. Gaps are files that didn't convert.</figcaption></figure>
+      <figure><picture><source type="image/webp" srcset="/static/specs/extension-paste-google-slides.webp"><img src="/static/specs/extension-paste-google-slides.png" width="580" height="335" alt="The same 20 SVG files pasted into a Google Slides slide by the SVG to Slides extension, showing gaps where files did not convert" loading="lazy"></picture><figcaption>The same files pasted into Google Slides by version 1.3.0 of the extension. Gaps are files that didn't convert then. Versions 1.3.1 and 1.4.0 fill most of them: see the table.</figcaption></figure>
     </div>
 
     <h2 id="method">How these were tested</h2>
-    <p>Each file was converted with the code the extension and web uploader run. Extension output was pasted into a Google Slides deck. Web uploader output was read from the generated .pptx file. Several files mimic Illustrator, Figma and icon-library exports; they were written for this test, not exported from those apps.</p>
+    <p>Each file was converted with the code the extension and web uploader run. Extension output from version 1.3.0 was pasted into a Google Slides deck. The changes in 1.3.1 and 1.4.0 were checked from the converter's output for each file, and gradients were also pasted into a live deck. Web uploader output was read from the generated .pptx file. Several files mimic Illustrator, Figma and icon-library exports; they were written for this test, not exported from those apps.</p>
     <p>Have an SVG that doesn't convert? Send it to <a href="mailto:joe@glmn.co">joe@glmn.co</a>.</p>
   </div>
   <div class="wrap"><hr class="rule" style="margin-top:56px"></div>
@@ -129,7 +134,7 @@ def specs_page(ctx):
     <div class="ctas"><a class="btn btn-primary" href="{P.cws('specs', 'close')}" data-cta="close"><img src="/static/chrome-glyph.svg" alt="">Add to Chrome, free</a><a class="btn btn-ghost" href="/convert">Use the web uploader</a></div>
   </section>"""
     ld = [{"@context": "https://schema.org", "@type": "TechArticle", "headline": "SVG to Slides: product facts and SVG compatibility",
-           "url": C.SITE + "/specs", "dateModified": TESTED_ON_ISO, "author": {"@type": "Person", "name": "Joe Gelman"},
+           "url": C.SITE + "/specs", "dateModified": EXT_TESTED_ON_ISO, "author": {"@type": "Person", "name": "Joe Gelman"},
            "publisher": {"@type": "Organization", "@id": C.SITE + "/#org", "name": "SVG to Slides", "url": C.SITE + "/"},
            "about": {"@type": "SoftwareApplication", "@id": C.SITE + "/#app", "name": "SVG to Slides"},
            "image": C.SITE + "/static/specs/extension-paste-google-slides.png"},
@@ -138,9 +143,9 @@ def specs_page(ctx):
                   desc=f"What SVG to Slides converts into Google Slides shapes, tested on {len(COMPAT)} SVG files: gradients, text, strokes, clip paths, masks, Illustrator and Figma exports.",
                   path="/specs", body=body, md="/specs.md", extra_css=SPECS_CSS, campaign="specs",
                   ld_block=ctx["ld_block"](ld), **ctx["common"])
-    md = [f"# SVG to Slides: product facts and SVG compatibility", "", f"Tested {TESTED_ON}.", "", "## Product facts", ""]
+    md = [f"# SVG to Slides: product facts and SVG compatibility", "", f"Web uploader tested {TESTED_ON}. Chrome extension {EXT_VERSION} run {EXT_TESTED_ON}.", "", "## Product facts", ""]
     md += [f"- **{_plain(k)}:** {_plain(v)}" for k, v in FACTS]
-    md += ["", "## SVG compatibility", "", "| Test file | What it tests | Web uploader | Extension and add-on |", "|---|---|---|---|"]
+    md += ["", "## SVG compatibility", "", f"| Test file | What it tests | Web uploader | Chrome extension {EXT_VERSION} |", "|---|---|---|---|"]
     md += [f"| {s}.svg | {_plain(w)} | {LABEL[a[0]]}{(': ' + _plain(a[1])) if a[1] else ''} | {LABEL[b[0]]}{(': ' + _plain(b[1])) if b[1] else ''} |"
            for s, w, a, b in COMPAT]
     md += ["", f"Test files: {C.SITE}/static/specs/svg-to-slides-test-files.zip", ""]

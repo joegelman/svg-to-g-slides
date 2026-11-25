@@ -1,8 +1,8 @@
 # INFO: An object in Layers is greyed and marked M
 
-Article ID: Q100111. Last reviewed: November 20, 2026.
+Article ID: Q100111. Last reviewed: November 24, 2026.
 
-Applies to: SVG to Slides Chrome extension, version 1.3.0.
+Applies to: SVG to Slides Chrome extension, version 1.3.0 and later.
 
 The M marks a theme object: one that belongs to the slide's layout or master. It cannot be changed on the slide. Click its row twice to open Slides' theme builder on the layout or master that holds it.
 
@@ -27,4 +27,4 @@ If the Layers panel says it could not select an object that is not marked **M**,
 - [Theme objects](https://svgslid.es/docs/theme-objects.md)
 - [The Layers panel](https://svgslid.es/docs/layers.md)
 
-Source: https://svgslid.es/docs/kb/object-greyed-with-m (SVG to Slides Documentation, Knowledge Base). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/kb/object-greyed-with-m (SVG to Slides Documentation, Knowledge Base). Last reviewed November 24, 2026.

@@ -33,7 +33,7 @@ Spelling follows the product: colour, centre.
 
 ## Versions
 
-Each topic opens with a box headed "The information in this topic applies to". If the box names version 1.3.0 only, the tool is not present in earlier versions. To find your version, see [Installing and updating](https://svgslid.es/docs/install.md#check-version).
+Each topic opens with a box headed "The information in this topic applies to". If the box names a version "and later", the tool is not present in versions before it. To find your version, see [Installing and updating](https://svgslid.es/docs/install.md#check-version).
 
 ## Procedures
 
@@ -72,4 +72,4 @@ Knowledge Base articles are numbered Q100101 and up. The first word of the title
 - [Glossary](https://svgslid.es/docs/glossary.md)
 - [Index](https://svgslid.es/docs/a-z-index.md)
 
-Source: https://svgslid.es/docs/conventions (SVG to Slides Documentation, Getting Started). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/conventions (SVG to Slides Documentation, Getting Started). Last reviewed November 24, 2026.

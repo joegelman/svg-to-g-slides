@@ -8,16 +8,19 @@ measured zips and unpacked folders.
 import site_docs as D
 
 A13 = "SVG to Slides Chrome extension, version 1.3.0"
+A14 = "SVG to Slides Chrome extension, version 1.4.0"
 
 # Wording that depends on whether the Chrome Web Store has published the current version
 # (site_docs.STORE). The %...% tokens in the topics below are filled in at the end of this module.
-_ADDS = ("adds a toolbar with a pen, image masks, shape combining, a Layers panel and one-press undo, "
-         "and it is 92% smaller than 1.2.0. Each release has a technical changelog below.")
+_ADDS = ("adds a colour panel with opacity and an eyedropper, a gradient builder, Replace a colour across a slide or "
+         "the whole presentation, live preview, and image masks that keep their shape. SVG gradients and transparency "
+         "now come across on import. Each release has a technical changelog below.")
 TOKENS = {
-    "%SUMMARY%": (f"Version 1.3.0 is the newest version of the Chrome extension. It is not in the Chrome Web Store yet, "
-                  f"and the store installs version {D.STORE}. Version 1.3.0 {_ADDS}") if D.PENDING
-                 else f"Version 1.3.0 is the current release of the Chrome extension. It {_ADDS}",
-    "%DATE130%": "Not in the Chrome Web Store yet" if D.PENDING else D.CURRENT_DATE,
+    "%SUMMARY%": (f"Version 1.4.0 is the newest version of the Chrome extension. It is not in the Chrome Web Store yet, "
+                  f"and the store installs version {D.STORE}. Version 1.4.0 {_ADDS}") if D.PENDING
+                 else f"Version 1.4.0 is the current release of the Chrome extension. It {_ADDS}",
+    "%DATE140%": "Not in the Chrome Web Store yet" if D.PENDING else "November 24, 2026",
+    "%DATE130%": "November 2026",
 }
 
 LEGEND = """
@@ -33,17 +36,18 @@ TOPICS = [
     dict(
         slug="release-notes", book="release", kind="Version history", nav="Version history",
         title="Release notes and version history",
-        desc="SVG to Slides version history: what each Chrome extension release added, package sizes, permissions by version, and a feature availability table for versions 1.0 to 1.3.",
-        applies=["SVG to Slides Chrome extension, versions 1.0.0 through 1.3.0", "SVG to Slides Web Uploader", "SVG to Slides Workspace Add-on"],
+        desc="SVG to Slides version history: what each Chrome extension release added, package sizes, permissions by version, and a feature availability table for versions 1.0 to 1.4.",
+        applies=["SVG to Slides Chrome extension, versions 1.0.0 through 1.4.0", "SVG to Slides Web Uploader", "SVG to Slides Workspace Add-on"],
         summary="%SUMMARY%",
         keys=["release notes", "version history", "changelog", "what's new", "versions#versions", "feature availability#matrix", "package size#versions"],
         howto=False,
-        version="1.3.0",
+        version="1.4.0",
         body="""
 ## Chrome extension versions {#versions}
 
 | Version | Date | What it added | Download | Installed | Chrome permissions |
 |---|---|---|---|---|---|
+| [[release-notes/1-4-0|1.4.0]] | %DATE140% | Colour panel, gradient builder, text colour, Replace a colour, live preview, masks that keep their shape, the picture adjustable under its mask, gradients and transparency on import | 434 KB | 1.3 MB | storage |
 | 1.3.1 | November 2026 | Outline icon sets convert (strokes set on the root element), round caps and joins, colours from CSS classes, currentColor, hsl(), clip paths, use and symbol | 399 KB | 1.1 MB | storage |
 | [[release-notes/1-3-0|1.3.0]] | %DATE130% | Toolbar, pen, snapping, image masks, combine, one-press undo, instant align, Layers, outline stroke and text, command palette, full-precision points, JavaScript converter | 392 KB | 1.1 MB | storage |
 | [[release-notes/1-2-0|1.2.0]] | November 2026 | Edit Shape, round corners, editing Slides' own shapes, click to insert, exact placement | 5.8 MB | 14 MB | storage, one host permission |
@@ -56,28 +60,37 @@ Version 1.1.0 was an internal build and was not released. Its changes shipped in
 
 ## Feature availability by version {#matrix}
 
-| Feature | 1.0 | 1.2 | 1.3 |
-|---|---|---|---|
-| Insert SVG files by drag and drop | Yes | Yes | Yes |
-| Up to 25 files per drop | Yes | Yes | Yes |
-| Converts in the browser | Yes | Yes | Yes |
-| Click places the shapes, with no <<Command+V>> | | Yes | Yes |
-| Placement measured from the slide | | Yes | Yes |
-| [[edit-shape|Edit Shape]] | | Yes | Yes |
-| [[round-corners|Round corners]] | | Yes | Yes |
-| [[convert-slides-shapes|Edit Slides' own shapes]] | | Yes | Yes |
-| Straight-edged shapes work with Slides' Edit points | | Yes | Yes |
-| [[toolbar|Toolbar]] and [[command-palette|command palette]] | | | Yes |
-| [[pen|Pen]] and [[snapping|snapping]] | | | Yes |
-| [[mask-image|Mask image with shape]] | | | Yes |
-| [[combine-shapes|Union, subtract, intersect, exclude]] | | | Yes |
-| [[align-distribute|Align and distribute commands]] | | | Yes |
-| [[layers|Layers panel]] and theme builder shortcut | | | Yes |
-| [[outline-stroke-text|Outline stroke, outline text, stroke position]] | | | Yes |
-| [[undo-redo|One-press undo]] | | | Yes |
-| Paste SVG code | | | Yes |
-| [[point-precision|Full-precision points]] | | | Yes |
-| Server fallback for conversion | Yes | Yes | Removed |
+| Feature | 1.0 | 1.2 | 1.3 | 1.4 |
+|---|---|---|---|---|
+| Insert SVG files by drag and drop | Yes | Yes | Yes | Yes |
+| Up to 25 files per drop | Yes | Yes | Yes | Yes |
+| Converts in the browser | Yes | Yes | Yes | Yes |
+| Click places the shapes, with no <<Command+V>> | | Yes | Yes | Yes |
+| Placement measured from the slide | | Yes | Yes | Yes |
+| [[edit-shape|Edit Shape]] | | Yes | Yes | Yes |
+| [[round-corners|Round corners]] | | Yes | Yes | Yes |
+| [[convert-slides-shapes|Edit Slides' own shapes]] | | Yes | Yes | Yes |
+| Straight-edged shapes work with Slides' Edit points | | Yes | Yes | Yes |
+| [[toolbar|Toolbar]] and [[command-palette|command palette]] | | | Yes | Yes |
+| [[pen|Pen]] and [[snapping|snapping]] | | | Yes | Yes |
+| [[mask-image|Mask image with shape]] | | | Yes | Yes |
+| [[combine-shapes|Union, subtract, intersect, exclude]] | | | Yes | Yes |
+| [[align-distribute|Align and distribute commands]] | | | Yes | Yes |
+| [[layers|Layers panel]] and theme builder shortcut | | | Yes | Yes |
+| [[outline-stroke-text|Outline stroke, outline text, stroke position]] | | | Yes | Yes |
+| [[undo-redo|One-press undo]] | | | Yes | Yes |
+| Paste SVG code | | | Yes | Yes |
+| [[point-precision|Full-precision points]] | | | Yes | Yes |
+| Server fallback for conversion | Yes | Yes | Removed | Removed |
+| Outline icon sets, CSS class colours, clip paths, use and symbol | | | 1.3.1 | Yes |
+| [[fill-stroke#panel|Colour panel with opacity and eyedropper]] | | | | Yes |
+| [[fill-stroke#gradients|Gradient builder]] | | | | Yes |
+| [[fill-stroke#text|Text colour for highlighted words]] | | | | Yes |
+| [[fill-stroke#replace|Replace a colour, one slide or all]] | | | | Yes |
+| [[fill-stroke#preview|Live preview]] | | | | Yes |
+| [[mask-image#result|Mask keeps the shape as an outline]] | | | | Yes |
+| [[mask-image#adjust|Move the picture under its mask]] | | | | Yes |
+| [[insert-svg#converts|Gradients and transparency on import]] | | | | Yes |
 
 ## Web Uploader and Workspace Add-on {#other}
 
@@ -94,7 +107,90 @@ Both are updated in place and carry no version number in these notes.
 
 The illustrated release posts, with animations of each feature, are on the [What's new](/whats-new) page.
 """,
-        see=["release-notes/1-3-0", "release-notes/1-2-0", "release-notes/1-0", "install#updates", ("What's new: release posts", "/whats-new")],
+        see=["release-notes/1-4-0", "release-notes/1-3-0", "release-notes/1-2-0", "release-notes/1-0", "install#updates", ("What's new: release posts", "/whats-new")],
+    ),
+    dict(
+        slug="release-notes/1-4-0", book="release", kind="Technical changelog", nav="Version 1.4.0",
+        title="Version 1.4.0: technical changelog",
+        desc="Technical changelog for SVG to Slides 1.4.0: colour panel, gradient builder, Replace a colour, live preview, masks that keep their shape, gradients on import.",
+        applies=[A14],
+        summary="Version 1.4.0 gives the toolbar its own colour panel, with opacity, an eyedropper and a gradient builder. It replaces a colour across a slide or the whole presentation, shows changes on the slide while you pick, keeps the shape when it masks an image, and brings SVG gradients and transparency across on import. It asks for no new permission.",
+        keys=["version 1.4.0", "1.4.0", "colour panel#colour", "Replace a colour#colour", "gradients on import#import"],
+        howto=False,
+        version="1.4.0",
+        body="""
+| Item | Detail |
+|---|---|
+| Version | 1.4.0 |
+| Date | %DATE140% |
+| Download size | 434 KB (1.3.1: 399 KB) |
+| Installed size | 1.3 MB (1.3.1: 1.1 MB) |
+| Chrome permissions | storage (unchanged) |
+
+## Colour {#colour}
+
+| Mark | Change | Topic |
+|---|---|---|
+| NEW | Colour panel for fill and stroke: colour square, hue and opacity bars, eyedropper, hex field, the slide's colours and recent colours. | [[fill-stroke#panel]] |
+| CHG | **Fill colour** and **Stroke colour** open the colour panel. In 1.3.0 they opened Slides' own menus. | [[fill-stroke#panel]] |
+| NEW | Gradient builder: linear and radial, stops on a bar, an angle dial, a start point for radial gradients. | [[fill-stroke#gradients]] |
+| NEW | Text colour. With text highlighted, the panel colours those words only. | [[fill-stroke#text]] |
+| NEW | Replace a colour. With nothing selected, one colour is changed wherever it is used: fills, strokes, gradient stops and text, inside groups too. **All slides** runs it across the presentation. | [[fill-stroke#replace]] |
+| NEW | Live preview. The slide shows the colour, opacity, gradient, text colour or stroke weight while the panel or the field is in use. | [[fill-stroke#preview]] |
+| CHG | **Fill colour** is available with nothing selected. | [[fill-stroke#replace]] |
+| NEW | A colour change is made on the object itself, through Slides' own colour dialog or paint format, so the object keeps its animation and link. | [[fill-stroke#applied]] |
+| NEW | A change that takes longer than about a fifth of a second shows a labelled progress bar. | [[undo-redo]] |
+
+## Image masks {#masks}
+
+| Mark | Change | Topic |
+|---|---|---|
+| CHG | **Mask image with shape** keeps the shape. It stays on top of the masked picture with no fill, and the two are grouped. | [[mask-image#result]] |
+| NEW | The picture can be moved and resized under its mask: double-click the group, or press <<Option+Shift+K>> again. | [[mask-image#adjust]] |
+| NEW | A stroke applied to a mask group goes to the shape only. A fill on the whole group is refused. | [[mask-image#colour]] |
+
+## Inserting SVG files {#import}
+
+| Mark | Change | Topic |
+|---|---|---|
+| NEW | Linear and radial gradients arrive as Slides gradients. The stops are re-timed onto the line Slides draws. | [[insert-svg#converts]] |
+| NEW | `opacity`, `fill-opacity` and `stroke-opacity` are kept. | [[insert-svg#converts]] |
+| FIX | A gradient no longer arrives as its first colour. | [[kb/gradient-becomes-solid-colour]] |
+
+## Edit Shape and text {#editor}
+
+| Mark | Change | Topic |
+|---|---|---|
+| FIX | Edit Shape draws a shape's gradient and opacity while you edit. In 1.3.0 a gradient shape was drawn flat. | [[edit-shape]] |
+| CHG | The tick and the cross on the Edit Shape pill keep or cancel everything changed since the pill came up. Neither leaves the editor. | [[edit-shape#exact-values]] |
+| FIX | **Outline text** on text set bold with the B button, in a font with no bold face, is drawn as Chrome draws it. | [[outline-stroke-text]] |
+| FIX | Text boxes that come from a layout can be grouped with shapes. They become plain text boxes first. | [[layers]] |
+| CHG | A name given in Layers follows a copy of the object to another slide or presentation on the same computer. | [[layers#stored]] |
+
+## Undo {#undo}
+
+| Mark | Change | Topic |
+|---|---|---|
+| NEW | Colour changes, Replace a colour across all slides, and moving the picture under a mask each undo with one press. | [[undo-redo#which]] |
+| FIX | One-press undo no longer stops short after a change to opacity, text colour, a gradient, or a picture's position under its mask. | [[undo-redo]] |
+
+## Limits in this version {#limits}
+
+| Limit | Detail |
+|---|---|
+| Gradient on an object whose text has several styles | The object is replaced, so its animation and link are not kept. |
+| Stroke weights that are not Slides' own | The object is replaced. |
+| Fill on a whole mask group | Refused. Fill the shape inside the group. |
+| Rotated images | Still cannot be masked. |
+| Deck colours | Read from the filmstrip. Slides far down a long filmstrip may not be listed until scrolled to. |
+| A narrow window | If Slides folds its fill or border button under the More menu, the colour panel cannot apply a colour and says so. Use Slides' own menu, or widen the window. |
+| Workspace Add-on and Web Uploader | Unchanged by this release. |
+
+## Release post {#post}
+
+The illustrated post, with a clip of each feature, is on the [What's new](/whats-new#v14) page.
+""",
+        see=["release-notes", "fill-stroke", "mask-image", "insert-svg", "release-notes/1-3-0"],
     ),
     dict(
         slug="release-notes/1-3-0", book="release", kind="Technical changelog", nav="Version 1.3.0",

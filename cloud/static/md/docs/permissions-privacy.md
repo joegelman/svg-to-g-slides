@@ -1,6 +1,6 @@
 # Permissions and data handling
 
-Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.3.0; SVG to Slides Web Uploader; SVG to Slides Workspace Add-on for Google Slides.
+Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.4.0; SVG to Slides Web Uploader; SVG to Slides Workspace Add-on for Google Slides.
 
 The extension has no access to your Google account and runs only on Google Slides editor pages. Version 1.3.0 holds one Chrome permission, storage, and converts every file inside your browser.
 
@@ -28,6 +28,7 @@ The storage permission keeps these items in Chrome on the computer you use. None
 | Whether the toolbar is open or closed, and whether Layers is open | [The toolbar](https://svgslid.es/docs/toolbar.md) |
 | Snapping settings | [Snapping](https://svgslid.es/docs/snapping.md) |
 | Layer names | [The Layers panel](https://svgslid.es/docs/layers.md#stored) |
+| Recent colours | [Colour, gradients and stroke](https://svgslid.es/docs/fill-stroke.md#panel) |
 | The original text of outlined text | [Outlining strokes and text](https://svgslid.es/docs/outline-stroke-text.md#restore) |
 | The original outline of shapes whose stroke was moved inside or outside | [Outlining strokes and text](https://svgslid.es/docs/outline-stroke-text.md#position) |
 | Whether the update note has been shown | [Installing and updating](https://svgslid.es/docs/install.md#updates) |
@@ -58,4 +59,4 @@ SVG files are not uploaded. The extension makes one kind of network request: **O
 - [Privacy Policy](https://svgslid.es/privacy)
 - [Terms](https://svgslid.es/terms)
 
-Source: https://svgslid.es/docs/permissions-privacy (SVG to Slides Documentation, Reference). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/permissions-privacy (SVG to Slides Documentation, Reference). Last reviewed November 24, 2026.

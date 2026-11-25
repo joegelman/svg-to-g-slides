@@ -1,6 +1,6 @@
 # The command palette
 
-Applies to: SVG to Slides Chrome extension, version 1.3.0.
+Applies to: SVG to Slides Chrome extension, version 1.3.0 and later.
 
 Press Command+\ to open a searchable list of every command with its shortcut. Type a few letters, move with the arrow keys and press Enter to run the command.
 
@@ -27,4 +27,4 @@ Commands that need a selection are dimmed while nothing is selected. The Pen, th
 - [Keyboard shortcuts](https://svgslid.es/docs/keyboard-shortcuts.md)
 - [The toolbar](https://svgslid.es/docs/toolbar.md)
 
-Source: https://svgslid.es/docs/command-palette (SVG to Slides Documentation, User's Guide). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/command-palette (SVG to Slides Documentation, User's Guide). Last reviewed November 24, 2026.

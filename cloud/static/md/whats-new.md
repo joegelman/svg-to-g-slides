@@ -7,7 +7,7 @@
 - Replace a colour: with nothing selected, pick a colour in use and what it becomes. Changes fills, strokes, gradient stops and text, inside groups too. "All slides" lists the deck's colours and runs across every slide; one Cmd+Z undoes it.
 - Live preview: the slide shows the colour, opacity, gradient or stroke width while the panel is open.
 - Mask image with shape (Option+Shift+K) keeps the shape on top as an unfilled outline, grouped with the masked picture. Double-click the group, or press Mask again, to move or resize the picture under its mask.
-- SVG import: linear and radial gradients arrive as Slides gradients; opacity, fill-opacity and stroke-opacity come across. The web uploader still flattens gradients.
+- SVG import: linear and radial gradients arrive as Slides gradients; opacity, fill-opacity and stroke-opacity come across.
 - From 1.3.1: icon sets drawn with strokes (Lucide, Feather, Heroicons outline, Tabler) import as shapes.
 - Limits: a gradient on a shape with mixed text styles replaces the shape (animation lost); a fill on a whole mask group is refused; stroke widths outside Slides' presets replace the shape.
 - Permissions unchanged: access to Google Slides pages, where the tools run, and storage.

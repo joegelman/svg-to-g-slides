@@ -6,9 +6,10 @@ release notes. Don't add a claim that isn't backed by one of those.
 Markup: see site_docs.blocks().
 """
 
-A13 = "SVG to Slides Chrome extension, version 1.3.0"
-A12 = "SVG to Slides Chrome extension, versions 1.2.0 and 1.3.0"
-AALL = "SVG to Slides Chrome extension, versions 1.0.0 through 1.3.0"
+A13 = "SVG to Slides Chrome extension, version 1.3.0 and later"
+A14 = "SVG to Slides Chrome extension, version 1.4.0"
+A12 = "SVG to Slides Chrome extension, version 1.2.0 and later"
+AALL = "SVG to Slides Chrome extension, versions 1.0.0 through 1.4.0"
 AWEB = "SVG to Slides Web Uploader"
 AADD = "SVG to Slides Workspace Add-on for Google Slides"
 
@@ -97,7 +98,7 @@ Chrome updates extensions on its own, usually within a few hours of a new versio
 
 The first time you open Slides after an update, a short note in the corner of the page names what changed and links to the release post. It appears once. New installations do not see it.
 
-!!! Note: An update can change the permissions the extension holds. Version 1.3.0 removes one. See [[release-notes/1-3-0#packaging]].
+!!! Note: An update can change the permissions the extension holds. Version 1.3.0 removed one, and version 1.4.0 changes none. See [[release-notes/1-3-0#packaging]].
 """,
         see=["quick-start", "toolbar", "release-notes", "kb/which-version", "permissions-privacy"],
     ),
@@ -168,7 +169,7 @@ Spelling follows the product: colour, centre.
 
 ## Versions {#versions}
 
-Each topic opens with a box headed "The information in this topic applies to". If the box names version 1.3.0 only, the tool is not present in earlier versions. To find your version, see [[install#check-version]].
+Each topic opens with a box headed "The information in this topic applies to". If the box names a version "and later", the tool is not present in versions before it. To find your version, see [[install#check-version]].
 
 ## Procedures {#procedures}
 
@@ -208,7 +209,7 @@ Knowledge Base articles are numbered Q100101 and up. The first word of the title
         slug="insert-svg", book="guide", kind="How to", nav="Inserting SVG files",
         title="Inserting SVG files",
         desc="Insert SVG files into Google Slides with the SVG to Slides extension: drag and drop, click to place, several files at once, pasting SVG code, size and position.",
-        applies=[AALL + ". Click to place: version 1.2.0 and later. Pasting SVG code: version 1.3.0."],
+        applies=[AALL + ". Click to place: version 1.2.0 and later. Pasting SVG code: version 1.3.0 and later. Gradients and transparency: version 1.4.0."],
         summary="Drag one or more .svg files from your computer onto an open Google Slides tab, then click where they go. Every path lands as its own native shape. Paths from one file arrive as a group.",
         keys=["inserting SVG files", "drag and drop", "Click to Place", "placement#size", "several files#several", "25 files#several", "pasting SVG code#paste-code", "SVG code, pasting#paste-code", "cancelling an insert#cancel", "size of inserted shapes#size"],
         body="""
@@ -253,7 +254,7 @@ The extension hands the shapes to Slides the way a paste does. If Slides does no
 
 ## What converts {#converts}
 
-Paths, basic shapes, arcs, transforms and cut-outs convert. A gradient arrives as its first colour. Text, clip paths, masks, patterns and filters do not convert in the extension. The full table is in [[svg-compatibility]].
+Paths, basic shapes, arcs, transforms and cut-outs convert. Strokes, including outline icon sets, become filled shapes. Since version 1.4.0 linear and radial gradients arrive as Slides gradients, and `opacity`, `fill-opacity` and `stroke-opacity` are kept. In earlier versions a gradient arrives as its first colour. Text, masks, patterns and filters do not convert in the extension. The full table is in [[svg-compatibility]].
 """,
         see=["quick-start", "svg-compatibility", "web-uploader", "how-shapes-reach-the-slide", "kb/svg-becomes-a-flat-image", ("Guide: How to insert an SVG into Google Slides", "/guides/insert-svg-into-google-slides")],
     ),
@@ -319,7 +320,7 @@ The toolbar is hidden while Edit Shape is open, because the editor has its own t
         slug="edit-shape", book="guide", kind="How to", nav="Edit Shape: points and curves",
         title="Edit Shape: points and curves",
         desc="Edit the points and curves of any shape in Google Slides with Edit Shape: drag points and handles, add and remove points, scale, rotate, skew, type exact sizes.",
-        applies=[A12 + ". The box, exact values and the two-column editor toolbar: version 1.3.0."],
+        applies=[A12 + ". The box, exact values and the two-column editor toolbar: version 1.3.0 and later."],
         summary="Edit Shape opens a vector editor on the slide at the shape's exact size and position. Drag points and curve handles, add or remove points, then click **Done**. The shape updates in place and returns to its place in the stack.",
         keys=["Edit Shape", "points, editing", "curve handles#points", "handles#points", "corner point#points", "smooth point#points", "adding a point#points", "removing a point#points", "smart box#smart-box", "skew#smart-box", "rotating in Edit Shape#smart-box", "scaling in Edit Shape#smart-box", "exact values#exact-values", "Done#done", "Cancel#done", "zoom in Edit Shape#points"],
         body="""
@@ -511,23 +512,57 @@ Snapping settings are kept on this computer. They are not part of the presentati
     dict(
         slug="mask-image", book="guide", kind="How to", nav="Masking an image",
         title="Masking an image with a shape",
-        desc="Crop a picture to any shape in Google Slides with Mask image with shape: put a shape over an image, select both, press Option+Shift+K. The picture keeps its position.",
-        applies=[A13],
-        summary="Put a shape over a picture, select both, and press <<Option+Shift+K>>. The shape cuts out the picture under it. Any shape or group of shapes can be the mask, and the picture stays exactly where it was.",
-        keys=["masking an image", "Mask image with shape", "crop to shape", "image, masking", "rotated image#limits", "mask, editing#editing"],
+        desc="Crop a picture to any shape in Google Slides: put a shape over an image, select both, press Option+Shift+K. Then move or resize the picture under its mask.",
+        applies=[A13 + ". The shape kept on top, and moving the picture under its mask: version 1.4.0."],
+        summary="Put a shape over a picture, select both, and press <<Option+Shift+K>>. The shape cuts out the picture under it and stays on top as an outline. Any shape or group of shapes can be the mask. Double-click the result to move or resize the picture under its mask.",
+        keys=["masking an image", "Mask image with shape", "crop to shape", "image, masking", "rotated image#limits", "mask, editing#editing", "picture under a mask, moving#adjust", "Fit#adjust", "mask group#result"],
         body="""
 >> To mask an image with a shape
 1. Place the shape over the picture, where the picture should show through.
 2. Select the picture and the shape. Click one, then <<Shift>>-click the other.
 3. Press <<Option+Shift+K>>, or click **Mask image with shape** in the Group section of the toolbar.
 
-The picture is cut to the shape. It is neither stretched nor re-cropped, and the result takes the picture's place in the stack. The change is one undo step.
+The picture is cut to the shape. It is neither stretched nor re-cropped. The change is one undo step.
 
 @fig mask-before-after | Two views of a slide. On the left a yellow arch sits over a beach photograph. On the right the photograph shows only inside the arch. | Before and after. An arch over a photograph, then the photograph cut to the arch. *Illustration.*
 
-## Editing the mask afterwards {#editing}
+## What you get {#result}
 
-Open the masked picture in [[edit-shape]] and move its points. The picture holds still while the outline changes. The editor draws the shape grey while you edit, and the picture returns when you click **Done**.
+In version 1.4.0 the result is a group of two objects:
+
+| Object | What it is |
+|---|---|
+| The masked picture | The picture, cut to the shape. It takes the place in the stack of whichever of the two objects was higher. |
+| The shape | The shape you used, on top of the picture, with its fill set to none. Its stroke stays, so it reads as an outline. |
+
+A mask made of several shapes (a group, or outlined text) has each of its shapes emptied the same way.
+
+!!! Note: In version 1.3.0 the shape is used up and only the masked picture remains.
+
+## Moving the picture under its mask {#adjust}
+
+>> To move or resize the picture under its mask
+1. Double-click the mask group, or select it and press <<Option+Shift+K>> again. The whole picture shows, faded where the mask hides it, with a bar under the mask.
+2. Drag the picture to move it. Drag a corner to resize it. The arrow keys nudge it.
+3. To set an exact size, type a percentage in the **Picture** field. **Fit** sizes the picture to cover the mask.
+4. Press <<Enter>> or click the tick to keep the change. Press <<Esc>> or click the cross to cancel.
+
+The mask and the outline shape stay where they are. Only the picture moves. The change is one undo step.
+
+@fig mask-adjust | A photograph masked by an arch on a slide. The whole photograph shows faded around the arch, with a dashed frame, corner handles, and a dark bar under the arch holding a Picture percentage field, Fit, a cross and a tick. | Adjusting the picture. The part the mask hides is shown faded. *Illustration.*
+
+## Changing the outline afterwards {#editing}
+
+Select the masked picture inside the group (click the group, then click the picture) and open it in [[edit-shape]]. The picture holds still while the outline changes. The editor draws the shape grey while you edit, and the picture returns when you click **Done**.
+
+The outline shape on top is a separate object. It does not follow the edit. Reshape it the same way, or delete it.
+
+## Colour on a mask group {#colour}
+
+| Action | Result |
+|---|---|
+| Stroke colour or weight on the group | Applied to the shape. The picture is left alone. |
+| Fill on the group | Refused, because a fill would cover the picture. Select the shape inside the group to fill it on its own. |
 
 ## Requirements and limits {#limits}
 
@@ -541,7 +576,7 @@ Open the masked picture in [[edit-shape]] and move its points. The picture holds
 
 See [[kb/cannot-mask-image]] for the messages and what each one means.
 """,
-        see=["edit-shape", "outline-stroke-text", "combine-shapes", "undo-redo", "kb/cannot-mask-image"],
+        see=["edit-shape", "outline-stroke-text", "combine-shapes", "fill-stroke", "undo-redo", "kb/cannot-mask-image"],
     ),
     dict(
         slug="combine-shapes", book="guide", kind="How to", nav="Combining shapes",
@@ -755,28 +790,96 @@ The extension remembers the original outline on this computer, so **Centre strok
         see=["fill-stroke", "combine-shapes", "mask-image", "kb/outline-text-font", "permissions-privacy#network"],
     ),
     dict(
-        slug="fill-stroke", book="guide", kind="Reference", nav="Fill, stroke and exact values",
-        title="Fill, stroke and exact values",
-        desc="Fill colour, stroke colour, stroke weight in pixels, stroke on and off, and the rotate and resize shortcuts in the SVG to Slides toolbar for Google Slides.",
-        applies=[A13],
-        summary="The Paint section of the toolbar sets fill colour, stroke colour, stroke weight in pixels and stroke position. Numbers can be typed or changed by dragging.",
-        keys=["fill colour", "stroke colour", "stroke weight#weight", "stroke on / off#weight", "scrubbing a number#scrub", "rotate shortcuts#transform", "resize shortcuts#transform"],
+        slug="fill-stroke", book="guide", kind="Reference", nav="Colour, gradients and stroke",
+        title="Colour, gradients, stroke and exact values",
+        desc="The SVG to Slides colour panel for Google Slides: fill and stroke colour with opacity, gradients, text colour, replacing a colour across a deck, stroke weight.",
+        applies=[A13 + ". The colour panel, gradients, text colour, Replace a colour and live preview: version 1.4.0."],
+        summary="The Paint section of the toolbar opens a colour panel for the fill or the stroke of the selection, with opacity, an eyedropper and a gradient builder. With text highlighted it sets the colour of those words. With nothing selected it replaces one colour across the slide or the whole presentation. The slide shows each change while you pick.",
+        keys=["fill colour", "stroke colour", "colour panel#panel", "colour picker#panel", "opacity#panel", "eyedropper#panel", "hex colour#panel", "gradients#gradients", "linear gradient#gradients", "radial gradient#gradients", "gradient stops#gradients", "text colour#text", "Replace a colour#replace", "All slides#replace", "live preview#preview", "stroke weight#weight", "stroke on / off#weight", "scrubbing a number#scrub", "rotate shortcuts#transform", "resize shortcuts#transform"],
         howto=False,
         body="""
-## Colours {#colours}
+## The colour panel {#panel}
 
 | Command | Shortcut | What happens |
 |---|---|---|
-| **Fill colour** | <<Option+Shift+F>> | Opens Slides' own fill colour menu for the selection. |
-| **Stroke colour** | <<Option+Shift+L>> | Opens Slides' own border colour menu for the selection. |
+| **Fill colour** | <<Option+Shift+F>> | Opens the colour panel on the fill of the selection. |
+| **Stroke colour** | <<Option+Shift+L>> | Opens the colour panel on the stroke of the selection. |
 
 The bar under each button shows the current colour of the selection.
+
+| Part of the panel | What it does |
+|---|---|
+| **Solid**, **Linear**, **Radial**, **None** | The kind of fill or stroke. **None** removes it. |
+| The square | Sets how strong and how bright the colour is. Drag in it. |
+| The rainbow bar | Sets the hue. |
+| The second bar, and the **%** field | Set the opacity. |
+| The eyedropper | Picks a colour from anywhere on the screen. |
+| **Hex** | Takes a colour typed as 3, 6 or 8 hex digits. Eight digits include the opacity. |
+| **On this slide** | The colours the open slide already uses. Click one to take it. |
+| **Recent** | The colours you used last. They are kept on this computer. |
+| The cross and the tick | The cross puts the slide back as it was. The tick keeps the change. <<Enter>> is the tick and <<Esc>> is the cross. |
+
+@fig colour-panel | The colour panel open beside the toolbar on a slide. It has a title, Solid, Linear, Radial and None tabs, a colour square, hue and opacity bars, Hex and percent fields, swatches of the slide's colours, and a cross and a tick. The selected card on the slide shows the colour being picked. | The colour panel on a fill. The card on the slide already shows the colour in the panel. *Illustration.*
+
+The panel places itself beside the toolbar and stays inside the window.
+
+!!! Note: In version 1.3.0 the two buttons open Slides' own fill and border colour menus. Those menus are still there in Slides' toolbar and can be used at any time.
+
+## Gradients {#gradients}
+
+>> To fill a shape with a gradient
+1. Select the shape and press <<Option+Shift+F>>.
+2. Click **Linear** or **Radial**. The shape takes a gradient that starts from its current colour.
+3. Click a stop on the bar to select it, then set its colour in the square or the **Hex** field. Click an empty part of the bar to add a stop. Drag a stop along the bar to move it. **Remove stop** deletes the selected stop, and **Reverse** swaps the order.
+4. For a linear gradient, turn the dial or type an angle. For a radial gradient, choose where it starts: the middle or a corner.
+5. Click the tick.
+
+@fig gradient-builder | The colour panel in Linear mode. Under the tabs is a gradient bar with three stops, a Stop percent field, Remove stop and Reverse buttons, an angle dial with a degrees field, and buttons for 0, 45, 90 and 180 degrees. The card on the slide is filled with the gradient. | The gradient builder with three stops. *Illustration.*
+
+The result is a gradient of Slides' own kind. It can be edited later in this panel or in Slides' own fill menu.
+
+!!! Note: Slides does not keep a separate opacity for each stop. The opacity applies to the whole fill.
+
+## Text colour {#text}
+
+With a stretch of text highlighted in a text box, **Fill colour** opens the panel as **Text colour**. The colour applies to the highlighted words only, and the highlight stays. Text takes a solid colour, with no opacity.
+
+## Replacing a colour {#replace}
+
+>> To change one colour everywhere it is used
+1. Click an empty part of the slide so that nothing is selected.
+2. Press <<Option+Shift+F>>. The panel opens as **Replace a colour**.
+3. Click the colour to change in the list, or pick it from the slide with the eyedropper.
+4. Set the new colour. The slide shows it in every place the old colour is used.
+5. To change it on every slide, tick **All slides**. The list then shows the colours of the whole presentation.
+6. Click the tick.
+
+Fills, strokes, gradient stops and text are changed, inside groups too. A run across all slides shows a progress bar and is undone with one press of <<Command+Z>>.
+
+@fig replace-colour | The panel titled Replace a colour, with the old colour and the new colour as two chips joined by an arrow, an All slides box, and the slide's colours listed. The card on the slide shows the new colour. | Replace a colour. The old and the new colour are at the top of the panel. *Illustration.*
+
+!!! Note: The colours of other slides are read from the filmstrip. In a long presentation, slides far down the filmstrip may not be listed until you scroll to them.
+
+## Live preview {#preview}
+
+While the panel is open, the slide shows the colour, opacity, gradient or text colour in hand, and the stroke weight as you type or drag it. Nothing is changed in the presentation until you click the tick. The cross puts the slide back.
+
+## How a colour change is applied {#applied}
+
+| Change | How it is made | What is kept |
+|---|---|---|
+| Solid colour, fill opacity, text colour | Through Slides' own custom colour dialog. | The object, with its animation and link. |
+| None | Through Slides' own **Transparent**. | The object, with its animation and link. |
+| Gradient, or a stroke with opacity | Through Slides' paint format, from a temporary copy that is removed again. | The object, with its animation and link. |
+| Gradient on an object whose text has more than one style | The object is replaced. | The text styles. Animations and links on the object are not kept, and the extension says so. |
+
+Each of these is one undo step. See [[undo-redo]].
 
 ## Stroke weight {#weight}
 
 | Control | Shortcut | What it does |
 |---|---|---|
-| Weight field | | Type a weight in pixels and press <<Enter>>. 0 removes the stroke. |
+| Weight field | | Type a weight in pixels and press <<Enter>>. 0 removes the stroke. The slide shows the weight as you type. A weight that is not one of Slides' own (1, 2, 3, 4, 8, 12, 16, 24) replaces the object. |
 | Thinner stroke | <<Option+Shift+[>> | Steps down through Slides' weights: 24, 16, 12, 8, 4, 3, 2, 1 pixels. |
 | Thicker stroke | <<Option+Shift+]>> | Steps up through the same weights. |
 | **Stroke on / off** | <<Option+Shift+/>> | Removes the stroke or puts it back. |
@@ -827,7 +930,7 @@ Commands that need a selection are dimmed while nothing is selected. The Pen, th
     dict(
         slug="undo-redo", book="guide", kind="Reference", nav="Undo and redo",
         title="Undo and redo",
-        desc="How undo works with SVG to Slides in Google Slides: one press of Command+Z undoes a combine, outline, mask or a whole Edit Shape session, and when Slides' own undo takes over.",
+        desc="How undo works with SVG to Slides: one press of Command+Z undoes a combine, outline, mask, colour change or a whole Edit Shape session.",
         applies=[A13],
         summary="One press of <<Command+Z>> undoes a whole change made by the extension, even when the change took several steps inside Slides. <<Shift+Command+Z>> or <<Command+Y>> redoes it in one press.",
         keys=["undo", "redo", "one-step undo", "COMMAND+Z"],
@@ -839,6 +942,9 @@ Commands that need a selection are dimmed while nothing is selected. The Pen, th
 - Mask image with shape.
 - Outline stroke, Outline text and Restore outlined text.
 - Stroke position, a typed stroke weight, Thinner stroke and Thicker stroke.
+- A colour, opacity or gradient set in the colour panel, and text colour.
+- Replace a colour, on one slide or across all slides.
+- Moving the picture under its mask.
 - Restacking in the Layers panel.
 - Aligning one object to a slide edge.
 - A whole Edit Shape or pen session, from opening the editor to **Done**.
@@ -940,7 +1046,7 @@ The copy belongs to your account and does not expire.
 | | Web Uploader | Chrome extension |
 |---|---|---|
 | Where the result goes | A new file, one slide per SVG | The slide you have open |
-| Gradients | Kept as gradients | First colour only |
+| Gradients | Kept as gradients | Kept as gradients since version 1.4.0. First colour only before that |
 | SVG text | Outlined into shapes. Not editable as text. | Not converted |
 | Line icons that set the stroke on the whole SVG | Converted. Strokes become filled outline shapes. | Not converted |
 | Where conversion runs | On the svgslid.es server | In your browser |

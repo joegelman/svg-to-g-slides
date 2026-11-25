@@ -1,8 +1,8 @@
 # PRB: Layer names are missing on another computer
 
-Article ID: Q100110. Last reviewed: November 20, 2026.
+Article ID: Q100110. Last reviewed: November 24, 2026.
 
-Applies to: SVG to Slides Chrome extension, version 1.3.0.
+Applies to: SVG to Slides Chrome extension, version 1.3.0 and later.
 
 Layer names are kept in Chrome on the computer where you set them. They are not saved in the presentation, so other people and other computers show the default names.
 
@@ -32,4 +32,4 @@ The same applies to snapping settings, the memory that restores outlined text, a
 - [Permissions and data](https://svgslid.es/docs/permissions-privacy.md#storage)
 - [Limits and known issues](https://svgslid.es/docs/limits.md#local)
 
-Source: https://svgslid.es/docs/kb/layer-names-missing (SVG to Slides Documentation, Knowledge Base). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/kb/layer-names-missing (SVG to Slides Documentation, Knowledge Base). Last reviewed November 24, 2026.

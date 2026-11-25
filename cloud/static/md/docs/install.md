@@ -1,6 +1,6 @@
 # Installing and updating the extension
 
-Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.3.0.
+Applies to: SVG to Slides Chrome extension, versions 1.0.0 through 1.4.0.
 
 The extension installs from the Chrome Web Store and needs no account. It runs only on Google Slides editor pages. Chrome updates it automatically.
 
@@ -36,7 +36,7 @@ Chrome updates extensions on its own, usually within a few hours of a new versio
 
 The first time you open Slides after an update, a short note in the corner of the page names what changed and links to the release post. It appears once. New installations do not see it.
 
-> **Note:** An update can change the permissions the extension holds. Version 1.3.0 removes one. See [Version 1.3.0](https://svgslid.es/docs/release-notes/1-3-0.md#packaging).
+> **Note:** An update can change the permissions the extension holds. Version 1.3.0 removed one, and version 1.4.0 changes none. See [Version 1.3.0](https://svgslid.es/docs/release-notes/1-3-0.md#packaging).
 
 ## See also
 
@@ -46,4 +46,4 @@ The first time you open Slides after an update, a short note in the corner of th
 - [HOWTO: Find which version of the extension is installed](https://svgslid.es/docs/kb/which-version.md)
 - [Permissions and data](https://svgslid.es/docs/permissions-privacy.md)
 
-Source: https://svgslid.es/docs/install (SVG to Slides Documentation, Getting Started). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/install (SVG to Slides Documentation, Getting Started). Last reviewed November 24, 2026.

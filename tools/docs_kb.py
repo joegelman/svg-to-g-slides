@@ -6,9 +6,9 @@ Compatibility facts come from tools/site_specs.py COMPAT.
 """
 import html
 
-A13 = "SVG to Slides Chrome extension, version 1.3.0"
-A12 = "SVG to Slides Chrome extension, versions 1.2.0 and 1.3.0"
-AALL = "SVG to Slides Chrome extension, versions 1.0.0 through 1.3.0"
+A13 = "SVG to Slides Chrome extension, version 1.3.0 and later"
+A12 = "SVG to Slides Chrome extension, version 1.2.0 and later"
+AALL = "SVG to Slides Chrome extension, versions 1.0.0 through 1.4.0"
 AWEB = "SVG to Slides Web Uploader"
 AADD = "SVG to Slides Workspace Add-on for Google Slides"
 
@@ -60,11 +60,11 @@ There are two manual routes that need no extension: convert the SVG to EMF, open
        ["insert-svg", "overview", "svg-compatibility", ("Guide: Does Google Slides support SVG?", "/guides/does-google-slides-support-svg"), ("Guide: SVG vs PNG in Google Slides", "/guides/svg-vs-png-google-slides")],
        ["flat image", "blurry SVG", "pixelated SVG", "PNG, SVG becomes", "EMF route#more", "PowerPoint route#more"]),
 
-    kb(100102, "gradient-becomes-solid-colour", "PRB", "A gradient arrives as one solid colour",
-       "SVG gradients inserted into Google Slides with the SVG to Slides extension or add-on arrive as a single solid colour. Cause and the way to keep the gradient.",
-       [AALL, AADD],
+    kb(100102, "gradient-becomes-solid-colour", "FIX", "A gradient arrives as one solid colour",
+       "SVG gradients inserted into Google Slides with SVG to Slides versions before 1.4.0, or with the add-on, arrive as a single solid colour. Fixed in extension version 1.4.0.",
+       ["SVG to Slides Chrome extension, versions 1.0.0 through 1.3.1", AADD],
        "Why did my SVG gradient become a solid colour in Google Slides?",
-       "The Chrome extension and the add-on fill each shape with the gradient's first colour. To keep gradients, convert the file with the Web Uploader, which carries them through.",
+       "Versions of the Chrome extension before 1.4.0, and the add-on, fill each shape with the gradient's first colour. Version 1.4.0 of the extension keeps linear and radial gradients. The Web Uploader has always kept them.",
        """
 ## Symptoms {#symptoms}
 
@@ -72,20 +72,21 @@ A shape that has a linear or radial gradient in the SVG lands with one flat colo
 
 ## Cause {#cause}
 
-The extension and the add-on write each shape with a single fill. They use the first colour stop of the gradient.
+Extension versions before 1.4.0 and the add-on write each shape with a single fill. They use the first colour stop of the gradient.
 
 ## Resolution {#resolution}
 
 >> To keep the gradient
-1. Convert the file with the [[web-uploader]]. It keeps linear and radial gradients.
-2. Open the Drive link and make a copy of the file.
-3. Copy the shapes from the copy into your presentation.
+1. Update the extension to version 1.4.0 or later. Chrome does this on its own. To check, see [[kb/which-version]].
+2. Insert the file again. Linear and radial gradients arrive as Slides gradients, and transparency is kept.
+
+If you use the add-on, or cannot update, convert the file with the [[web-uploader]], make a copy of the Drive file, and copy the shapes into your presentation.
 
 ## Status {#status}
 
-This is a known limit of the extension and the add-on in the versions listed above.
+Fixed in version 1.4.0 of the Chrome extension. The add-on still fills with the first colour. A `gradientTransform` on the gradient is not applied.
 """,
-       ["web-uploader", "svg-compatibility#partly", "how-conversion-works#outputs"],
+       ["insert-svg#converts", "web-uploader", "svg-compatibility#partly", "how-conversion-works#outputs", "release-notes/1-4-0"],
        ["gradient becomes solid", "radial gradient", "linear gradient"]),
 
     kb(100103, "text-missing-after-insert", "PRB", "Text in an SVG does not appear on the slide",
@@ -475,10 +476,10 @@ There is no round button and no toolbar at the left of the slide.
        ["toolbar missing", "no toolbar"]),
 
     kb(100117, "which-version", "HOWTO", "Find which version of the extension is installed",
-       "How to check the installed version of the SVG to Slides Chrome extension, and how to tell versions 1.0, 1.2 and 1.3 apart on the slide.",
+       "How to check the installed version of the SVG to Slides Chrome extension, and how to tell versions 1.0, 1.2, 1.3 and 1.4 apart on the slide.",
        [AALL],
        "How do I check which version of SVG to Slides I have?",
-       "Type chrome://extensions in Chrome's address bar and find SVG to Slides. The version number is beside the name. On the slide, version 1.3.0 shows a round toolbar button at the left of the canvas.",
+       "Type chrome://extensions in Chrome's address bar and find SVG to Slides. The version number is beside the name. On the slide, versions 1.3.0 and later show a round toolbar button at the left of the canvas, and in version 1.4.0 the paint bucket opens a colour panel.",
        """
 >> To check the version
 1. In Chrome's address bar, type `chrome://extensions` and press <<Enter>>.
@@ -488,7 +489,8 @@ There is no round button and no toolbar at the left of the slide.
 
 | Version | What you see in Google Slides |
 |---|---|
-| 1.3.0 | A round button at the left edge of the slide canvas. It opens the toolbar. |
+| 1.4.0 | The toolbar's paint bucket opens the extension's own colour panel, and works with nothing selected. |
+| 1.3.0, 1.3.1 | A round button at the left edge of the slide canvas. It opens the toolbar. The paint bucket opens Slides' own colour menu. |
 | 1.2.0 | No toolbar. Double-clicking a shape shows an **Edit Shape** button. |
 | 1.0.0, 1.0.1 | Neither. Dropping an SVG ends with a prompt to press <<Command+V>>. |
 

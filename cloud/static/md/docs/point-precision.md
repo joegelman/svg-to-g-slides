@@ -1,6 +1,6 @@
 # Point precision: small SVGs keep their detail
 
-Applies to: SVG to Slides Chrome extension, version 1.3.0.
+Applies to: SVG to Slides Chrome extension, version 1.3.0 and later.
 
 From version 1.3.0 every inserted shape carries its points at full precision, whatever size it lands at. An icon dropped at 12 pixels can be enlarged later and keeps every curve.
 
@@ -32,4 +32,4 @@ Figure 1. A small icon after enlarging, viewed at 400% zoom. *Illustration.*
 - [How conversion works](https://svgslid.es/docs/how-conversion-works.md)
 - [Version 1.3.0](https://svgslid.es/docs/release-notes/1-3-0.md#converter)
 
-Source: https://svgslid.es/docs/point-precision (SVG to Slides Documentation, Technical Notes). Last reviewed November 20, 2026.
+Source: https://svgslid.es/docs/point-precision (SVG to Slides Documentation, Technical Notes). Last reviewed November 24, 2026.

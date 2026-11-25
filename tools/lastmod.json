@@ -8,180 +8,180 @@
   "2026-11-20"
  ],
  "doc:align-distribute": [
-  "404d03a8ec948008",
-  "2026-11-20"
+  "f2fb61ed381188a9",
+  "2026-11-24"
  ],
  "doc:combine-shapes": [
-  "2c11a3f3976c435b",
-  "2026-11-20"
+  "d8b0b1d8274ae974",
+  "2026-11-24"
  ],
  "doc:command-palette": [
-  "90ec2cd51363f2b3",
-  "2026-11-20"
+  "200c8d89ad59de6d",
+  "2026-11-24"
  ],
  "doc:commands": [
-  "f7f14abd95a7b663",
-  "2026-11-20"
+  "0b1537a4d76001b5",
+  "2026-11-24"
  ],
  "doc:conventions": [
-  "5a443b14bbee4081",
-  "2026-11-20"
+  "beaa9c0087c02479",
+  "2026-11-24"
  ],
  "doc:convert-slides-shapes": [
-  "75b3a773bbfdd6df",
-  "2026-11-20"
+  "bf1f3c0611f506ea",
+  "2026-11-24"
  ],
  "doc:edit-points-and-polylines": [
-  "21f5f407d5c97730",
-  "2026-11-20"
+  "13b19c87674af43d",
+  "2026-11-24"
  ],
  "doc:edit-shape": [
-  "a227a54e6610c753",
-  "2026-11-20"
+  "489de475d90e627d",
+  "2026-11-24"
  ],
  "doc:fill-stroke": [
-  "345af012051eb211",
-  "2026-11-20"
+  "8ce76523190cc51d",
+  "2026-11-24"
  ],
  "doc:glossary": [
   "9cf9cef7037d6f1d",
   "2026-11-20"
  ],
  "doc:how-conversion-works": [
-  "cea6a282f6aa7abd",
-  "2026-11-20"
+  "a5c0e1b2f00ea1c3",
+  "2026-11-24"
  ],
  "doc:how-shapes-reach-the-slide": [
-  "9bdc961444d2de99",
-  "2026-11-20"
+  "ca6ac305965f3335",
+  "2026-11-24"
  ],
  "doc:index": [
-  "6b637b9388630a8c",
-  "2026-11-20"
+  "74e0b6f1c5750af4",
+  "2026-11-24"
  ],
  "doc:insert-svg": [
-  "15901fd915efaf14",
-  "2026-11-20"
+  "da969af1a1c0afbd",
+  "2026-11-24"
  ],
  "doc:install": [
-  "93bd933aa90263a0",
-  "2026-11-20"
+  "9e5deb9429f08478",
+  "2026-11-24"
  ],
  "doc:kb": [
   "14186e99c387b8f6",
   "2026-11-20"
  ],
  "doc:kb/cannot-mask-image": [
-  "3e0edc6035a5947d",
-  "2026-11-20"
+  "5dafb60870dca559",
+  "2026-11-24"
  ],
  "doc:kb/colours-arrive-black": [
-  "86e2ba0d8b21fb68",
-  "2026-11-20"
+  "6922c34d705a5885",
+  "2026-11-24"
  ],
  "doc:kb/edit-points-missing": [
-  "9095ace165f25cee",
-  "2026-11-20"
+  "7c13f380d1d88e36",
+  "2026-11-24"
  ],
  "doc:kb/gradient-becomes-solid-colour": [
-  "700cc5fb26aa0e9f",
-  "2026-11-20"
+  "390ef55dd077864e",
+  "2026-11-24"
  ],
  "doc:kb/layer-names-missing": [
-  "14d39c7181066d8e",
-  "2026-11-20"
+  "f612d419e108a26f",
+  "2026-11-24"
  ],
  "doc:kb/line-icon-inserts-nothing": [
-  "802294c217613e18",
-  "2026-11-20"
+  "aeac806a21d1b764",
+  "2026-11-24"
  ],
  "doc:kb/more-than-25-files": [
-  "732709b1e18ad7d6",
-  "2026-11-20"
+  "3ccdbb41fa4b1f39",
+  "2026-11-24"
  ],
  "doc:kb/object-greyed-with-m": [
-  "03f956564e4c0fdc",
-  "2026-11-20"
+  "f2ce3bb308dcb316",
+  "2026-11-24"
  ],
  "doc:kb/outline-text-font": [
-  "71637b7920110643",
-  "2026-11-20"
+  "46bcf3979aa77f4b",
+  "2026-11-24"
  ],
  "doc:kb/press-command-v-prompt": [
-  "46ee17a9d26f589d",
-  "2026-11-20"
+  "3ea40aa5503ae1b0",
+  "2026-11-24"
  ],
  "doc:kb/shapes-land-away-from-pointer": [
   "27cf7ab31e3dff7b",
   "2026-11-20"
  ],
  "doc:kb/svg-becomes-a-flat-image": [
-  "66a4847bd094b819",
-  "2026-11-20"
+  "35f3bf8b0b6428ed",
+  "2026-11-24"
  ],
  "doc:kb/text-missing-after-insert": [
-  "a6d2b415c49eafd6",
-  "2026-11-20"
+  "3bb63bd971b2c934",
+  "2026-11-24"
  ],
  "doc:kb/toolbar-does-not-appear": [
-  "f79c5dad9b102ce0",
-  "2026-11-20"
+  "5195efaa7dfa02c2",
+  "2026-11-24"
  ],
  "doc:kb/undo-takes-several-presses": [
-  "fbafd05adcb14d07",
-  "2026-11-20"
+  "c4cac57ae70211aa",
+  "2026-11-24"
  ],
  "doc:kb/web-uploader-link-expired": [
   "29c8c1ca3a691199",
   "2026-11-20"
  ],
  "doc:kb/which-version": [
-  "4d275cfe16d74be3",
-  "2026-11-20"
+  "058c424bb6b60333",
+  "2026-11-24"
  ],
  "doc:keyboard-shortcuts": [
-  "266af4efc7f85179",
-  "2026-11-20"
+  "5975f25acfd816f3",
+  "2026-11-24"
  ],
  "doc:layers": [
-  "11124c7dc37f3e9c",
-  "2026-11-20"
+  "54e7801f9b98ef79",
+  "2026-11-24"
  ],
  "doc:limits": [
-  "7edcd288cabdd636",
-  "2026-11-20"
+  "ccb8785bae5aef1d",
+  "2026-11-24"
  ],
  "doc:mask-image": [
-  "150c6adb9c928678",
-  "2026-11-20"
+  "1055761e7d6e9bde",
+  "2026-11-24"
  ],
  "doc:outline-stroke-text": [
-  "72fce182c705bad6",
-  "2026-11-20"
+  "89761233586df658",
+  "2026-11-24"
  ],
  "doc:overview": [
-  "d4384d685124da50",
-  "2026-11-20"
+  "81749fdd72b3fdab",
+  "2026-11-24"
  ],
  "doc:pen": [
-  "6dbfc0c1564ca5f9",
-  "2026-11-20"
+  "d8d2a117acd771b7",
+  "2026-11-24"
  ],
  "doc:permissions-privacy": [
-  "513bdb173a48a9ae",
-  "2026-11-20"
+  "f8e86282d08abdb6",
+  "2026-11-24"
  ],
  "doc:point-precision": [
-  "51004e63ab6111c8",
-  "2026-11-20"
+  "cdb8d53daf6ae89b",
+  "2026-11-24"
  ],
  "doc:quick-start": [
-  "3ad1302b113e8c2a",
-  "2026-11-20"
+  "14ab88bcd28c9810",
+  "2026-11-24"
  ],
  "doc:release-notes": [
-  "e0d41835562051e9",
-  "2026-11-21"
+  "46d4620bf4660440",
+  "2026-11-24"
  ],
  "doc:release-notes/1-0": [
   "3e738cfc9bc70515",
@@ -195,37 +195,41 @@
   "8f087c854ea4d778",
   "2026-11-20"
  ],
+ "doc:release-notes/1-4-0": [
+  "e828a11b2446551a",
+  "2026-11-24"
+ ],
  "doc:round-corners": [
-  "5ee52304c2f750df",
-  "2026-11-20"
+  "7bf0a3cab2da3c3e",
+  "2026-11-24"
  ],
  "doc:snapping": [
-  "d691f813164247bd",
-  "2026-11-20"
+  "997ae48aa55e003f",
+  "2026-11-24"
  ],
  "doc:svg-compatibility": [
-  "b929f70beb819e5b",
-  "2026-11-20"
+  "4ca93ee4b0bf1ed9",
+  "2026-11-24"
  ],
  "doc:theme-objects": [
-  "1b8ea4238aa048b8",
-  "2026-11-20"
+  "57e0cc50fb1c143d",
+  "2026-11-24"
  ],
  "doc:toolbar": [
-  "cf4231c9be070f5b",
-  "2026-11-20"
+  "63fc1ba0a5328b52",
+  "2026-11-24"
  ],
  "doc:undo-and-still-copy": [
-  "5b557e5bc6203a97",
-  "2026-11-20"
+  "afbe49d7f1018abd",
+  "2026-11-24"
  ],
  "doc:undo-redo": [
-  "cf40f943ecca9caf",
-  "2026-11-20"
+  "3b35133459a64160",
+  "2026-11-24"
  ],
  "doc:web-uploader": [
-  "fa7305325cc5cb4d",
-  "2026-11-20"
+  "48da9dbf9d981ecf",
+  "2026-11-24"
  ],
  "post:apps-script-for-gtm-part-1": [
   "4f9faa023433f97d",
@@ -364,232 +368,236 @@
   "2026-11-10"
  ],
  "url:/docs": [
-  "88c679f48e0f6459",
-  "2026-11-21"
+  "e88f01aa117df3be",
+  "2026-11-24"
  ],
  "url:/docs/a-z-index": [
-  "f025f00149119140",
-  "2026-11-21"
+  "5495d95b6d7547d5",
+  "2026-11-24"
  ],
  "url:/docs/add-on": [
-  "ee8e565021f6d89e",
-  "2026-11-21"
+  "2e6f6507d36bbfa5",
+  "2026-11-24"
  ],
  "url:/docs/align-distribute": [
-  "b611779cb5a43301",
-  "2026-11-21"
+  "e5226989897470fa",
+  "2026-11-24"
  ],
  "url:/docs/combine-shapes": [
-  "a3879f529c00f283",
-  "2026-11-21"
+  "c7ce90d89c86647e",
+  "2026-11-24"
  ],
  "url:/docs/command-palette": [
-  "8b4fb6f2d5f16165",
-  "2026-11-21"
+  "b56f5335f023f85d",
+  "2026-11-24"
  ],
  "url:/docs/commands": [
-  "e262d337e6b25450",
-  "2026-11-21"
+  "a801832279503562",
+  "2026-11-24"
  ],
  "url:/docs/conventions": [
-  "2743721e478f0418",
-  "2026-11-21"
+  "44b26b8890c8a752",
+  "2026-11-24"
  ],
  "url:/docs/convert-slides-shapes": [
-  "a96589b9b9416493",
-  "2026-11-21"
+  "569589e613610ed3",
+  "2026-11-24"
  ],
  "url:/docs/edit-points-and-polylines": [
-  "25ad524a0cde71ba",
-  "2026-11-21"
+  "a79b4dd16ce42acc",
+  "2026-11-24"
  ],
  "url:/docs/edit-shape": [
-  "1ab191029a1d7dfb",
-  "2026-11-21"
+  "07a0a0d76a994642",
+  "2026-11-24"
  ],
  "url:/docs/fill-stroke": [
-  "633b09c7452c2796",
-  "2026-11-21"
+  "d23445ba85c4e93c",
+  "2026-11-24"
  ],
  "url:/docs/glossary": [
-  "8bd86e560861f7a7",
-  "2026-11-21"
+  "24876c5d7bbd1eb6",
+  "2026-11-24"
  ],
  "url:/docs/how-conversion-works": [
-  "b39f67ccc7cfa92b",
-  "2026-11-21"
+  "c3ebeeedb79e59a3",
+  "2026-11-24"
  ],
  "url:/docs/how-shapes-reach-the-slide": [
-  "b1f7a40d910cf527",
-  "2026-11-21"
+  "d78ed0574e4a6fe9",
+  "2026-11-24"
  ],
  "url:/docs/insert-svg": [
-  "a6801b4fe27151c6",
-  "2026-11-21"
+  "b4829c413514f5bc",
+  "2026-11-24"
  ],
  "url:/docs/install": [
-  "c4f284e60b7a1dc4",
-  "2026-11-21"
+  "b8a4006b00be2db6",
+  "2026-11-24"
  ],
  "url:/docs/kb": [
-  "460b1348fd4f6347",
-  "2026-11-21"
+  "4e5b68a7785afc1b",
+  "2026-11-24"
  ],
  "url:/docs/kb/cannot-mask-image": [
-  "cb94c4c52a733edd",
-  "2026-11-21"
+  "4a02385e09420a72",
+  "2026-11-24"
  ],
  "url:/docs/kb/colours-arrive-black": [
-  "633003b83ae02e99",
-  "2026-11-21"
+  "afae4b7fb1e0cfb9",
+  "2026-11-24"
  ],
  "url:/docs/kb/edit-points-missing": [
-  "ae1b3860cfcdcb3f",
-  "2026-11-21"
+  "b6b7ddb97c2ed5aa",
+  "2026-11-24"
  ],
  "url:/docs/kb/gradient-becomes-solid-colour": [
-  "ce05d0fa6288350e",
-  "2026-11-21"
+  "4dc8a4f8a0b68874",
+  "2026-11-24"
  ],
  "url:/docs/kb/layer-names-missing": [
-  "83d9d5891ec65e08",
-  "2026-11-21"
+  "f8a080642d23682e",
+  "2026-11-24"
  ],
  "url:/docs/kb/line-icon-inserts-nothing": [
-  "88b7dbc778765dfd",
-  "2026-11-21"
+  "69c154f5931b6406",
+  "2026-11-24"
  ],
  "url:/docs/kb/more-than-25-files": [
-  "1efc113819d07ed0",
-  "2026-11-21"
+  "b1fe918dc9bdb47e",
+  "2026-11-24"
  ],
  "url:/docs/kb/object-greyed-with-m": [
-  "81e5773ffcf00ebd",
-  "2026-11-21"
+  "fbd1bed78cd5f488",
+  "2026-11-24"
  ],
  "url:/docs/kb/outline-text-font": [
-  "3ceb410934882193",
-  "2026-11-21"
+  "420e1ced67084d42",
+  "2026-11-24"
  ],
  "url:/docs/kb/press-command-v-prompt": [
-  "c3ef96a5ed787ada",
-  "2026-11-21"
+  "d4378b11e0bedf35",
+  "2026-11-24"
  ],
  "url:/docs/kb/shapes-land-away-from-pointer": [
-  "f23d585eecba93d6",
-  "2026-11-21"
+  "53480db33b35e546",
+  "2026-11-24"
  ],
  "url:/docs/kb/svg-becomes-a-flat-image": [
-  "a12497d8c8b2cfb6",
-  "2026-11-21"
+  "e04c79242431864d",
+  "2026-11-24"
  ],
  "url:/docs/kb/text-missing-after-insert": [
-  "cd272b0d63892ae4",
-  "2026-11-21"
+  "f3be11f73fc86355",
+  "2026-11-24"
  ],
  "url:/docs/kb/toolbar-does-not-appear": [
-  "a3d942efe1855ab9",
-  "2026-11-21"
+  "5d8fdecf6f8b9a9f",
+  "2026-11-24"
  ],
  "url:/docs/kb/undo-takes-several-presses": [
-  "66097b96d4639825",
-  "2026-11-21"
+  "81868a51f161692a",
+  "2026-11-24"
  ],
  "url:/docs/kb/web-uploader-link-expired": [
-  "431050a81fd0c8c9",
-  "2026-11-21"
+  "2baa0684a04ee342",
+  "2026-11-24"
  ],
  "url:/docs/kb/which-version": [
-  "0ad1b81318164ca4",
-  "2026-11-21"
+  "9df9cfdd001642ac",
+  "2026-11-24"
  ],
  "url:/docs/keyboard-shortcuts": [
-  "f1bfedcdafcb0aec",
-  "2026-11-21"
+  "0739a97dad2f9646",
+  "2026-11-24"
  ],
  "url:/docs/layers": [
-  "05379ad613bf802f",
-  "2026-11-21"
+  "3e31f5dc2962d2c2",
+  "2026-11-24"
  ],
  "url:/docs/limits": [
-  "3206d767d4a442f7",
-  "2026-11-21"
+  "964ebeae3d477003",
+  "2026-11-24"
  ],
  "url:/docs/mask-image": [
-  "dac109d65fa3566d",
-  "2026-11-21"
+  "a569d25709c22fb9",
+  "2026-11-24"
  ],
  "url:/docs/outline-stroke-text": [
-  "ad17111e05b923d0",
-  "2026-11-21"
+  "db451fd2101731c2",
+  "2026-11-24"
  ],
  "url:/docs/overview": [
-  "52c548728b277f13",
-  "2026-11-21"
+  "11fbed64f09a387e",
+  "2026-11-24"
  ],
  "url:/docs/pen": [
-  "ba5b83a8965c52d2",
-  "2026-11-21"
+  "2d6c10e3a9db4d0d",
+  "2026-11-24"
  ],
  "url:/docs/permissions-privacy": [
-  "aedbfc74304fb69d",
-  "2026-11-21"
+  "744afc5042a10b60",
+  "2026-11-24"
  ],
  "url:/docs/point-precision": [
-  "a4101c796be28026",
-  "2026-11-21"
+  "5fecdd328b4e00b8",
+  "2026-11-24"
  ],
  "url:/docs/quick-start": [
-  "fa8d3490dd898187",
-  "2026-11-21"
+  "370ba50dcfaebd2c",
+  "2026-11-24"
  ],
  "url:/docs/release-notes": [
-  "cdb1cbdae0c4895f",
-  "2026-11-23"
+  "b06f614c6119d765",
+  "2026-11-24"
  ],
  "url:/docs/release-notes/1-0": [
-  "f4e88c96b68a2ad0",
-  "2026-11-21"
+  "c332dc8e0c96fc13",
+  "2026-11-24"
  ],
  "url:/docs/release-notes/1-2-0": [
-  "01fe007e44430537",
-  "2026-11-21"
+  "01931065366649bf",
+  "2026-11-24"
  ],
  "url:/docs/release-notes/1-3-0": [
-  "32aa6a5a7861cb55",
-  "2026-11-21"
+  "930ba029470f372e",
+  "2026-11-24"
+ ],
+ "url:/docs/release-notes/1-4-0": [
+  "0ad6d415d6fa80ac",
+  "2026-11-24"
  ],
  "url:/docs/round-corners": [
-  "834762b4dc40f5e5",
-  "2026-11-21"
+  "2f13c516eed00c80",
+  "2026-11-24"
  ],
  "url:/docs/snapping": [
-  "eb58d1d49d8d784f",
-  "2026-11-21"
+  "d8eff370d92bfce6",
+  "2026-11-24"
  ],
  "url:/docs/svg-compatibility": [
-  "aad2e23a76e3525c",
-  "2026-11-21"
+  "8809a4e9a789d8ea",
+  "2026-11-24"
  ],
  "url:/docs/theme-objects": [
-  "bc64674af7c39bf5",
-  "2026-11-21"
+  "af2ec818f2a0a900",
+  "2026-11-24"
  ],
  "url:/docs/toolbar": [
-  "4deef1b5f95ad26b",
-  "2026-11-21"
+  "6e3422bcb7b8860e",
+  "2026-11-24"
  ],
  "url:/docs/undo-and-still-copy": [
-  "ec3ccf39ea82c61c",
-  "2026-11-21"
+  "92541b918691955c",
+  "2026-11-24"
  ],
  "url:/docs/undo-redo": [
-  "ce7888acd6cb0c71",
-  "2026-11-21"
+  "a172cf14c9de672a",
+  "2026-11-24"
  ],
  "url:/docs/web-uploader": [
-  "a587a4adebabdcf9",
-  "2026-11-21"
+  "c4581dc6de20f979",
+  "2026-11-24"
  ],
  "url:/features": [
   "423f07edfb0dcd49",
@@ -604,36 +612,36 @@
   "2026-11-14"
  ],
  "url:/guides/does-google-slides-support-svg": [
-  "6969711475da7d46",
-  "2026-11-10"
+  "81cd598a3bb545a4",
+  "2026-11-24"
  ],
  "url:/guides/insert-svg-into-google-slides": [
   "79836c10f2309b10",
   "2026-11-20"
  ],
  "url:/guides/recolor-svg-in-google-slides": [
-  "c9dedb688d3dfe1e",
-  "2026-11-10"
+  "321ef2fd64ce0c88",
+  "2026-11-24"
  ],
  "url:/guides/svg-logos-icons-google-slides": [
   "f2eb6af9401d9581",
   "2026-11-10"
  ],
  "url:/guides/svg-to-google-slides-converter": [
-  "f237f92b203721f5",
-  "2026-11-10"
+  "56bdb1f2b375675d",
+  "2026-11-24"
  ],
  "url:/guides/svg-vs-png-google-slides": [
-  "9ae1ea3088ed1b86",
-  "2026-11-20"
+  "0477935c088efec0",
+  "2026-11-24"
  ],
  "url:/privacy": [
   "6d727749b666693e",
   "2026-11-20"
  ],
  "url:/specs": [
-  "b985ead1bf41b956",
-  "2026-11-21"
+  "cbe6cf9f37c3f014",
+  "2026-11-24"
  ],
  "url:/support": [
   "016eca9ba9faa8c1",
@@ -644,7 +652,7 @@
   "2026-11-10"
  ],
  "url:/whats-new": [
-  "b4d0f369cffeca31",
-  "2026-11-23"
+  "5bf5d39e63bfea13",
+  "2026-11-24"
  ]
 }
