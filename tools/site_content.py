@@ -291,7 +291,7 @@ PAGES += [
     {
         "slug": "pen-tool-google-slides",
         "nav": "Pen tool for Google Slides",
-        "title": "Pen Tool for Google Slides: Draw Custom Shapes and Curves | SVG to Slides",
+        "title": "Pen Tool for Google Slides: Draw Custom Shapes | SVG to Slides",
         "desc": "Draw custom shapes in Google Slides with a pen tool: click for corners, drag for curves, snap points to a grid, and place native shapes on the slide. Free Chrome extension.",
         "h1": "A pen tool for Google Slides&trade;",
         "lede": "Draw the shapes the shape menu doesn&rsquo;t have. Click for corners, drag for curves, and let points and handles snap to a grid.",
@@ -332,7 +332,7 @@ PAGES += [
     {
         "slug": "combine-shapes-google-slides",
         "nav": "Combine shapes in Google Slides",
-        "title": "How to Combine, Merge or Subtract Shapes in Google Slides | SVG to Slides",
+        "title": "Combine, Merge or Subtract Shapes in Google Slides | SVG to Slides",
         "desc": "Combine shapes in Google Slides with union, subtract, intersect and exclude. Merge shapes into one, cut one shape out of another, and undo in one step. Free Chrome extension.",
         "h1": "How to combine shapes in Google Slides&trade;",
         "lede": "Union, Subtract, Intersect and Exclude make one shape from two or more. They work on the slide and inside Edit Shape, and each is one undo step.",

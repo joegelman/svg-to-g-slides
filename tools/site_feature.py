@@ -12,7 +12,7 @@ import product as PR
 import site_content as C
 import site_pages as P
 
-TITLE = "Vector Editor for Google Slides: Edit Points, Pen, Combine, Mask | SVG to Slides"
+TITLE = "Vector Editor for Google Slides: Points, Pen, Masks | SVG to Slides"
 DESC = ("Edit points and curves, draw with a pen, combine shapes, mask images, outline text, manage layers and "
         "replace colours across a deck, all inside Google Slides. Free Chrome extension.")
 
