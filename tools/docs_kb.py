@@ -4,11 +4,12 @@ Symptoms, Cause, Resolution, Status, More information.
 Messages quoted here are the extension's own (shape-tools.js, content.js, 1.3.0).
 Compatibility facts come from tools/site_specs.py COMPAT.
 """
+import product as PR
 import html
 
 A13 = "SVG to Slides Chrome extension, version 1.3.0 and later"
 A12 = "SVG to Slides Chrome extension, version 1.2.0 and later"
-AALL = "SVG to Slides Chrome extension, versions 1.0.0 through 1.4.0"
+AALL = f"SVG to Slides Chrome extension, versions 1.0.0 through {PR.VERSION}"
 AWEB = "SVG to Slides Web Uploader"
 AADD = "SVG to Slides Workspace Add-on for Google Slides"
 

@@ -16,7 +16,7 @@ Web uploader tested November 11, 2026. Chrome extension 1.4.0 run November 24, 2
 - **Extension size:** Version 1.4.0: 434 KB to download, 1.3 MB installed.
 - **File retention:** Web uploader files are deleted after 7 days. Make a copy in Drive to keep one.
 - **Gradients:** Kept by the web uploader and, since version 1.4.0, by the extension. The add-on fills the shape with the gradient's first colour.
-- **Colour tools:** Extension 1.4.0: a colour panel with opacity, an eyedropper and a gradient builder, text colour for highlighted words, and Replace a colour across one slide or the whole presentation.
+- **Colour tools:** Extension, since version 1.4.0: a colour panel with opacity, an eyedropper and a gradient builder, text colour for highlighted words, and Replace a colour across one slide or the whole presentation.
 - **Text:** Web uploader: converted to outlined shapes, not editable text. Extension and add-on: not converted.
 - **Transparency:** Kept by the extension since version 1.4.0. Lost in the web uploader and the add-on.
 - **Placement:** The extension fits each SVG to about a fifth of the slide, centred where you click. The add-on fits it to the current slide.

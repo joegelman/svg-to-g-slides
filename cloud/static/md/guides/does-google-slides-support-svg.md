@@ -15,7 +15,7 @@ _Free forever. Every feature, no daily cap, no account, no Pro tier._
 | One flattened image, single object | Every path is its own selectable shape |
 | Can't recolour without re-exporting | Recolour any shape directly in Slides |
 | Can't animate individual elements | Animate each shape independently |
-| Can't edit points or paths | Right-click → Edit points, like any native shape |
+| Can't edit points or paths | Double-click → Edit Shape to move points and curves on the slide |
 
 ## Why Google Slides can't keep an SVG
 - Slides builds everything from its own shapes, text boxes and images. It has no SVG import, so an SVG can only arrive as an image.

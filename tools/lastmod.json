@@ -276,12 +276,12 @@
   "2026-11-09"
  ],
  "post:native-ui-mockups-google-slides": [
-  "ee6ea3c04f16d686",
-  "2026-11-14"
+  "c5f25d7183346cb9",
+  "2026-11-25"
  ],
  "post:on-brand-charts-google-slides": [
-  "75f8b22b81176044",
-  "2026-10-26"
+  "d77534157fe9a0a1",
+  "2026-11-25"
  ],
  "post:sales-enablement-quiz-google-forms": [
   "f5379f82aa6119ea",
@@ -292,8 +292,8 @@
   "2026-10-13"
  ],
  "url:/": [
-  "f18914ac29e392a5",
-  "2026-11-21"
+  "03dd55e82402ddd1",
+  "2026-11-25"
  ],
  "url:/about": [
   "91cdd2ae85d8d089",
@@ -348,12 +348,12 @@
   "2026-11-10"
  ],
  "url:/blog/native-ui-mockups-google-slides": [
-  "f0958bb12c921c36",
-  "2026-11-14"
+  "f038ee938926f789",
+  "2026-11-25"
  ],
  "url:/blog/on-brand-charts-google-slides": [
-  "a644a720966a0d57",
-  "2026-11-10"
+  "3f7bca3eb8fea379",
+  "2026-11-25"
  ],
  "url:/blog/sales-enablement-quiz-google-forms": [
   "94392b0c36e5d1ec",
@@ -368,7 +368,7 @@
   "2026-11-10"
  ],
  "url:/docs": [
-  "e88f01aa117df3be",
+  "da6e7448c35c4eb2",
   "2026-11-24"
  ],
  "url:/docs/a-z-index": [
@@ -380,39 +380,39 @@
   "2026-11-24"
  ],
  "url:/docs/align-distribute": [
-  "e5226989897470fa",
+  "d79483163220981d",
   "2026-11-24"
  ],
  "url:/docs/combine-shapes": [
-  "c7ce90d89c86647e",
+  "5ba0b19ba015b369",
   "2026-11-24"
  ],
  "url:/docs/command-palette": [
-  "b56f5335f023f85d",
+  "8efaddf012e6c632",
   "2026-11-24"
  ],
  "url:/docs/commands": [
-  "a801832279503562",
+  "ef58b4c7da1a4062",
   "2026-11-24"
  ],
  "url:/docs/conventions": [
-  "44b26b8890c8a752",
+  "2460cd76db146ba9",
   "2026-11-24"
  ],
  "url:/docs/convert-slides-shapes": [
-  "569589e613610ed3",
+  "a485aa37ceaf99ce",
   "2026-11-24"
  ],
  "url:/docs/edit-points-and-polylines": [
-  "a79b4dd16ce42acc",
+  "b0acc29678b4c0be",
   "2026-11-24"
  ],
  "url:/docs/edit-shape": [
-  "07a0a0d76a994642",
+  "804fcd58e9df1c80",
   "2026-11-24"
  ],
  "url:/docs/fill-stroke": [
-  "d23445ba85c4e93c",
+  "3e811b11166d069f",
   "2026-11-24"
  ],
  "url:/docs/glossary": [
@@ -420,19 +420,19 @@
   "2026-11-24"
  ],
  "url:/docs/how-conversion-works": [
-  "c3ebeeedb79e59a3",
+  "48bf63bc8d54c4d0",
   "2026-11-24"
  ],
  "url:/docs/how-shapes-reach-the-slide": [
-  "d78ed0574e4a6fe9",
+  "a923e410d41a3776",
   "2026-11-24"
  ],
  "url:/docs/insert-svg": [
-  "b4829c413514f5bc",
+  "782dd7a5daebf76c",
   "2026-11-24"
  ],
  "url:/docs/install": [
-  "b8a4006b00be2db6",
+  "82e21583b436b05a",
   "2026-11-24"
  ],
  "url:/docs/kb": [
@@ -440,43 +440,43 @@
   "2026-11-24"
  ],
  "url:/docs/kb/cannot-mask-image": [
-  "4a02385e09420a72",
+  "a1e94e9992ccef39",
   "2026-11-24"
  ],
  "url:/docs/kb/colours-arrive-black": [
-  "afae4b7fb1e0cfb9",
+  "c338992ed1d8e547",
   "2026-11-24"
  ],
  "url:/docs/kb/edit-points-missing": [
-  "b6b7ddb97c2ed5aa",
+  "3f334e4140c08350",
   "2026-11-24"
  ],
  "url:/docs/kb/gradient-becomes-solid-colour": [
-  "4dc8a4f8a0b68874",
+  "181c5ab8e88bd7bf",
   "2026-11-24"
  ],
  "url:/docs/kb/layer-names-missing": [
-  "f8a080642d23682e",
+  "ecebd8e666093e42",
   "2026-11-24"
  ],
  "url:/docs/kb/line-icon-inserts-nothing": [
-  "69c154f5931b6406",
+  "d7f6d1f72c5b90d2",
   "2026-11-24"
  ],
  "url:/docs/kb/more-than-25-files": [
-  "b1fe918dc9bdb47e",
+  "895266926a9ee6ab",
   "2026-11-24"
  ],
  "url:/docs/kb/object-greyed-with-m": [
-  "fbd1bed78cd5f488",
+  "44da23c849ddec6f",
   "2026-11-24"
  ],
  "url:/docs/kb/outline-text-font": [
-  "420e1ced67084d42",
+  "c9e53ff63cee2009",
   "2026-11-24"
  ],
  "url:/docs/kb/press-command-v-prompt": [
-  "d4378b11e0bedf35",
+  "bdb5ee7208588d88",
   "2026-11-24"
  ],
  "url:/docs/kb/shapes-land-away-from-pointer": [
@@ -484,19 +484,19 @@
   "2026-11-24"
  ],
  "url:/docs/kb/svg-becomes-a-flat-image": [
-  "e04c79242431864d",
+  "dbe358c449077ecb",
   "2026-11-24"
  ],
  "url:/docs/kb/text-missing-after-insert": [
-  "f3be11f73fc86355",
+  "6f85ba28ef0e42e7",
   "2026-11-24"
  ],
  "url:/docs/kb/toolbar-does-not-appear": [
-  "5d8fdecf6f8b9a9f",
+  "ffb0330529e5bee5",
   "2026-11-24"
  ],
  "url:/docs/kb/undo-takes-several-presses": [
-  "81868a51f161692a",
+  "90bdb3da59c2a5f3",
   "2026-11-24"
  ],
  "url:/docs/kb/web-uploader-link-expired": [
@@ -504,51 +504,51 @@
   "2026-11-24"
  ],
  "url:/docs/kb/which-version": [
-  "9df9cfdd001642ac",
+  "1bc1a5661bba29fa",
   "2026-11-24"
  ],
  "url:/docs/keyboard-shortcuts": [
-  "0739a97dad2f9646",
+  "c318092569a6552c",
   "2026-11-24"
  ],
  "url:/docs/layers": [
-  "3e31f5dc2962d2c2",
+  "5b72a78ecada5f6d",
   "2026-11-24"
  ],
  "url:/docs/limits": [
-  "964ebeae3d477003",
+  "485f96bffdfb964d",
   "2026-11-24"
  ],
  "url:/docs/mask-image": [
-  "a569d25709c22fb9",
+  "e4d19da179add65e",
   "2026-11-24"
  ],
  "url:/docs/outline-stroke-text": [
-  "db451fd2101731c2",
+  "e6cee741d07e4f25",
   "2026-11-24"
  ],
  "url:/docs/overview": [
-  "11fbed64f09a387e",
+  "7c4ab977c7275ec1",
   "2026-11-24"
  ],
  "url:/docs/pen": [
-  "2d6c10e3a9db4d0d",
+  "584c4027d799032a",
   "2026-11-24"
  ],
  "url:/docs/permissions-privacy": [
-  "744afc5042a10b60",
+  "b6b5042beb394abc",
   "2026-11-24"
  ],
  "url:/docs/point-precision": [
-  "5fecdd328b4e00b8",
+  "565670f368a1c6bd",
   "2026-11-24"
  ],
  "url:/docs/quick-start": [
-  "370ba50dcfaebd2c",
+  "6b7396e50e0f60cd",
   "2026-11-24"
  ],
  "url:/docs/release-notes": [
-  "b06f614c6119d765",
+  "27942cd866a70d05",
   "2026-11-24"
  ],
  "url:/docs/release-notes/1-0": [
@@ -564,39 +564,39 @@
   "2026-11-24"
  ],
  "url:/docs/release-notes/1-4-0": [
-  "0ad6d415d6fa80ac",
+  "d5f812a52e282b1b",
   "2026-11-24"
  ],
  "url:/docs/round-corners": [
-  "2f13c516eed00c80",
+  "0f00e4b259765889",
   "2026-11-24"
  ],
  "url:/docs/snapping": [
-  "d8eff370d92bfce6",
+  "c7f1a60d66ae64d0",
   "2026-11-24"
  ],
  "url:/docs/svg-compatibility": [
-  "8809a4e9a789d8ea",
+  "f303309c8653519d",
   "2026-11-24"
  ],
  "url:/docs/theme-objects": [
-  "af2ec818f2a0a900",
+  "ba28d29d7cdbf057",
   "2026-11-24"
  ],
  "url:/docs/toolbar": [
-  "6e3422bcb7b8860e",
+  "12a9ceead44b72a2",
   "2026-11-24"
  ],
  "url:/docs/undo-and-still-copy": [
-  "92541b918691955c",
+  "870635e354bc0c35",
   "2026-11-24"
  ],
  "url:/docs/undo-redo": [
-  "a172cf14c9de672a",
+  "7bcb4b56eb9ddf64",
   "2026-11-24"
  ],
  "url:/docs/web-uploader": [
-  "c4581dc6de20f979",
+  "e2f7b6d3b582f10a",
   "2026-11-24"
  ],
  "url:/features": [
@@ -608,20 +608,36 @@
   "2026-11-10"
  ],
  "url:/guides": [
-  "f1a4d74b60828640",
-  "2026-11-14"
+  "2f19df67dc768b55",
+  "2026-11-25"
+ ],
+ "url:/guides/combine-shapes-google-slides": [
+  "48b0e3127bac39d6",
+  "2026-11-25"
  ],
  "url:/guides/does-google-slides-support-svg": [
-  "81cd598a3bb545a4",
-  "2026-11-24"
+  "7ddec38f4abd384a",
+  "2026-11-25"
+ ],
+ "url:/guides/edit-points-google-slides": [
+  "c8c6ba0880422740",
+  "2026-11-25"
  ],
  "url:/guides/insert-svg-into-google-slides": [
-  "79836c10f2309b10",
-  "2026-11-20"
+  "2162825c48fdbdaa",
+  "2026-11-25"
+ ],
+ "url:/guides/pen-tool-google-slides": [
+  "33e78c79ee44fda5",
+  "2026-11-25"
  ],
  "url:/guides/recolor-svg-in-google-slides": [
-  "321ef2fd64ce0c88",
-  "2026-11-24"
+  "e4b81b30ca4ac4de",
+  "2026-11-25"
+ ],
+ "url:/guides/replace-color-google-slides": [
+  "709b81cd42e3e265",
+  "2026-11-25"
  ],
  "url:/guides/svg-logos-icons-google-slides": [
   "f2eb6af9401d9581",
@@ -632,16 +648,16 @@
   "2026-11-24"
  ],
  "url:/guides/svg-vs-png-google-slides": [
-  "0477935c088efec0",
-  "2026-11-24"
+  "f106ac794c772241",
+  "2026-11-25"
  ],
  "url:/privacy": [
   "6d727749b666693e",
   "2026-11-20"
  ],
  "url:/specs": [
-  "cbe6cf9f37c3f014",
-  "2026-11-24"
+  "d0af864e703dc0df",
+  "2026-11-25"
  ],
  "url:/support": [
   "016eca9ba9faa8c1",
@@ -650,6 +666,10 @@
  "url:/terms": [
   "e1437e1bcc926b40",
   "2026-11-10"
+ ],
+ "url:/vector-editor": [
+  "0d2deda9882a5063",
+  "2026-11-25"
  ],
  "url:/whats-new": [
   "5bf5d39e63bfea13",

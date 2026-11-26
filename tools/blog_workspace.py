@@ -631,7 +631,7 @@ post(
 
 <h2 id="highlight">Highlight one bar</h2>
 {fig:chart-recolor|A native-shape bar chart with one bar selected and recoloured with the fill colour picker to highlight it|Click a bar, pick a colour. It&rsquo;s a shape.}
-<p>The best reason to draw charts as shapes: you can make the point of the chart obvious. Grey every bar, then recolour the one that matters. <a href="%G_RECOLOR%">Recolouring a shape in Google Slides</a> is one click in the fill picker.</p>
+<p>The best reason to draw charts as shapes: you can make the point of the chart obvious. Grey every bar, then recolour the one that matters. <a href="%G_RECOLOR%">Recolouring a shape in Google Slides</a> is one click in the fill picker. If the brand colour changes later, the SVG to Slides extension can <a href="/guides/replace-color-google-slides">replace one colour across every slide</a> in one step.</p>
 
 <h2 id="status">What we have tested</h2>
 <ul>
@@ -872,7 +872,7 @@ post(
 
 <h2 id="rename">A renamed button is a find and replace</h2>
 {fig:ui-rename-flow|Find and replace dialog in Google Slides replacing Export with Share across all slides, and three mockups updated|One rename, every mockup in the deck. Mockup.}
-<p>Labels are live text, so <b>Edit &rsaquo; Find and replace</b> updates every mockup in a deck at once. Colours are fills, so a rebrand is a recolour: <a href="%G_RECOLOR%">change the colour of any shape or icon in Google Slides</a> with the fill picker. And the same mockup works in Docs and Drawings, since it&rsquo;s native shapes.</p>
+<p>Labels are live text, so <b>Edit &rsaquo; Find and replace</b> updates every mockup in a deck at once. Colours are fills, so a rebrand is a recolour: <a href="%G_RECOLOR%">change the colour of any shape or icon in Google Slides</a> with the fill picker. To swap one brand colour for another in every mockup at once, <a href="/guides/replace-color-google-slides">replace a colour throughout the deck</a>. And the same mockup works in Docs and Drawings, since it&rsquo;s native shapes.</p>
 <p>Logo designers build marks as vectors so one file works at every size. If you want to see that discipline up close, <a href="%WILL%">Will Paterson&rsquo;s logo design channel</a> walks through it. Your product visuals deserve the same treatment: one source, every size, no blur. That&rsquo;s the <a href="%G_VS%">SVG vs PNG</a> argument in practice.</p>
 
 <h2 id="series">Where this fits</h2>

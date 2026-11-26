@@ -15,7 +15,7 @@ _Free forever. Every feature, no daily cap, no account, no Pro tier._
 | One flattened image, single object | Every path is its own selectable shape |
 | Can't recolour without re-exporting | Recolour any shape directly in Slides |
 | Can't animate individual elements | Animate each shape independently |
-| Can't edit points or paths | Right-click → Edit points, like any native shape |
+| Can't edit points or paths | Double-click → Edit Shape to move points and curves on the slide |
 
 ## Pick your route
 - **Chrome extension** — Drag an SVG file straight onto an open Slides tab and drop it in place. No dialog, no upload step. (https://chromewebstore.google.com/detail/svg-to-slides/bdhhnakellmdnbgbdokiojipaebdeioi)

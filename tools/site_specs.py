@@ -8,12 +8,13 @@ slides_clip.py changes.
 """
 import html
 
+import product as PR
 import site_content as C
 import site_pages as P
 
 TESTED_ON = "November 11, 2026"
 TESTED_ON_ISO = "2026-11-11"
-EXT_VERSION = "1.4.0"
+EXT_VERSION = "1.4.0"  # the version the extension column was run on; product.check() stops the build when it trails product.VERSION
 EXT_TESTED_ON = "November 24, 2026"
 EXT_TESTED_ON_ISO = "2026-11-24"
 
@@ -27,17 +28,17 @@ FACTS = [
     ("Google permissions", "Chrome extension: none. Add-on: reads the current presentation's page size, shows a dialog, and calls the converter."),
     ("Files per drop", "Up to 25 SVGs per drop in the extension. The web uploader takes a batch and makes one slide per SVG."),
     ("Where conversion runs", "Extension: inside your browser, with a JavaScript converter. Nothing is uploaded. Web uploader and add-on: on the svgslid.es backend."),
-    ("Chrome permissions", "Extension 1.4.0: access to Google Slides pages, where its tools run, and storage, to remember your settings. No access to other sites."),
-    ("Extension size", "Version 1.4.0: 434 KB to download, 1.3 MB installed."),
+    ("Chrome permissions", f"Extension {PR.VERSION}: {PR.PERMISSIONS}"),
+    ("Extension size", f"Version {PR.VERSION}: {PR.DOWNLOAD_SIZE} to download, {PR.INSTALLED_SIZE} installed."),
     ("File retention", "Web uploader files are deleted after 7 days. Make a copy in Drive to keep one."),
     ("Gradients", "Kept by the web uploader and, since version 1.4.0, by the extension. The add-on fills the shape with the gradient's first colour."),
-    ("Colour tools", "Extension 1.4.0: a colour panel with opacity, an eyedropper and a gradient builder, text colour for highlighted words, and Replace a colour across one slide or the whole presentation."),
+    ("Colour tools", "Extension, since version 1.4.0: a colour panel with opacity, an eyedropper and a gradient builder, text colour for highlighted words, and Replace a colour across one slide or the whole presentation."),
     ("Text", "Web uploader: converted to outlined shapes, not editable text. Extension and add-on: not converted."),
     ("Transparency", "Kept by the extension since version 1.4.0. Lost in the web uploader and the add-on."),
     ("Placement", "The extension fits each SVG to about a fifth of the slide, centred where you click. The add-on fits it to the current slide."),
     ("Editing", "Chrome extension: double-click any shape and click Edit Shape to move its points and curve handles on the slide, or round its corners by dragging or typing a radius. Works on Slides' own shapes, lines and WordArt by converting them to custom shapes first. SVG shapes made only of straight lines also support Slides' own Edit points. Version 1.3 adds a toolbar on the slide with a pen, snapping, exact strokes, outline stroke and outline text, image masks, union, subtract, intersect and exclude, align and distribute, a Layers panel and a command palette. Each tool has a topic in the <a href=\"/docs\">documentation</a>."),
     ("Also works in", "Google Drawings"),
-    ("Current versions", 'Chrome extension 1.4.0 (<a href="/whats-new">what&rsquo;s new</a>, <a href="/docs/release-notes">release notes</a>)'),
+    ("Current versions", f'Chrome extension {PR.VERSION} (<a href="/whats-new">what&rsquo;s new</a>, <a href="/docs/release-notes">release notes</a>)'),
     ("Source code", f'<a href="{C.GITHUB}">github.com/joegelman/svg-to-g-slides</a> (source-available, PolyForm Strict 1.0.0)'),
     ("Built by", 'Joe Gelman. Contact: <a href="mailto:joe@glmn.co">joe@glmn.co</a>'),
 ]

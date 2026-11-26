@@ -15,7 +15,8 @@ Google Slides doesn't support SVG files. Your options are to flatten them into P
 - **Edit individual elements.** Every SVG path becomes its own Slides shape. Recolour any element with the standard fill picker.
 - **Resize without losing quality.** From a small footer icon to a full-slide graphic, every edge stays sharp.
 - **Use SVGs in your themes.** Add converted graphics to theme layouts and reuse them across slides.
-- **Edit any shape as SVG.** Double-click a shape and move its points and curve handles right on the slide. Works on Slides' own shapes, lines and WordArt too. (https://svgslid.es/whats-new)
+- **Edit any shape as SVG.** Double-click a shape and move its points and curve handles right on the slide. Works on Slides' own shapes, lines and WordArt too.
+- **Draw and colour inside Slides.** A pen with grid snapping, union and subtract, image masks, outline text, a Layers panel, a colour panel with gradients, and Replace a colour across the deck. (https://svgslid.es/vector-editor)
 
 ## How it works
 1. Install the extension from the Chrome Web Store. No account required.
@@ -23,7 +24,7 @@ Google Slides doesn't support SVG files. Your options are to flatten them into P
 3. Double-click any shape to edit its points as SVG.
 
 ## Limits
-- Gradients come through in the online converter; in the extension and add-on they currently collapse to a single solid colour.
+- Gradients come through in the online converter and, since version 1.4.0, in the extension, which also keeps opacity. The add-on fills a gradient with its first colour.
 - Arc commands (A/a) are converted into smooth curves.
 - Up to 25 files per drop in the extension; use the online converter for larger batches.
 
@@ -35,7 +36,7 @@ Not as an editable graphic. Google Slides doesn't support SVG files. Install SVG
 PowerPoint can insert an SVG file and convert it to shapes. Google Slides can't. SVG to Slides gives Slides the same result: vector graphics you can select, recolour, and resize.
 
 ### Can you edit the points of a shape in Google Slides?
-Only for lines and polylines you draw yourself. With SVG to Slides, double-click any shape, including Slides’ own shapes and WordArt, and click Edit Shape to move its points and curves in place. See how.
+Only for lines and polylines you draw yourself. With SVG to Slides, double-click any shape, including Slides’ own shapes and WordArt, and click Edit Shape to move its points and curves in place. See the editing tools.
 
 ### Can I add SVG icons to Google Slides?
 Yes. Drag up to 25 SVG icons onto a slide at once. Each one becomes editable shapes with no background box, so you can recolour it to match your theme.
@@ -91,7 +92,7 @@ _Free forever. Every feature, no daily cap, no account, no Pro tier._
 | One flattened image, single object | Every path is its own selectable shape |
 | Can't recolour without re-exporting | Recolour any shape directly in Slides |
 | Can't animate individual elements | Animate each shape independently |
-| Can't edit points or paths | Right-click → Edit points, like any native shape |
+| Can't edit points or paths | Double-click → Edit Shape to move points and curves on the slide |
 
 ## Pick your route
 - **Chrome extension** — Drag an SVG file straight onto an open Slides tab and drop it in place. No dialog, no upload step. (https://chromewebstore.google.com/detail/svg-to-slides/bdhhnakellmdnbgbdokiojipaebdeioi)
@@ -135,7 +136,7 @@ _Free forever. Every feature, no daily cap, no account, no Pro tier._
 
 ## Reshape it after you insert it
 - Double-click any shape and click Edit Shape. A vector editor opens on the slide at the shape’s exact size, so you can drag its points and curve handles, add or remove points, round corners, and undo as you go. Click Done and the shape updates in place.
-- It works on Slides’ own shapes, lines and WordArt too. What’s new.
+- It works on Slides’ own shapes, lines and WordArt too. Every editing tool.
 
 ## Import an SVG without installing anything
 - Web uploader. Upload one or more SVG files at svgslid.es/convert and get a Google Drive link to a Slides-ready file, one slide per SVG. Good for bulk conversion.
@@ -200,7 +201,7 @@ _Free forever. Every feature, no daily cap, no account, no Pro tier._
 | One flattened image, single object | Every path is its own selectable shape |
 | Can't recolour without re-exporting | Recolour any shape directly in Slides |
 | Can't animate individual elements | Animate each shape independently |
-| Can't edit points or paths | Right-click → Edit points, like any native shape |
+| Can't edit points or paths | Double-click → Edit Shape to move points and curves on the slide |
 
 ## Why Google Slides can't keep an SVG
 - Slides builds everything from its own shapes, text boxes and images. It has no SVG import, so an SVG can only arrive as an image.
@@ -298,7 +299,7 @@ _Free forever. Every feature, no daily cap, no account, no Pro tier._
 ## What you can do
 - **Select individual elements.** Every path is its own selectable shape, not one flattened image.
 - **Recolour with the fill picker.** Change any shape's colour directly in Slides. No re-exporting.
-- **Edit points.** Right-click → Edit points, like any shape you drew yourself.
+- **Edit points.** Double-click a shape and click Edit Shape to drag its points and curve handles on the slide. How Edit Shape works.
 - **Animate each shape.** Build transitions element by element instead of animating one image.
 
 ## Questions
@@ -307,7 +308,7 @@ _Free forever. Every feature, no daily cap, no account, no Pro tier._
 Yes, once it's converted. SVG to Slides turns each path into a native shape, so you can recolour any element with the standard fill picker.
 
 ### Can I edit the points of an SVG shape?
-Yes. Right-click a converted shape and choose Edit points, like any native shape.
+Yes, with the Chrome extension. Double-click a converted shape and click Edit Shape to move its points and curve handles in place. Slides’ own Edit points works only on shapes with straight segments.
 
 ### What about gradients?
 Solid fills and strokes convert cleanly. Gradients come through in the online converter and, since version 1.4.0, in the Chrome extension. In the add-on they collapse to a single solid colour.
@@ -340,6 +341,199 @@ Upload the files at svgslid.es/convert. You get a Google Drive link to a file wi
 
 ### Will my logo stay sharp when I scale it?
 Yes. Converted shapes are vectors, so they resize at any size and stay crisp.
+
+
+---
+
+# How to edit points in Google Slides™
+
+Install SVG to Slides, double-click the shape and click Edit Shape. Drag a point to move it, click a point to show its curve handles, then click Done. The shape updates in place and keeps its place in the stack.
+
+_Free forever. Every feature, no daily cap, no account, no Pro tier._
+
+- Install the Chrome extension: https://chromewebstore.google.com/detail/svg-to-slides/bdhhnakellmdnbgbdokiojipaebdeioi
+- See every editing tool: https://svgslid.es/vector-editor
+
+## How to do it
+1. **Open Edit Shape.** Double-click the shape, then click Edit Shape. You can also select it and click Edit Shape on the extension’s toolbar.
+2. **Move points and curves.** Drag a point to move it. Click a point to see its curve handles, and drag a handle to change the curve.
+3. **Add or remove points.** Press P, then click the outline to add a point, or click a point to remove it.
+4. **Click Done.** Or press Enter. The edited shape takes the original’s place, and the whole session is one undo step.
+
+## Point and curve keys
+- Smooth or corner point: double-click the point.
+- Move one handle only: hold Option (Alt on Windows) while dragging it.
+- Keep to 45° steps: hold Shift while dragging.
+- Select several points: Shift-click each one, or drag a box around them.
+- Nudge: arrow keys. Hold Shift for ten times the step.
+- Undo and redo, point by point: Command+Z and Shift+Command+Z (Ctrl on Windows).
+Every key is in the Edit Shape reference.
+
+## Slides’ own shapes, lines and WordArt
+- Edit Shape also opens on shapes from Slides’ shape menu, arrows, callouts, lines, text boxes and WordArt. It converts the object into custom shapes first.
+- Beside the Edit Shape button, a grey note says what the conversion costs, for example “text becomes outlines”. Cancel puts the original back.
+- A preset shape loses its adjustment handles. Text inside a shape stays editable. WordArt becomes letter outlines you can reshape but not retype.
+What each object becomes.
+
+## More than points
+- The box. Drag a corner to scale, an edge to stretch, Command and an edge to skew, Command and a corner to rotate. The points stay editable.
+- Exact values. The pill under the shape holds width, height and rotate-by. Type a value and press Enter.
+- Round corners. Drag the small circle inside a corner, or type a radius. Rounding corners.
+
+## Questions
+
+### Can you edit points in Google Slides without an extension?
+Only on polylines: shapes with straight segments only. Curved shapes and shapes with holes need Edit Shape. Why.
+
+### Can I edit the points of an SVG?
+Yes. Insert the SVG with SVG to Slides, so every path arrives as its own shape, then double-click a shape and click Edit Shape.
+
+### Are animations kept after I edit a shape?
+No. Done puts a new object in place of the original, so animations and links attached to it do not carry over.
+
+### What can't be edited as a shape?
+Images, video and charts.
+
+### Is it free?
+Yes. Free forever. Every feature, no daily cap, no account, no Pro tier.
+
+
+---
+
+# A pen tool for Google Slides™
+
+Install SVG to Slides. With nothing selected, press Option+Shift+P (Alt+Shift+P on Windows) or click Pen on the toolbar. Click to place corners, drag for curves, click the first point to close the shape, then click Done. Each path becomes a native Slides shape.
+
+_Free forever. Every feature, no daily cap, no account, no Pro tier._
+
+- Install the Chrome extension: https://chromewebstore.google.com/detail/svg-to-slides/bdhhnakellmdnbgbdokiojipaebdeioi
+- See every editing tool: https://svgslid.es/vector-editor
+
+## How to do it
+1. **Open the pen.** With nothing selected, press Option+Shift+P or click Pen on the toolbar. An empty editor opens over the slide.
+2. **Place points.** Click for a corner point. To make a curve, press, drag and release.
+3. **Close the shape.** Click the first point. A ring appears on it when the pointer is over it. To leave the path open, press Enter or Esc.
+4. **Click Done.** The new shapes are placed on the slide, on top, in one undo step.
+
+## Pen keys
+- Sharp turn after a curve: hold Option while dragging to break the handles.
+- Keep to 45° steps: hold Shift.
+- Remove the last point: Delete.
+- Carry on an open path: click its end point.
+- Add a point to a path: click a segment. Click a point to remove it.
+- Switch to the Select tool: V.
+All pen keys · Snapping
+
+## What you get
+- Each path becomes a new shape. The first shape you draw has a 2 pixel dark stroke and no fill. Each later shape starts with the paint of the last one drawn.
+- Set a fill or stroke from the editor’s toolbar before you click Done, or afterwards on the slide.
+- With shapes selected when you open the pen, the editor opens on those shapes, and the pen can edit them and draw new ones beside them.
+
+## Questions
+
+### Is there a freehand mode?
+No. The pen draws point by point.
+
+### Can I reshape a drawn shape later?
+Yes. Double-click it and click Edit Shape to move its points and curves. How to edit points.
+
+### Can I leave a path open, like a line?
+Yes. Press Enter or Esc instead of clicking the first point.
+
+### Is it free?
+Yes. Free forever. Every feature, no daily cap, no account, no Pro tier.
+
+
+---
+
+# How to combine shapes in Google Slides™
+
+Install SVG to Slides, select two or more shapes, and press Option+Shift+U for Union or Option+Shift+S for Subtract (Alt+Shift on Windows). Intersect and Exclude are Option+Shift+I and Option+Shift+E. The same four commands are in the Combine section of the toolbar.
+
+_Free forever. Every feature, no daily cap, no account, no Pro tier._
+
+- Install the Chrome extension: https://chromewebstore.google.com/detail/svg-to-slides/bdhhnakellmdnbgbdokiojipaebdeioi
+- See every editing tool: https://svgslid.es/vector-editor
+
+## How to do it
+1. **Select the shapes.** Select two or more shapes on the slide. For Subtract, the bottom shape is the one that keeps its outline.
+2. **Run the command.** Click it in the Combine section of the toolbar, or press its shortcut.
+3. **Undo if you need to.** One Command+Z (Ctrl+Z on Windows) splits them again.
+
+## The four commands
+
+| Command | Result | Shortcut (Mac) |
+|---|---|---|
+| Union | One shape covering everything the selected shapes cover. | Option+Shift+U |
+| Subtract | The bottom shape with the shapes above it cut out. | Option+Shift+S |
+| Intersect | Only the area where the shapes overlap. | Option+Shift+I |
+| Exclude | Everything except the area where the shapes overlap. | Option+Shift+E |
+
+## Limits
+- Gradients, pattern fills, transparency and shadows are not carried into the result.
+- Images, video and charts cannot be combined. To cut a picture to a shape, use Mask image with shape.
+- The shapes need a fill or an outline.
+- Intersect needs shapes that overlap. If a command would leave nothing, the extension says so and changes nothing.
+Inside Edit Shape the same buttons act on the shapes with selected points. Combining shapes reference.
+
+## Questions
+
+### How do I merge shapes in Google Slides?
+Select them and use Union (Option+Shift+U). You get one shape covering everything the selected shapes covered.
+
+### How do I cut one shape out of another?
+Put the shape to cut on top, select both, and use Subtract (Option+Shift+S). The bottom shape keeps its outline, minus the shapes above it.
+
+### Can I undo a combine?
+Yes. One Command+Z splits the shapes again.
+
+### Is it free?
+Yes. Free forever. Every feature, no daily cap, no account, no Pro tier.
+
+
+---
+
+# How to replace a colour throughout Google Slides™
+
+Install SVG to Slides. Click an empty part of the slide and press Option+Shift+F (Alt+Shift+F on Windows). Pick the colour to change, set the new one, tick All slides for the whole deck, and click the tick. One Command+Z undoes the whole run.
+
+_Free forever. Every feature, no daily cap, no account, no Pro tier._
+
+- Install the Chrome extension: https://chromewebstore.google.com/detail/svg-to-slides/bdhhnakellmdnbgbdokiojipaebdeioi
+- See every editing tool: https://svgslid.es/vector-editor
+
+## How to do it
+1. **Clear the selection.** Click an empty part of the slide so that nothing is selected.
+2. **Open Replace a colour.** Press Option+Shift+F, or click the paint bucket on the toolbar.
+3. **Pick the old colour.** Click it in the list, or pick it from the slide with the eyedropper.
+4. **Set the new colour.** The slide shows it in every place the old colour is used.
+5. **Choose the scope and apply.** Tick All slides to change it on every slide; the list then shows the colours of the whole presentation. Click the tick.
+
+## What changes, and what is kept
+- Fills, strokes, gradient stops and text are changed, inside groups too.
+- A run across all slides shows a progress bar and is undone with one press of Command+Z.
+- Most changes are made on the object itself, so its animation and link stay. When an object is replaced instead.
+
+## Long presentations
+- The colours of other slides are read from the filmstrip. Slides far down the filmstrip may not be listed until you scroll to them.
+Replace a colour reference · The colour panel
+
+## Questions
+
+### Does it change text colour too?
+Yes. Fills, strokes, gradient stops and text all change.
+
+### Does it reach shapes inside groups?
+Yes.
+
+### Can I see the result before I apply it?
+Yes. While the panel is open, the slide shows the new colour in every place the old one is used. The cross puts the slide back.
+
+### Can I undo it?
+Yes. One Command+Z undoes the whole run, even across every slide.
+
+### Is it free?
+Yes. Free forever. Every feature, no daily cap, no account, no Pro tier.
 
 
 ---
@@ -596,7 +790,7 @@ Put every component on its own slide in a single deck: the UI library. Under eac
 
 [Figure: One rename, every mockup in the deck. Mockup.]
 
-Labels are live text, so **Edit › Find and replace** updates every mockup in a deck at once. Colours are fills, so a rebrand is a recolour: change the colour of any shape or icon in Google Slides (https://svgslid.es/guides/recolor-svg-in-google-slides) with the fill picker. And the same mockup works in Docs and Drawings, since it’s native shapes.
+Labels are live text, so **Edit › Find and replace** updates every mockup in a deck at once. Colours are fills, so a rebrand is a recolour: change the colour of any shape or icon in Google Slides (https://svgslid.es/guides/recolor-svg-in-google-slides) with the fill picker. To swap one brand colour for another in every mockup at once, replace a colour throughout the deck (https://svgslid.es/guides/replace-color-google-slides). And the same mockup works in Docs and Drawings, since it’s native shapes.
 Logo designers build marks as vectors so one file works at every size. If you want to see that discipline up close, Will Paterson’s logo design channel (https://www.youtube.com/@WillPaterson) walks through it. Your product visuals deserve the same treatment: one source, every size, no blur. That’s the SVG vs PNG (https://svgslid.es/guides/svg-vs-png-google-slides) argument in practice.
 
 ## Where this fits
@@ -1020,7 +1214,7 @@ Native shapes stay sharp at any size, which matters when the same chart goes on 
 
 [Figure: Click a bar, pick a colour. It’s a shape.]
 
-The best reason to draw charts as shapes: you can make the point of the chart obvious. Grey every bar, then recolour the one that matters. Recolouring a shape in Google Slides (https://svgslid.es/guides/recolor-svg-in-google-slides) is one click in the fill picker.
+The best reason to draw charts as shapes: you can make the point of the chart obvious. Grey every bar, then recolour the one that matters. Recolouring a shape in Google Slides (https://svgslid.es/guides/recolor-svg-in-google-slides) is one click in the fill picker. If the brand colour changes later, the SVG to Slides extension can replace one colour across every slide (https://svgslid.es/guides/replace-color-google-slides) in one step.
 
 ## What we have tested
 
@@ -1460,6 +1654,86 @@ Logos and icons should not change between languages. Keep them as vectors so one
 
 *Update, Nov 2026:* the slot-and-sync approach mentioned above is now written up in full in Update Google Slides collateral from one messaging sheet with Gemini (https://svgslid.es/blog/google-slides-collateral-messaging-sheet-gemini).
 The screens in this post are mockups, not captures of Google’s products. Google Slides, Google Sheets, Google Docs, Google Forms, Google Meet, Google Chat, Google Drive, Gemini and Google Workspace are trademarks of Google LLC.
+
+
+---
+
+# A vector editor inside Google Slides
+
+SVG to Slides adds the drawing tools Slides leaves out: point editing, a pen, shape combining, image masks, outline text, layers, and a colour panel with gradients. They work on any shape in the deck, not only SVGs you bring in.
+
+_Free forever. Every feature, no daily cap, no account, no Pro tier._ Install: https://chromewebstore.google.com/detail/svg-to-slides/bdhhnakellmdnbgbdokiojipaebdeioi
+
+## Edit points and curves
+Double-click any shape and click Edit Shape. A vector editor opens on the slide at the shape's exact size and position. Drag points and curve handles, add or remove points, scale, rotate or skew with the box, or type exact sizes. Click Done and the shape updates in place. Slides' own Edit points works only on polylines, which have straight segments only.
+
+- Add or remove a point: P, then click
+- Smooth or corner point: Double-click the point
+- Apply: Enter or Done
+- Reference: https://svgslid.es/docs/edit-shape.md
+- Guide: https://svgslid.es/guides/edit-points-google-slides.md
+
+## Round any corner
+In Edit Shape, shapes with corners show a small circle inside each corner. Drag it toward the middle, or type a radius in pixels. Select several shapes to give them all the same radius.
+
+- Radius in 10 px steps: Hold Shift+ while dragging
+- Reference: https://svgslid.es/docs/round-corners.md
+
+## Draw with the pen
+The pen draws new shapes point by point, anywhere on the slide. Click for a corner, drag for a curve, and click the first point to close the shape. With snapping on, points and handles land on a grid.
+
+- Pen: Option+Shift+P
+- Keep to 45°: Hold Shift+
+- Leave the path open: Enter or Esc
+- Reference: https://svgslid.es/docs/pen.md
+- Guide: https://svgslid.es/guides/pen-tool-google-slides.md
+
+## Union, subtract, intersect, exclude
+Select two or more shapes and make one shape from them. Union covers everything, Subtract cuts the shapes above out of the bottom one, Intersect keeps the overlap, Exclude keeps everything but the overlap. Each is one undo step.
+
+- Union: Option+Shift+U
+- Subtract: Option+Shift+S
+- Intersect: Option+Shift+I
+- Exclude: Option+Shift+E
+- Reference: https://svgslid.es/docs/combine-shapes.md
+- Guide: https://svgslid.es/guides/combine-shapes-google-slides.md
+
+## Mask an image with any shape
+Put a shape over a picture, select both, and mask. Any shape or group of shapes can be the mask, not just the crop shapes in Slides' menu. The shape stays on top as an outline. Double-click the result to move or resize the picture under it.
+
+- Mask image with shape: Option+Shift+K
+- Adjust the picture: Double-click the group
+- Reference: https://svgslid.es/docs/mask-image.md
+
+## Outline strokes and text
+Outline stroke turns lines and borders into filled shapes. Outline text turns text into shapes whose points you can edit, or use as a mask. On the computer that outlined it, the same command puts the text back.
+
+- Outline text: Option+Command+T
+- Reference: https://svgslid.es/docs/outline-stroke-text.md
+
+## Colour, gradients and Replace a colour
+The paint bucket opens a colour panel with opacity, an eyedropper and a gradient builder, for the fill or the stroke. With words highlighted it sets their colour. With nothing selected it becomes Replace a colour: pick a colour in use and choose what it becomes, on one slide or every slide. The slide shows each change while you pick.
+
+- Fill colour, or Replace a colour: Option+Shift+F
+- Stroke colour: Option+Shift+L
+- Reference: https://svgslid.es/docs/fill-stroke.md
+- Guide: https://svgslid.es/guides/replace-color-google-slides.md
+
+## Layers
+List every object on the slide, front first. Click a row to select it, drag rows to restack, double-click to rename, and hide an object while you work. Nested groups open in the list.
+
+- Layers: Option+1
+- Reference: https://svgslid.es/docs/layers.md
+
+## Command palette
+A searchable list of every command with its shortcut. Type a few letters, move with the arrow keys and press Enter.
+
+- Command palette: Command+\
+- Open the toolbar: Option+\
+- Reference: https://svgslid.es/docs/command-palette.md
+
+## Where it runs
+Chrome extension 1.4.0, on Google Slides pages only. Chrome permissions: access to Google Slides pages, where its tools run, and storage, to remember your settings. No access to other sites. Files are converted inside the browser; nothing is uploaded. The web uploader and the add-on insert SVGs but have no editing tools.
 
 
 ---

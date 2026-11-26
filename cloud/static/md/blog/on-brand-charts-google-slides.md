@@ -78,7 +78,7 @@ Native shapes stay sharp at any size, which matters when the same chart goes on 
 
 [Figure: Click a bar, pick a colour. It’s a shape.]
 
-The best reason to draw charts as shapes: you can make the point of the chart obvious. Grey every bar, then recolour the one that matters. Recolouring a shape in Google Slides (https://svgslid.es/guides/recolor-svg-in-google-slides) is one click in the fill picker.
+The best reason to draw charts as shapes: you can make the point of the chart obvious. Grey every bar, then recolour the one that matters. Recolouring a shape in Google Slides (https://svgslid.es/guides/recolor-svg-in-google-slides) is one click in the fill picker. If the brand colour changes later, the SVG to Slides extension can replace one colour across every slide (https://svgslid.es/guides/replace-color-google-slides) in one step.
 
 ## What we have tested
 

@@ -20,6 +20,7 @@ import json
 import re
 from pathlib import Path
 
+import product as PR
 import site_content as C
 import site_pages as P
 
@@ -31,13 +32,13 @@ IMG = OUT / "img"
 
 LIB = "SVG to Slides Documentation"
 PUBLISHED = "2026-11-20"
-CURRENT = "1.4.0"  # the version this library documents
+CURRENT = PR.VERSION  # the version this library documents (set in product.py)
 # The version the site treats as released. Set below CURRENT to document a version ahead
 # of its release: every topic about CURRENT then carries an availability note and the
 # release notes say the version is not in the store. 1.3.0 was submitted to the Chrome
 # Web Store on 2026-11-20 and the site went to 1.3 the same day.
-STORE = "1.4.0"
-CURRENT_DATE = "November 2026"  # month the store published CURRENT; shown once STORE == CURRENT
+STORE = PR.STORE
+CURRENT_DATE = PR.RELEASED  # month the store published CURRENT; shown once STORE == CURRENT
 PENDING = STORE != CURRENT
 PENDING_TOPICS = {"overview", "install", "quick-start", "permissions-privacy", "how-conversion-works", "kb/which-version"}  # general topics that describe CURRENT
 PENDING_NOTE = (f"Version {CURRENT} is not in the Chrome Web Store yet. The store installs version {STORE}. "

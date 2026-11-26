@@ -51,7 +51,7 @@ Put every component on its own slide in a single deck: the UI library. Under eac
 
 [Figure: One rename, every mockup in the deck. Mockup.]
 
-Labels are live text, so **Edit › Find and replace** updates every mockup in a deck at once. Colours are fills, so a rebrand is a recolour: change the colour of any shape or icon in Google Slides (https://svgslid.es/guides/recolor-svg-in-google-slides) with the fill picker. And the same mockup works in Docs and Drawings, since it’s native shapes.
+Labels are live text, so **Edit › Find and replace** updates every mockup in a deck at once. Colours are fills, so a rebrand is a recolour: change the colour of any shape or icon in Google Slides (https://svgslid.es/guides/recolor-svg-in-google-slides) with the fill picker. To swap one brand colour for another in every mockup at once, replace a colour throughout the deck (https://svgslid.es/guides/replace-color-google-slides). And the same mockup works in Docs and Drawings, since it’s native shapes.
 Logo designers build marks as vectors so one file works at every size. If you want to see that discipline up close, Will Paterson’s logo design channel (https://www.youtube.com/@WillPaterson) walks through it. Your product visuals deserve the same treatment: one source, every size, no blur. That’s the SVG vs PNG (https://svgslid.es/guides/svg-vs-png-google-slides) argument in practice.
 
 ## Where this fits

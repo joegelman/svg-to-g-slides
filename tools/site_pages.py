@@ -8,6 +8,7 @@ import json
 import re
 from pathlib import Path
 
+import product as PR
 import site_content as C
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -30,7 +31,7 @@ def nav_html(campaign, logo_svg):
 
 # --------------------------------------------------------------- footer
 FOOTER_COLS = [
-    ("Products", [("Chrome Extension", "CWS"), ("Workspace Add-on", "/google-slides-addon"), ("Web Uploader", "/convert")]),
+    ("Products", [("Chrome Extension", "CWS"), ("Vector Editor", "/vector-editor"), ("Workspace Add-on", "/google-slides-addon"), ("Web Uploader", "/convert")]),
     ("Resources", [("Guides", "/guides"), ("Docs", "/docs"), ("Specs", "/specs"), ("Blog", "/blog")]),
     ("Details", [("Privacy", "/privacy"), ("Terms", "/terms")]),
     ("About", [("About", "/about")]),
@@ -558,7 +559,7 @@ def whats_new_page(ctx):
     <div><b>Free</b><span>No account, no Pro tier</span></div>
   </div>
   <div class="wn wnmid">{lot('hero', 'SVG to Slides 1.3', 'Every clip on this page is drawn as a vector animation, using the Vacay.com pitch deck we use for demos.')}</div>
-  <div class="wnband"><p>Chrome updates the extension on its own. Check chrome://extensions for 1.4.0.</p><div class="ctas"><a class="btn btn-primary" href="{cws('whats-new', 'mid')}" data-cta="mid"><img src="/static/chrome-glyph.svg" alt="">Add to Chrome, free</a></div></div>
+  <div class="wnband"><p>Chrome updates the extension on its own. Check chrome://extensions for {PR.STORE}.</p><div class="ctas"><a class="btn btn-primary" href="{cws('whats-new', 'mid')}" data-cta="mid"><img src="/static/chrome-glyph.svg" alt="">Add to Chrome, free</a></div></div>
   <article class="about wn">
     <p>SVG to Slides started as a way to drop SVG files onto a slide as real shapes. Version 1.3 turns it into a set of drawing tools that work on any shape in the deck: a pen that draws curves and snaps them to a grid, exact stroke weights, text you can outline and use as a mask, union and subtract, a layers panel that reaches into nested groups and theme objects, and a command palette that lists all of it. The extension also got 92% smaller, and it no longer talks to a server.</p>
     <div class="rel">Version 1.3.0 &middot; November 2026</div>

@@ -14,7 +14,7 @@ _Free forever. Every feature, no daily cap, no account, no Pro tier._
 
 ## Reshape it after you insert it
 - Double-click any shape and click Edit Shape. A vector editor opens on the slide at the shape’s exact size, so you can drag its points and curve handles, add or remove points, round corners, and undo as you go. Click Done and the shape updates in place.
-- It works on Slides’ own shapes, lines and WordArt too. What’s new.
+- It works on Slides’ own shapes, lines and WordArt too. Every editing tool.
 
 ## Import an SVG without installing anything
 - Web uploader. Upload one or more SVG files at svgslid.es/convert and get a Google Drive link to a Slides-ready file, one slide per SVG. Good for bulk conversion.

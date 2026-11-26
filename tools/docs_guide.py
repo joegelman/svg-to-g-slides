@@ -5,11 +5,12 @@ existing copy (specs, what's new, privacy, convert, add-on) or the project's
 release notes. Don't add a claim that isn't backed by one of those.
 Markup: see site_docs.blocks().
 """
+import product as PR
 
 A13 = "SVG to Slides Chrome extension, version 1.3.0 and later"
 A14 = "SVG to Slides Chrome extension, version 1.4.0"
 A12 = "SVG to Slides Chrome extension, version 1.2.0 and later"
-AALL = "SVG to Slides Chrome extension, versions 1.0.0 through 1.4.0"
+AALL = f"SVG to Slides Chrome extension, versions 1.0.0 through {PR.VERSION}"
 AWEB = "SVG to Slides Web Uploader"
 AADD = "SVG to Slides Workspace Add-on for Google Slides"
 

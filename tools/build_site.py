@@ -18,6 +18,7 @@ import json
 import re
 from pathlib import Path
 
+import product as PR
 import site_content as C
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -273,6 +274,14 @@ def figure(p):
 
 VB = {"svgslides_recolor.json": ' data-viewbox="0 0 2080 1440" style="aspect-ratio:2080/1440"'}
 
+def shot(p):
+    """Hero media: a Lottie loop, or a recorded clip from /static/whats-new when the guide sets "video"."""
+    if p.get("video"):
+        v = p["video"]
+        return (f'<div class="shot"><video src="/static/whats-new/{v}.mp4" poster="/static/whats-new/{v}.jpg" autoplay muted loop '
+                f'playsinline preload="metadata" aria-label="{esc(p["img_alt"])}" style="display:block;width:100%;height:auto"></video></div>')
+    return f'<div class="shot"><div class="lot" data-lottie="/static/lottie/{p["lottie"]}"{VB.get(p["lottie"], "")}></div></div>'
+
 def landing_html(p, css, head_icons):
     slug, path = p["slug"], "/guides/" + p["slug"]
     cta = lambda pos, label="Add to Chrome &mdash; free": (
@@ -343,17 +352,17 @@ def landing_html(p, css, head_icons):
     <p class="lede">{p["lede"]}</p>
     <div class="ctas">
       {cta("hero")}
-      <a class="btn btn-ghost" href="/convert">Convert online instead</a>
+      <a class="btn btn-ghost" href="{p.get("alt", ("/convert", "Convert online instead"))[0]}">{p.get("alt", ("/convert", "Convert online instead"))[1]}</a>
     </div>
     <p class="free">{C.FREE_LINE}</p>
-    <div class="shot"><div class="lot" data-lottie="/static/lottie/{p["lottie"]}"{VB.get(p["lottie"], "")}></div></div>
+    {shot(p)}
     <p class="answer"><b>Short answer:</b> {p["answer"]}</p>
 {figure(p)}  </section>
   <div class="wrap"><hr class="rule" style="margin-top:56px"></div>
   {rule.join(body)}
   <div class="wrap"><hr class="rule"></div>
   <section class="wrap close">
-    <h2>Bring your SVGs into Google Slides&trade;.</h2>
+    <h2>{p.get("close", "Bring your SVGs into Google Slides&trade;.")}</h2>
     {cta("close")}
     <p class="free" style="margin-top:16px">{C.FREE_LINE}</p>
   </section>
@@ -366,7 +375,8 @@ def landing_html(p, css, head_icons):
 
 def landing_md(p):
     out = [f"# {plain(p['h1'])}", "", p_answer(p), "", f"_{C.FREE_LINE}_", "",
-           f"- Install the Chrome extension: {C.CWS}", f"- Online converter: {C.SITE}/convert", ""]
+           f"- Install the Chrome extension: {C.CWS}",
+           (f"- {plain(p['alt'][1])}: {C.SITE}{p['alt'][0]}" if p.get("alt") else f"- Online converter: {C.SITE}/convert"), ""]
     if p.get("howto"):
         out += ["## How to do it"] + [f"{i+1}. **{plain(t)}** {plain(d)}" for i, (t, d) in enumerate(p["howto"])] + [""]
     if p.get("compare"):
@@ -862,6 +872,10 @@ def main():
     wn, wn_md = P.whats_new_page(ctx)
     (STATIC / "whats-new.html").write_text(wn)
     (MD / "whats-new.md").write_text(wn_md)
+    import site_feature
+    ve, ve_md = site_feature.vector_editor_page(ctx)
+    (STATIC / "vector-editor.html").write_text(ve)
+    (MD / "vector-editor.md").write_text(ve_md)
     import site_specs
     specs, specs_md = site_specs.specs_page(ctx)
     (STATIC / "specs.html").write_text(specs)
@@ -902,7 +916,7 @@ def main():
     # 5. sitemap
     urls = [("/", "1.0"), ("/convert", "0.8"), ("/google-slides-addon", "0.8"), ("/guides", "0.9")] + [(f"/guides/{p['slug']}", "0.8") for p in C.PAGES] + \
            [("/blog", "0.7")] + [(f"/blog/{p['slug']}", "0.7") for p in B.POSTS] + \
-           [("/specs", "0.7"), ("/whats-new", "0.6"), ("/about", "0.5"), ("/support", "0.4"), ("/privacy", "0.2"), ("/terms", "0.2")]
+           [("/vector-editor", "0.8"), ("/specs", "0.7"), ("/whats-new", "0.6"), ("/about", "0.5"), ("/support", "0.4"), ("/privacy", "0.2"), ("/terms", "0.2")]
     urls.insert(urls.index(("/about", "0.5")), ("/features", "0.4"))
     DOC_PRI = {"start": "0.7", "guide": "0.7", "surfaces": "0.7", "reference": "0.7", "technical": "0.6", "kb": "0.6", "release": "0.6"}
     at = urls.index(("/blog", "0.7"))
@@ -943,12 +957,13 @@ def main():
     llms = [
         "# SVG to Slides", "",
         "> Free Chrome extension (plus web uploader and Google Slides add-on) that inserts SVG files into Google Slides as native, editable shapes. " + C.FREE_LINE, "",
-        "Google Slides doesn't keep SVG files as editable vectors. SVG to Slides converts every SVG path into its own native Slides shape, so users can recolor individual elements, edit points, animate shapes, and resize without losing quality. The shapes also work in Google Drawings. Since version 1.2 the extension also edits any shape's points and curves as SVG, directly on the slide. Version 1.3 adds drawing tools that work on any shape in the deck: a pen with grid snapping, exact stroke weights, outline text, image masks, union and subtract, a layers panel and a command palette. The extension converts every file inside the browser, and nothing is uploaded.", "",
+        PR.summary(), "",
         f"Product documentation (user's guide, shortcut and command reference, Knowledge Base, release notes): {C.SITE}/docs.md", "",
         f"- Install (Chrome Web Store): {C.CWS}",
         f"- Web uploader, no install: {C.SITE}/convert", "",
         "## Docs",
         f"- [Overview]({C.SITE}/index.md): what it does, how it works, limits",
+        f"- [Vector editor]({C.SITE}/vector-editor.md): every editing tool on one page: points, pen, combine, mask, outline, colour, layers",
         f"- [Guides index]({C.SITE}/guides.md)",
     ]
     llms += [f"- [{plain(p['nav'])}]({C.SITE}/guides/{p['slug']}.md): {plain(p['answer'])}" for p in C.PAGES]
@@ -969,7 +984,7 @@ def main():
     full = [(MD / "index.md").read_text(), (MD / "convert.md").read_text()]
     full += [(MD / "guides" / f"{p['slug']}.md").read_text() for p in C.PAGES]
     full += [(MD / "blog" / f"{p['slug']}.md").read_text() for p in B.POSTS]
-    full += [(MD / "whats-new.md").read_text(), (MD / "about.md").read_text()]
+    full += [(MD / "vector-editor.md").read_text(), (MD / "whats-new.md").read_text(), (MD / "about.md").read_text()]
     full += [m for _u, _t, _d, m in docs_listing[1:]]
     (STATIC / "llms-full.txt").write_text("\n\n---\n\n".join(full))
 
@@ -980,6 +995,8 @@ def main():
                  ld_block="", **ctx["common"]).replace('<meta name="viewport"', '<meta name="robots" content="noindex">\n  <meta name="viewport"', 1)
     (STATIC / "404.html").write_text(nf)
     polish_all()
+    import site_specs as SP
+    PR.check(STATIC, SP.EXT_VERSION)
     print("built", len(C.PAGES), "guides; featured:", P.featured_slug(), "; GA:", GA_ID or "(none)")
 
 if __name__ == "__main__":
