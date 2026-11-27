@@ -98,7 +98,8 @@ def _clip(c):
         media = (f'<video src="/static/whats-new/{name}.mp4" poster="/static/whats-new/{name}.jpg" autoplay muted loop '
                  f'playsinline preload="metadata" aria-label="{label}"></video>')
     else:
-        media = f'<div class="lot" data-lottie="/static/lottie/svgslides_{name}.json" style="aspect-ratio:16/9" role="img" aria-label="{label}"></div>'
+        ratio = "2080/1440" if name == "recolor" else "16/9"
+        media = f'<div class="lot" data-lottie="/static/lottie/svgslides_{name}.json" style="aspect-ratio:{ratio}" role="img" aria-label="{label}"></div>'
     return f'<div class="clip">{media}</div><p class="cap">{cap}</p>'
 
 
@@ -163,4 +164,120 @@ def vector_editor_page(ctx):
     md += ["## Where it runs",
            f"Chrome extension {PR.VERSION}, on Google Slides pages only. Chrome permissions: {PR.PERMISSIONS} "
            "Files are converted inside the browser; nothing is uploaded. The web uploader and the add-on insert SVGs but have no editing tools.", ""]
+    return doc, "\n".join(md)
+
+
+# ---------------------------------------------------------------------------
+# /teachers: the same tools, framed as classroom tasks, plus a section a
+# teacher can forward to school IT. The IT facts come from /privacy and the
+# docs topic permissions-privacy; product.py supplies version and permissions.
+# Keep both in step with /privacy when the extension's storage or network use
+# changes.
+
+T_TITLE = "SVG to Slides for Teachers: Clipart, Shapes and Photos in Google Slides"
+T_DESC = ("Recolour clipart to your class colours, make shapes the menu doesn't have, put photos in any shape, and "
+          "change a colour across a whole template in Google Slides. Free Chrome extension. Nothing is uploaded.")
+CWS_ID = C.CWS.rsplit("/", 1)[1]
+
+T_TASKS = [
+    ("clipart", "Recolour clipart to your class colours",
+     "Clipart often comes as an SVG file. Drag the .svg onto a slide and every part arrives as its own Slides shape. "
+     "Select one piece, recolour it with the regular fill picker, and resize it without losing quality.",
+     ("lot", "recolor", "Selecting one part of an imported SVG in Google Slides and recolouring it with the fill picker",
+      "Select one part, recolour it with the fill picker."),
+     "Check your clipart&rsquo;s terms first: some artists allow editable or moveable pieces only with an extended license.",
+     [("/guides/recolor-svg-in-google-slides", "Recolouring SVGs in Google Slides"),
+      ("/guides/insert-svg-into-google-slides", "Inserting an SVG, step by step")]),
+    ("shapes", "Make the shapes the menu doesn&rsquo;t have",
+     "Draw a shape point by point with the pen, or build one from shapes you already have: Union joins them, "
+     "Subtract cuts one out of another. To reshape anything later, double-click it and click <b>Edit Shape</b>.",
+     ("lot", "13_pen", "Drawing a curved wave shape with the pen while points and handles snap to a grid",
+      "Click for corners, drag for curves."),
+     None,
+     [("/guides/pen-tool-google-slides", "Pen tool for Google Slides"),
+      ("/guides/combine-shapes-google-slides", "Combine shapes in Google Slides"),
+      ("/guides/edit-points-google-slides", "Edit points in Google Slides")]),
+    ("photos", "Put a photo in any shape",
+     "Put a shape over a picture, select both, and mask. Any shape or group of shapes can be the mask, including "
+     "letters you have outlined, so a student photo can sit inside a star or the first letter of their name. "
+     "Double-click the result to move the photo under the shape.",
+     ("lot", "13_beach", "Typing BEACH in a heavy font, outlining it, and masking a beach photo with the letters",
+      "Type, outline, select both, mask."),
+     None,
+     [("/docs/mask-image", "Masking an image with a shape"), ("/docs/outline-stroke-text", "Outlining text")]),
+    ("templates", "Change one colour across a whole template",
+     "With nothing selected, open <b>Replace a colour</b>, pick the colour to change and the new one, and tick "
+     "<b>All slides</b>. Fills, strokes, gradient stops and text change, inside groups too, and one &#8984;Z undoes the lot.",
+     ("lot", "14_replace", "Replacing a teal with indigo across every slide of a Google Slides deck",
+      "Pick the colour, choose the new one, tick All slides."),
+     None,
+     [("/guides/replace-color-google-slides", "Replace a colour across Google Slides")]),
+]
+
+
+def _it_rows():
+    return [
+        ("Google account access", "None. The extension asks for no Google sign-in and no Google permission. It cannot read "
+                                  "Drive or reach presentations through Google&rsquo;s API."),
+        ("Chrome permissions", f"Version {PR.VERSION}: {PR.PERMISSIONS}"),
+        ("Files", "Converted inside the browser. Nothing is uploaded."),
+        ("Network", "One kind of request. Outline text downloads its font from Google Fonts. The request names the font "
+                    "family, weight and style, is sent without cookies, and carries no text, files or slide content."),
+        ("Stored on the computer", "Whether the toolbar and Layers are open, snapping settings, layer names, recent colours, "
+                                   "the original text of outlined text, the original outline of shapes whose stroke was moved, "
+                                   "and whether the update note was shown. Not synced. Removed with the extension."),
+        ("Tracking", "None in the extension. No account."),
+        ("Chrome Web Store ID", f"<code>{CWS_ID}</code>, for an allowlist or force-install in the Google Admin console."),
+    ]
+
+
+def teachers_page(ctx):
+    cws = P.cws
+    secs = []
+    for a, h, para, clip, note, links in T_TASKS:
+        more = " &middot; ".join(f'<a href="{u}">{t}</a>' for u, t in links)
+        secs.append(f"""    <h2 id="{a}">{h}</h2>
+    <p>{para}</p>
+    {_clip(clip)}""" + (f"\n    <p>{note}</p>" if note else "") + f"""
+    <p class="more">{more}</p>""")
+    it = "".join(f"<tr><td>{k}</td><td>{v}</td></tr>" for k, v in _it_rows())
+    body = f"""  <div class="wrap"><p class="crumb"><a href="/">SVG to Slides</a> &rsaquo; For teachers</p></div>
+  <section class="wrap phero wnp">
+    <h1>Classroom visuals, made in Google Slides&trade;.</h1>
+    <p class="lede">Recolour clipart to match your room, make the shapes the menu doesn&rsquo;t have, put a student photo in any shape, and change one colour across a whole template. SVG to Slides is a free Chrome extension. It converts files inside your browser, and nothing is uploaded.</p>
+    <div class="ctas"><a class="btn btn-primary" href="{cws('teachers', 'hero')}" data-cta="hero"><img src="/static/chrome-glyph.svg" alt="">Add to Chrome, free</a><a class="btn btn-ghost" href="#it">For your IT team</a></div>
+    <p class="free">{C.FREE_LINE}</p>
+  </section>
+  <article class="about wn">
+{chr(10).join(secs)}
+    <h2 id="it">For your school&rsquo;s IT team</h2>
+    <p>If your school limits Chrome extensions, send this section to whoever approves them. Where your school allows requests, you can also click <b>Request</b> on the extension&rsquo;s Chrome Web Store page.</p>
+    <table><tbody>{it}</tbody></table>
+    <p>The <a href="/convert">web uploader</a> and the <a href="/google-slides-addon">Workspace add-on</a> work differently: they send files to the svgslid.es server to convert. The extension is the one that uploads nothing.</p>
+    <p class="more"><a href="/privacy">Privacy policy</a> &middot; <a href="/docs/permissions-privacy">Permissions by version</a> &middot; <a href="/specs">Specs</a></p>
+  </article>
+  <div class="wrap"><hr class="rule" style="margin-top:56px"></div>
+  <section class="wrap close">
+    <h2>Use it in your next lesson.</h2>
+    <div class="ctas"><a class="btn btn-primary" href="{cws('teachers', 'close')}" data-cta="close"><img src="/static/chrome-glyph.svg" alt="">Add to Chrome, free</a><a class="btn btn-ghost" href="/vector-editor">Every editing tool</a></div>
+  </section>"""
+    ld = [{"@context": "https://schema.org", "@type": "WebPage", "name": "SVG to Slides for teachers",
+           "url": C.SITE + "/teachers", "description": T_DESC, "about": {"@id": C.SITE + "/#app"},
+           "audience": {"@type": "EducationalAudience", "educationalRole": "teacher"}},
+          ctx["crumbs"]([("For teachers", "/teachers")])]
+    css = ".wn .more{font-size:15px;margin:-.4em 0 2em}.wn .more a{color:var(--blue-ink,#0b57d0)}.wn td:first-child{white-space:nowrap;vertical-align:top;font-weight:600}.wn code{font-size:13px;word-break:break-all}@media (max-width:560px){.wn td:first-child{white-space:normal;width:36%}}"
+    doc = P.shell(title=T_TITLE, desc=T_DESC, path="/teachers", body=body, md="/teachers.md",
+                  extra_css=P.ABOUT_CSS + P.WHATS_NEW_CSS + css, campaign="teachers",
+                  ld_block=ctx["ld_block"](ld), tail=ctx["lottie_js"], **ctx["common"])
+    import re
+    strip = lambda s: re.sub(r"<[^>]+>", "", s).replace("&rsquo;", "'").replace("&#8984;", "Command+").replace("&middot;", "·").replace("&trade;", "™")
+    md = ["# Classroom visuals, made in Google Slides", "",
+          "Recolour clipart to match your room, make the shapes the menu doesn't have, put a student photo in any shape, and "
+          "change one colour across a whole template. SVG to Slides is a free Chrome extension. It converts files inside "
+          "your browser, and nothing is uploaded.", "", f"_{C.FREE_LINE}_ Install: {C.CWS}", ""]
+    for a, h, para, clip, note, links in T_TASKS:
+        md += [f"## {strip(h)}", strip(para)] + ([strip(note)] if note else []) + [""] + [f"- {strip(t)}: {C.SITE}{u}" for u, t in links] + [""]
+    md += ["## For your school's IT team", ""] + [f"- {strip(k)}: {strip(v)}" for k, v in _it_rows()]
+    md += ["", "The web uploader and the Workspace add-on send files to the svgslid.es server to convert. The extension uploads nothing.",
+           f"Privacy policy: {C.SITE}/privacy · Permissions by version: {C.SITE}/docs/permissions-privacy.md", ""]
     return doc, "\n".join(md)

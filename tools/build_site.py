@@ -876,6 +876,9 @@ def main():
     ve, ve_md = site_feature.vector_editor_page(ctx)
     (STATIC / "vector-editor.html").write_text(ve)
     (MD / "vector-editor.md").write_text(ve_md)
+    te, te_md = site_feature.teachers_page(ctx)
+    (STATIC / "teachers.html").write_text(te)
+    (MD / "teachers.md").write_text(te_md)
     import site_specs
     specs, specs_md = site_specs.specs_page(ctx)
     (STATIC / "specs.html").write_text(specs)
@@ -916,7 +919,7 @@ def main():
     # 5. sitemap
     urls = [("/", "1.0"), ("/convert", "0.8"), ("/google-slides-addon", "0.8"), ("/guides", "0.9")] + [(f"/guides/{p['slug']}", "0.8") for p in C.PAGES] + \
            [("/blog", "0.7")] + [(f"/blog/{p['slug']}", "0.7") for p in B.POSTS] + \
-           [("/vector-editor", "0.8"), ("/specs", "0.7"), ("/whats-new", "0.6"), ("/about", "0.5"), ("/support", "0.4"), ("/privacy", "0.2"), ("/terms", "0.2")]
+           [("/vector-editor", "0.8"), ("/teachers", "0.7"), ("/specs", "0.7"), ("/whats-new", "0.6"), ("/about", "0.5"), ("/support", "0.4"), ("/privacy", "0.2"), ("/terms", "0.2")]
     urls.insert(urls.index(("/about", "0.5")), ("/features", "0.4"))
     DOC_PRI = {"start": "0.7", "guide": "0.7", "surfaces": "0.7", "reference": "0.7", "technical": "0.6", "kb": "0.6", "release": "0.6"}
     at = urls.index(("/blog", "0.7"))
@@ -964,6 +967,7 @@ def main():
         "## Docs",
         f"- [Overview]({C.SITE}/index.md): what it does, how it works, limits",
         f"- [Vector editor]({C.SITE}/vector-editor.md): every editing tool on one page: points, pen, combine, mask, outline, colour, layers",
+        f"- [For teachers]({C.SITE}/teachers.md): classroom tasks, and the permissions and privacy facts school IT asks for",
         f"- [Guides index]({C.SITE}/guides.md)",
     ]
     llms += [f"- [{plain(p['nav'])}]({C.SITE}/guides/{p['slug']}.md): {plain(p['answer'])}" for p in C.PAGES]
@@ -984,7 +988,7 @@ def main():
     full = [(MD / "index.md").read_text(), (MD / "convert.md").read_text()]
     full += [(MD / "guides" / f"{p['slug']}.md").read_text() for p in C.PAGES]
     full += [(MD / "blog" / f"{p['slug']}.md").read_text() for p in B.POSTS]
-    full += [(MD / "vector-editor.md").read_text(), (MD / "whats-new.md").read_text(), (MD / "about.md").read_text()]
+    full += [(MD / "vector-editor.md").read_text(), (MD / "teachers.md").read_text(), (MD / "whats-new.md").read_text(), (MD / "about.md").read_text()]
     full += [m for _u, _t, _d, m in docs_listing[1:]]
     (STATIC / "llms-full.txt").write_text("\n\n---\n\n".join(full))
 
