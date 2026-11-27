@@ -32,7 +32,7 @@ def nav_html(campaign, logo_svg):
 # --------------------------------------------------------------- footer
 FOOTER_COLS = [
     ("Products", [("Chrome Extension", "CWS"), ("Vector Editor", "/vector-editor"), ("Workspace Add-on", "/google-slides-addon"), ("Web Uploader", "/convert")]),
-    ("Resources", [("Guides", "/guides"), ("Docs", "/docs"), ("Specs", "/specs"), ("Blog", "/blog")]),
+    ("Resources", [("Guides", "/guides"), ("Docs", "/docs"), ("Specs", "/specs"), ("Blog", "/blog"), ("For Teachers", "/teachers")]),
     ("Details", [("Privacy", "/privacy"), ("Terms", "/terms")]),
     ("About", [("About", "/about")]),
     ("Contact", [("joe@glmn.co", "mailto:joe@glmn.co"), ("Support", "/support")]),
